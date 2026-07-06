@@ -1,5 +1,4 @@
-
-        # Photon Uf App
+# Photon Uf App
 
         [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -16,18 +15,16 @@
         ```rust
         # Official photon admin UI (Leptos)
 # Enable from your host app via git dependency.
-        ```
+        ```## Workspace
 
-        ## Workspace
+| Crate | Role |
+|-------|------|
+| `photon-app` | photon-app crate |
 
-        | Crate | Role |
-        |-------|------|
-        | `photon-app` | photon-app crate |
+## Verify
 
-        ## Verify
+```bash
+cargo check --workspace
+```
 
-        ```bash
-        cargo check --workspace
-        ```
-
-        See [EXTRACTION.md](EXTRACTION.md) for the phased import plan.
+See [EXTRACTION.md](EXTRACTION.md) for the phased import plan.
