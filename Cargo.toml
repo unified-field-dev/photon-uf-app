@@ -1,0 +1,25 @@
+
+        [workspace]
+        resolver = "2"
+        members = ["photon-app"]
+
+        [workspace.package]
+        version = "0.1.0"
+        edition = "2021"
+        license = "MIT"
+
+        [workspace.dependencies]
+        valence = { git = "https://github.com/deathbreakfast/valence", tag = "v0.1.0" }
+chronon = { git = "https://github.com/deathbreakfast/chronon", tag = "v0.1.5", default-features = false }
+boson = { git = "https://github.com/deathbreakfast/boson", tag = "v0.1.5", default-features = false }
+photon = { git = "https://github.com/deathbreakfast/photon", tag = "v0.1.0", default-features = false }
+spectra = { git = "https://github.com/deathbreakfast/spectra", branch = "main", default-features = false }
+continuum = { git = "https://github.com/deathbreakfast/continuum", tag = "v0.1.0", default-features = false }
+quark = { git = "https://github.com/deathbreakfast/quark", tag = "v0.1.1" }
+orbital = { git = "https://github.com/deathbreakfast/orbital", branch = "main", default-features = false }
+soliton = { git = "https://github.com/deathbreakfast/soliton", branch = "main" }
+higgs = { git = "https://github.com/deathbreakfast/higgs", branch = "main", default-features = false }
+leptos = { version = "0.8", default-features = false, features = ["nightly"] }
+anyhow = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+serde = { version = "1", features = ["derive"] }
