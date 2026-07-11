@@ -1,0 +1,283 @@
+use proc_macro::TokenStream;
+use quote::{format_ident, quote};
+use syn::{
+    parse::{Parse, ParseStream},
+    punctuated::Punctuated,
+    Expr, Ident, Result, Token,
+};
+
+/// Represents the parsed structure of an orbital_app! macro invocation
+struct OrbitalAppDefinition {
+    fields: Vec<AppField>,
+}
+
+struct AppField {
+    name: Ident,
+    value: Expr,
+}
+
+impl Parse for OrbitalAppDefinition {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let fields = Punctuated::<AppField, Token![,]>::parse_terminated(input)?;
+        Ok(OrbitalAppDefinition {
+            fields: fields.into_iter().collect(),
+        })
+    }
+}
+
+impl Parse for AppField {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let name: Ident = input.parse()?;
+        input.parse::<Token![:]>()?;
+        let value: Expr = input.parse()?;
+        Ok(AppField { name, value })
+    }
+}
+
+pub fn expand_orbital_app(input: TokenStream) -> TokenStream {
+    let app_def = match syn::parse::<OrbitalAppDefinition>(input) {
+        Ok(def) => def,
+        Err(e) => return e.to_compile_error().into(),
+    };
+
+    // Extract fields
+    let mut name = None;
+    let mut id = None;
+    let mut description = None;
+    let mut icon = None;
+    let mut version = None;
+    let mut _permissions = None;
+    let mut _navigation = None;
+    let mut route_path_param = None;
+    let mut route_view = None;
+    let mut routes_component = None;
+    let mut permission_manifest = None;
+    let mut brand_seed = None;
+
+    for field in &app_def.fields {
+        match field.name.to_string().as_str() {
+            "name" => name = Some(&field.value),
+            "id" => id = Some(&field.value),
+            "description" => description = Some(&field.value),
+            "icon" => icon = Some(&field.value),
+            "version" => version = Some(&field.value),
+            "permissions" => _permissions = Some(&field.value),
+            "navigation" => _navigation = Some(&field.value),
+            "route_path" => route_path_param = Some(&field.value),
+            "route_view" => route_view = Some(&field.value),
+            "routes" => routes_component = Some(&field.value),
+            "permission_manifest" => permission_manifest = Some(&field.value),
+            "brand_seed" => brand_seed = Some(&field.value),
+            _ => {
+                return syn::Error::new_spanned(
+                    &field.name,
+                    format!("Unknown field: {}", field.name),
+                )
+                .to_compile_error()
+                .into()
+            }
+        }
+    }
+
+    // ID is required for route registration
+    let id_value = match id {
+        Some(Expr::Lit(lit)) => {
+            if let syn::Lit::Str(s) = &lit.lit {
+                s.value()
+            } else {
+                return syn::Error::new_spanned(lit, "id must be a string literal")
+                    .to_compile_error()
+                    .into();
+            }
+        }
+        _ => {
+            return syn::Error::new(
+                proc_macro2::Span::call_site(),
+                "id field is required and must be a string literal",
+            )
+            .to_compile_error()
+            .into();
+        }
+    };
+
+    // Generate route function name from app ID in PascalCase
+    // Convert "counter" -> "Counter", "my-app" -> "MyApp", etc.
+    let route_fn_name = {
+        let pascal_case: String = id_value
+            .split(|c: char| c == '-' || c == '_' || c == ' ')
+            .filter(|s| !s.is_empty())
+            .map(|word| {
+                let mut chars = word.chars();
+                match chars.next() {
+                    None => String::new(),
+                    Some(first) => {
+                        let mut result = first.to_uppercase().to_string();
+                        result.push_str(chars.as_str());
+                        result
+                    }
+                }
+            })
+            .collect();
+        format_ident!("{}Routes", pascal_case)
+    };
+
+    // Determine route_path for inventory - use provided route_path_param, or default to "/{id}"
+    let route_path_value = if let Some(rp) = route_path_param {
+        // Extract string literal value if it's a string literal, otherwise use as-is
+        match rp {
+            Expr::Lit(lit) => {
+                if let syn::Lit::Str(s) = &lit.lit {
+                    quote! { #s }
+                } else {
+                    quote! { #rp }
+                }
+            }
+            _ => quote! { #rp },
+        }
+    } else {
+        // Default to "/{id}"
+        let default_path = format!("/{}", id_value);
+        let path_lit = syn::LitStr::new(&default_path, proc_macro2::Span::call_site());
+        quote! { #path_lit }
+    };
+
+    // Generate route registration if route fields are provided
+    let route_registration =
+        if let (Some(path_expr), Some(view_expr)) = (route_path_param, route_view) {
+            quote! {
+                /// Transparent route component generated by orbital_app! macro
+                ///
+                /// This component can be used within a Router's Routes to automatically
+                /// register this app's routes.
+                #[::leptos::prelude::component(transparent)]
+                pub fn #route_fn_name() -> impl ::leptos_router::MatchNestedRoutes + Clone {
+                    use ::leptos::prelude::*;
+                    use ::leptos_router::{components::*, path};
+
+                    view! {
+                        <Route path=path!(#path_expr) view=#view_expr />
+                    }.into_inner()
+                }
+            }
+        } else {
+            quote! {}
+        };
+
+    // Generate the app metadata struct
+    let permission_manifest_expr = if let Some(manifest_ty) = permission_manifest {
+        quote! {
+            Some(<#manifest_ty as ::orbital::AppPermissionManifestProvider>::manifest)
+        }
+    } else {
+        quote! { None }
+    };
+
+    let brand_seed_expr = if let Some(seed_expr) = brand_seed {
+        quote! { Some(#seed_expr) }
+    } else {
+        quote! { None }
+    };
+
+    let expanded = quote! {
+        /// Application metadata generated by orbital_app! macro
+        pub struct AppMetadata;
+
+        impl AppMetadata {
+            pub const NAME: &'static str = #name;
+            pub const ID: &'static str = #id;
+            pub const DESCRIPTION: &'static str = #description;
+            pub const ICON: &'static str = #icon;
+            pub const VERSION: &'static str = #version;
+
+            /// Get the application name
+            pub fn name() -> &'static str {
+                Self::NAME
+            }
+
+            /// Get the application ID
+            pub fn id() -> &'static str {
+                Self::ID
+            }
+
+            /// Get the application description
+            pub fn description() -> &'static str {
+                Self::DESCRIPTION
+            }
+
+            /// Get the application icon
+            pub fn icon() -> &'static str {
+                Self::ICON
+            }
+
+            /// Get the application version
+            pub fn version() -> &'static str {
+                Self::VERSION
+            }
+        }
+    };
+
+    // Add routes() method if routes_component is provided
+    // Since route components are functions that return impl MatchNestedRoutes + Clone,
+    // we can't easily store them as types. Instead, we'll add a method that documents
+    // how to access the routes and provides the component identifier.
+    //
+    // Actually, route components MUST be used in JSX syntax (<Component />), so
+    // we can't really return them from a method in a useful way. The best we can do
+    // is provide documentation. However, we could add a type alias for convenience.
+    let routes_method = if let Some(routes_comp) = routes_component {
+        quote! {
+            impl AppMetadata {
+                /// Get the route component as a MatchNestedRoutes + Clone
+                ///
+                /// This returns the result of calling the route component function.
+                /// However, note that route components are typically used in JSX syntax
+                /// within a `<Routes>` component for proper integration with Leptos Router.
+                ///
+                /// Example:
+                /// ```ignore
+                /// // Direct usage (recommended):
+                /// use counter_app::CounterRoutes;
+                /// view! {
+                ///     <Routes>
+                ///         <CounterRoutes />
+                ///     </Routes>
+                /// }
+                ///
+                /// // Or through AppMetadata:
+                /// use counter_app::AppMetadata;
+                /// let routes = AppMetadata::routes();
+                /// // Note: This still needs to be used in JSX syntax within Routes
+                /// ```
+                pub fn routes() -> impl ::leptos_router::MatchNestedRoutes + Clone {
+                    #routes_comp()
+                }
+            }
+        }
+    } else {
+        quote! {}
+    };
+
+    let expanded = quote! {
+        #expanded
+        #routes_method
+
+        #route_registration
+
+        // Register app metadata with inventory (SSR only - doesn't work in WASM)
+        // This registration always happens, not just when routes are provided
+        #[cfg(feature = "ssr")]
+        ::orbital::inventory::submit! {
+            ::orbital::AppRegistration {
+                id: #id,
+                name: #name,
+                description: #description,
+                icon: #icon,
+                route_path: #route_path_value,
+                brand_seed: #brand_seed_expr,
+                permission_manifest: #permission_manifest_expr,
+            }
+        }
+    };
+
+    expanded.into()
+}

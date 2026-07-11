@@ -1,0 +1,25 @@
+[package]
+name = "uf-integrations"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+doctest = false
+
+[dependencies]
+leptos = { workspace = true }
+icondata = { workspace = true }
+turf = { workspace = true }
+
+orbital = { workspace = true, default-features = false, features = ["preview"] }
+
+[features]
+default = []
+hydrate = ["leptos/hydrate", "orbital/hydrate"]
+ssr = ["leptos/ssr", "orbital/ssr"]
+
+[package.metadata.turf]
+minify = true
+
+[package.metadata.turf-dev]
+minify = false

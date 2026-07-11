@@ -1,25 +1,41 @@
+[workspace]
+resolver = "2"
+members = [
+    "photon-app",
+    "uf-integrations",
+    "uf-product-macros",
+]
 
-        [workspace]
-        resolver = "2"
-        members = ["photon-app"]
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
 
-        [workspace.package]
-        version = "0.1.0"
-        edition = "2021"
-        license = "MIT"
+[workspace.dependencies]
+leptos = { version = "=0.8.5", default-features = false, features = ["nightly"] }
+leptos_meta = { version = "=0.8.5", default-features = false }
+leptos_router = { version = "=0.8.5", default-features = false, features = ["nightly"] }
+leptos_axum = { version = "=0.8.5", default-features = false }
+leptos_config = { version = "=0.8.5", default-features = false }
+leptos_dom = { version = "=0.8.5", default-features = false }
+leptos_integration_utils = { version = "=0.8.5", default-features = false }
+leptos_macro = { version = "=0.8.5", default-features = false }
+leptos_server = { version = "=0.8.5", default-features = false }
 
-        [workspace.dependencies]
-        valence = { git = "https://github.com/deathbreakfast/valence", tag = "v0.1.0" }
-chronon = { git = "https://github.com/deathbreakfast/chronon", tag = "v0.1.5", default-features = false }
-boson = { git = "https://github.com/deathbreakfast/boson", tag = "v0.1.5", default-features = false }
-photon = { git = "https://github.com/deathbreakfast/photon", tag = "v0.1.0", default-features = false }
-spectra = { git = "https://github.com/deathbreakfast/spectra", branch = "main", default-features = false }
-continuum = { git = "https://github.com/deathbreakfast/continuum", tag = "v0.1.0", default-features = false }
-quark = { git = "https://github.com/deathbreakfast/quark", tag = "v0.1.1" }
-orbital = { git = "https://github.com/deathbreakfast/orbital", branch = "main", default-features = false }
-soliton = { git = "https://github.com/deathbreakfast/soliton", branch = "main" }
-higgs = { git = "https://github.com/deathbreakfast/higgs", branch = "main", default-features = false }
-leptos = { version = "0.8", default-features = false, features = ["nightly"] }
-anyhow = "1"
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+icondata = { version = "0.4.0", default-features = false, features = ["ant-design-icons", "box-icons", "lucide"] }
+icondata_core = "0.1.0"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+turf = "0.10"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std", "wasmbind", "serde"] }
+
+photon = { git = "https://github.com/deathbreakfast/photon", rev = "8eed155cffc108e8e6989aea99b0d42040805365", default-features = false }
+photon-valence-admin = { git = "https://github.com/deathbreakfast/photon-valence-admin", rev = "979c7427bdb8f7a772e73ad91cf14ae88a9c7fe8" }
+valence = { git = "https://github.com/deathbreakfast/valence", rev = "fcf891c6c93b350a2b42f54754241b092f7c130a", default-features = false, features = ["mem"] }
+higgs = { git = "https://github.com/deathbreakfast/higgs", rev = "d990a66e034fa0e8215136a4181c4765b91ed17c", default-features = false }
+
+orbital = { git = "https://github.com/deathbreakfast/orbital", rev = "2815678421984f854e2690c6e13d45bc6512ae38", default-features = false }
+orbital-macros = { git = "https://github.com/deathbreakfast/orbital", rev = "2815678421984f854e2690c6e13d45bc6512ae38" }
+
+uf-integrations = { path = "uf-integrations", default-features = false }
+uf-product-macros = { path = "uf-product-macros" }
