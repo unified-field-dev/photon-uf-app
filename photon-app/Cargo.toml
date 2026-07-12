@@ -25,6 +25,9 @@ orbital = { workspace = true, default-features = false }
 uf-integrations = { workspace = true, default-features = false }
 orbital-macros = { workspace = true }
 uf-product-macros = { workspace = true }
+uf-ssr = { workspace = true, optional = true }
+inventory = { workspace = true, optional = true }
+uf-app-registry = { workspace = true, optional = true }
 
 photon = { workspace = true, optional = true }
 photon-valence-admin = { workspace = true, optional = true }
@@ -44,9 +47,15 @@ ssr = [
     "uf-integrations/ssr",
     "dep:photon",
     "photon/ssr",
+    "photon/mem",
     "dep:photon-valence-admin",
     "dep:chrono",
     "dep:valence",
+    "valence/ssr",
     "dep:higgs",
     "higgs/ssr",
+    "dep:uf-ssr",
+    "uf-ssr/ssr",
+    "dep:inventory",
+    "dep:uf-app-registry",
 ]

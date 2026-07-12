@@ -37,7 +37,7 @@ impl Parse for ServerArgs {
 ///
 /// This macro:
 /// 1. Extracts the function name to use as the operation label
-/// 2. Wraps the function body with `orbital::ssr::with_operation()`
+/// 2. Wraps the function body with `uf_ssr::ssr::with_operation()`
 /// 3. Passes through any `#[server(...)]` attributes
 ///
 /// # Example
@@ -55,7 +55,7 @@ impl Parse for ServerArgs {
 /// ```ignore
 /// #[server]
 /// pub async fn counter_get() -> Result<CounterResponse, ServerFnError> {
-///     orbital::ssr::with_operation("counter_get", async move {
+///     uf_ssr::ssr::with_operation("counter_get", async move {
 ///         let v = orbital::ssr::valence().await?;
 ///         // ... function body ...
 ///     }).await
@@ -104,7 +104,7 @@ pub fn expand_server(attr: TokenStream, input: TokenStream) -> TokenStream {
     let sig = &input_fn.sig;
     let fn_name_str_lit = syn::LitStr::new(&fn_name_str, proc_macro2::Span::call_site());
 
-    let has_permission_arg = args.permission.is_some();
+    let _has_permission_arg = args.permission.is_some();
     let permission_guard = if let Some(permission) = args.permission {
         quote! {
             #[cfg(feature = "ssr")]
@@ -129,16 +129,16 @@ pub fn expand_server(attr: TokenStream, input: TokenStream) -> TokenStream {
         quote! {}
     };
 
-    let wrapped_body = if has_permission_arg {
+    let wrapped_body = if _has_permission_arg {
         quote! {
-            higgs::server_runtime::with_operation(#fn_name_str_lit, async move {
+            uf_ssr::ssr::with_operation(#fn_name_str_lit, async move {
                 #permission_guard
                 #body
             }).await
         }
     } else {
         quote! {
-            orbital::ssr::with_operation(#fn_name_str_lit, async move {
+            uf_ssr::ssr::with_operation(#fn_name_str_lit, async move {
                 #body
             }).await
         }

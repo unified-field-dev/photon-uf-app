@@ -153,7 +153,7 @@ fn AppBarBranding(app_name: String, avatar_letter: String, homepage_url: String)
 #[component]
 fn AppBarBreadcrumbs(breadcrumbs: Vec<BreadcrumbLink>) -> impl IntoView {
     if breadcrumbs.is_empty() {
-        return view! { <></> }.into_any();
+        return ().into_any();
     }
 
     view! {

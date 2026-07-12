@@ -1,0 +1,9 @@
+[package]
+name = "uf-app-registry"
+version = "0.1.0"
+edition = "2021"
+description = "App metadata inventory registration for standalone uf-app repos"
+license = "MIT"
+
+[dependencies]
+inventory = "0.3"

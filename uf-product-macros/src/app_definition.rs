@@ -104,7 +104,7 @@ pub fn expand_orbital_app(input: TokenStream) -> TokenStream {
     // Convert "counter" -> "Counter", "my-app" -> "MyApp", etc.
     let route_fn_name = {
         let pascal_case: String = id_value
-            .split(|c: char| c == '-' || c == '_' || c == ' ')
+            .split(['-', '_', ' '])
             .filter(|s| !s.is_empty())
             .map(|word| {
                 let mut chars = word.chars();
@@ -266,8 +266,8 @@ pub fn expand_orbital_app(input: TokenStream) -> TokenStream {
         // Register app metadata with inventory (SSR only - doesn't work in WASM)
         // This registration always happens, not just when routes are provided
         #[cfg(feature = "ssr")]
-        ::orbital::inventory::submit! {
-            ::orbital::AppRegistration {
+        ::inventory::submit! {
+            ::uf_app_registry::AppRegistration {
                 id: #id,
                 name: #name,
                 description: #description,

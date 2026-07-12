@@ -1,0 +1,16 @@
+[package]
+name = "uf-ssr"
+version = "0.1.0"
+edition = "2021"
+description = "SSR Valence context helpers for standalone uf-app workspaces (Higgs-backed)"
+license = "MIT"
+
+[dependencies]
+higgs = { workspace = true }
+leptos = { workspace = true, default-features = false }
+uf-host = { git = "https://github.com/deathbreakfast/valence-platform", rev = "8e8a4e7", default-features = false }
+valence = { workspace = true, default-features = false }
+
+[features]
+default = []
+ssr = ["higgs/ssr", "uf-host/ssr", "leptos/ssr"]

@@ -64,6 +64,18 @@ pub struct EventDetail {
 }
 
 #[cfg(feature = "ssr")]
+fn photon_from_context() -> Result<std::sync::Arc<photon::Photon>, ServerFnError> {
+    use leptos::prelude::*;
+    leptos::context::use_context::<std::sync::Arc<photon::Photon>>()
+        .ok_or_else(|| ServerFnError::new("Photon not in request context"))
+}
+
+#[cfg(feature = "ssr")]
+async fn system_valence() -> Result<valence::Valence, ServerFnError> {
+    uf_ssr::ssr::system_valence().await
+}
+
+#[cfg(feature = "ssr")]
 fn map_event_summary(e: photon_valence_admin::persistence::DbEvent) -> EventSummary {
     EventSummary {
         event_id: e.id().map(|x| x.to_string()).unwrap_or_default(),
@@ -82,9 +94,8 @@ fn map_event_summary(e: photon_valence_admin::persistence::DbEvent) -> EventSumm
 /// Get dashboard stats (topic count, subscription count, event count 24h).
 #[uf_product_macros::server]
 pub async fn get_dashboard_stats() -> Result<DashboardStats, ServerFnError> {
-    let ctx = higgs::Higgs::from_request().await?;
-    let photon = ctx.photon()?;
-    let valence = ctx.system_valence();
+    let photon = photon_from_context()?;
+    let valence = system_valence().await?;
 
     let registry = photon.registry();
     let topic_count = registry.len() as u32;
@@ -111,8 +122,7 @@ pub async fn get_dashboard_stats() -> Result<DashboardStats, ServerFnError> {
 /// Get recent events for dashboard.
 #[uf_product_macros::server]
 pub async fn get_recent_events(limit: u32) -> Result<Vec<EventSummary>, ServerFnError> {
-    let ctx = higgs::Higgs::from_request().await?;
-    let valence = ctx.system_valence();
+    let valence = system_valence().await?;
 
     let events = photon_valence_admin::persistence::EventStore::list_recent(&valence, limit as usize)
         .await
@@ -125,9 +135,8 @@ pub async fn get_recent_events(limit: u32) -> Result<Vec<EventSummary>, ServerFn
 /// Get all topics (from registry + optional DB counts).
 #[uf_product_macros::server]
 pub async fn get_topics() -> Result<Vec<TopicSummary>, ServerFnError> {
-    let ctx = higgs::Higgs::from_request().await?;
-    let photon = ctx.photon()?;
-    let valence = ctx.system_valence();
+    let photon = photon_from_context()?;
+    let valence = system_valence().await?;
 
     let registry = photon.registry();
     let mut topics = Vec::new();
@@ -172,8 +181,7 @@ pub async fn get_topic(topic_name: String) -> Result<Option<TopicSummary>, Serve
 /// Get all subscriptions.
 #[uf_product_macros::server]
 pub async fn get_subscriptions() -> Result<Vec<SubscriptionSummary>, ServerFnError> {
-    let ctx = higgs::Higgs::from_request().await?;
-    let valence = ctx.system_valence();
+    let valence = system_valence().await?;
 
     let subs = photon_valence_admin::persistence::SubscriptionStore::list(&valence)
         .await
@@ -222,8 +230,7 @@ pub async fn get_events(
     topic_name: Option<String>,
     limit: u32,
 ) -> Result<Vec<EventSummary>, ServerFnError> {
-    let ctx = higgs::Higgs::from_request().await?;
-    let valence = ctx.system_valence();
+    let valence = system_valence().await?;
 
     let events = if let Some(topic) = &topic_name {
         photon_valence_admin::persistence::EventStore::list_by_topic(&valence, topic, None, None, limit as usize)
@@ -242,9 +249,8 @@ pub async fn get_events(
 /// Get a single event by ID.
 #[uf_product_macros::server]
 pub async fn get_event(id: String) -> Result<Option<EventDetail>, ServerFnError> {
-    let ctx = higgs::Higgs::from_request().await?;
-    let photon = ctx.photon()?;
-    let valence = ctx.system_valence();
+    let photon = photon_from_context()?;
+    let valence = system_valence().await?;
 
     let meta = photon_valence_admin::persistence::EventStore::get_by_id(&valence, &id)
         .await
