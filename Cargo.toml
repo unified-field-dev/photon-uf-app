@@ -15,14 +15,14 @@ license = "MIT"
 
 [workspace.dependencies]
 leptos = { version = "0.8.20", default-features = false, features = ["nightly"] }
-leptos_meta = { version = "0.8.20", default-features = false }
-leptos_router = { version = "0.8.20", default-features = false, features = ["nightly"] }
-leptos_axum = { version = "0.8.20", default-features = false }
-leptos_config = { version = "0.8.20", default-features = false }
-leptos_dom = { version = "0.8.20", default-features = false }
+leptos_meta = { version = "0.8", default-features = false }
+leptos_router = { version = "0.8", default-features = false, features = ["nightly"] }
+leptos_axum = { version = "0.8", default-features = false }
+leptos_config = { version = "0.8", default-features = false }
+leptos_dom = { version = "0.8", default-features = false }
 leptos_integration_utils = { version = "=0.8.5", default-features = false }
-leptos_macro = { version = "0.8.20", default-features = false }
-leptos_server = { version = "0.8.20", default-features = false }
+leptos_macro = { version = "0.8", default-features = false }
+leptos_server = { version = "0.8", default-features = false }
 
 icondata = { version = "0.4.0", default-features = false, features = ["ant-design-icons", "box-icons", "lucide"] }
 icondata_core = "0.1.0"
