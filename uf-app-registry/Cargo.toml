@@ -5,5 +5,8 @@ edition = "2021"
 description = "App metadata inventory registration for standalone uf-app repos"
 license = "MIT"
 
+[lints]
+workspace = true
+
 [dependencies]
 inventory = "0.3"

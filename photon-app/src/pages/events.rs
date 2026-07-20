@@ -6,6 +6,7 @@ use orbital::primitives::*;
 use crate::components::{EventFilterToolbar, EventsTable};
 use crate::server::{get_events, get_topics};
 
+/// Event index: filterable, paginated list of events across all topics.
 #[component]
 pub fn PhotonEventsIndexPage() -> impl IntoView {
     let _navigate = use_navigate();

@@ -6,6 +6,7 @@ use orbital::primitives::*;
 use crate::components::{ActiveSubscriptionsTable, EventsTable, PhotonStatsGrid};
 use crate::server::{get_dashboard_stats, get_recent_events, get_subscriptions};
 
+/// Photon dashboard: aggregate stats, recent events, and active subscriptions at a glance.
 #[component]
 pub fn PhotonDashboardPage() -> impl IntoView {
     let navigate = use_navigate();

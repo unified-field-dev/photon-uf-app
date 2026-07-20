@@ -1,4 +1,46 @@
 //! Lightweight Unified Field shell integrations for exported app crates.
+//!
+//! When a Unified Field app (Photon, Boson, Chronon, …) is exported and run standalone rather
+//! than mounted inside the full product shell, it still needs a page chrome — a header bar,
+//! optional sidebar, and breadcrumbs. This crate provides a minimal drop-in replacement for
+//! that chrome built directly on [`orbital`] primitives, so exported apps don't have to pull in
+//! the full product shell just to render a header.
+//!
+//! ## Features
+//!
+//! - **[`UnifiedFieldShellLayout`]** — a minimal page layout with optional app-bar and sidebar
+//!   slots ([`ShellAppBar`], [`ShellLeftNav`]).
+//! - **[`UnifiedFieldAppBar`]** — a compact app bar with branding (avatar + name),
+//!   breadcrumbs ([`BreadcrumbLink`]), and an optional sidebar toggle.
+//! - **[`ShellSidebarToggle`]** context flag so [`UnifiedFieldAppBar`] knows whether to render
+//!   the sidebar toggle without every call site having to pass it explicitly.
+//!
+//! ## Getting started
+//!
+//! ```rust,ignore
+//! use leptos::prelude::*;
+//! use uf_integrations::{ShellAppBar, UnifiedFieldAppBar, UnifiedFieldShellLayout};
+//!
+//! #[component]
+//! fn App() -> impl IntoView {
+//!     view! {
+//!         <UnifiedFieldShellLayout>
+//!             <ShellAppBar slot>
+//!                 <UnifiedFieldAppBar app_name="My App".to_string() />
+//!             </ShellAppBar>
+//!             <p>"page content"</p>
+//!         </UnifiedFieldShellLayout>
+//!     }
+//! }
+//! ```
+//!
+//! ## Where to look next
+//!
+//! - [`UnifiedFieldShellLayout`] — the page layout shell.
+//! - [`UnifiedFieldAppBar`] — the header bar rendered inside [`ShellAppBar`].
+//! - [`BreadcrumbLink`] — breadcrumb entries passed to [`UnifiedFieldAppBar`].
+
+#![deny(missing_docs)]
 
 use leptos::prelude::*;
 use orbital::components::{
@@ -9,26 +51,36 @@ use orbital::components::{
 use orbital::primitives::*;
 
 /// When true, [`UnifiedFieldAppBar`] should render the sidebar toggle.
+///
+/// Provided as context by [`UnifiedFieldShellLayout`] based on whether a [`ShellLeftNav`] slot
+/// was supplied, so [`UnifiedFieldAppBar`] doesn't need an explicit prop at every call site.
 #[derive(Clone, Copy)]
 pub struct ShellSidebarToggle(pub bool);
 
 /// Slot for the app bar region of [`UnifiedFieldShellLayout`].
 #[slot]
 pub struct ShellAppBar {
+    /// The app bar content, typically a [`UnifiedFieldAppBar`].
     pub children: Children,
 }
 
 /// Slot for the left navigation column of [`UnifiedFieldShellLayout`].
 #[slot]
 pub struct ShellLeftNav {
+    /// The sidebar navigation content.
     pub children: Children,
 }
 
 /// Minimal product shell layout for standalone exported apps.
 #[component]
 pub fn UnifiedFieldShellLayout(
-    #[prop(optional)] shell_app_bar: Option<ShellAppBar>,
-    #[prop(optional)] shell_left_nav: Option<ShellLeftNav>,
+    /// Optional product app-bar slot.
+    #[prop(optional)]
+    shell_app_bar: Option<ShellAppBar>,
+    /// Optional left-nav / sidebar slot.
+    #[prop(optional)]
+    shell_left_nav: Option<ShellLeftNav>,
+    /// Main content for the shell layout.
     children: Children,
 ) -> impl IntoView {
     let sidebar_open = RwSignal::new(true);
@@ -83,13 +135,17 @@ pub fn UnifiedFieldShellLayout(
     }
 }
 
+/// A single breadcrumb entry rendered by [`UnifiedFieldAppBar`].
 #[derive(Clone, PartialEq)]
 pub struct BreadcrumbLink {
+    /// Display text for the breadcrumb.
     pub title: String,
+    /// Link target the breadcrumb navigates to when clicked.
     pub url: String,
 }
 
 impl BreadcrumbLink {
+    /// Create a new breadcrumb entry from a title and URL.
     pub fn new(title: impl Into<String>, url: impl Into<String>) -> Self {
         Self {
             title: title.into(),
@@ -107,7 +163,14 @@ fn product_avatar_letter(app_id: &str) -> char {
 }
 
 #[component]
-fn AppBarBranding(app_name: String, avatar_letter: String, homepage_url: String) -> impl IntoView {
+fn AppBarBranding(
+    /// App name.
+    app_name: String,
+    /// Avatar letter.
+    avatar_letter: String,
+    /// Homepage URL.
+    homepage_url: String,
+) -> impl IntoView {
     let (style_sheet, class_names) = turf::inline_style_sheet_values! {
         .Logo {
             display: flex;
@@ -151,7 +214,10 @@ fn AppBarBranding(app_name: String, avatar_letter: String, homepage_url: String)
 }
 
 #[component]
-fn AppBarBreadcrumbs(breadcrumbs: Vec<BreadcrumbLink>) -> impl IntoView {
+fn AppBarBreadcrumbs(
+    /// List of breadcrumbs.
+    breadcrumbs: Vec<BreadcrumbLink>,
+) -> impl IntoView {
     if breadcrumbs.is_empty() {
         return ().into_any();
     }
@@ -175,14 +241,29 @@ fn AppBarBreadcrumbs(breadcrumbs: Vec<BreadcrumbLink>) -> impl IntoView {
 /// Minimal app bar for exported app shells.
 #[component]
 pub fn UnifiedFieldAppBar(
+    /// Display name shown in the app bar.
     app_name: String,
-    #[prop(optional)] app_id: Option<&'static str>,
-    #[prop(optional)] app_logo_initial: Option<String>,
-    #[prop(optional)] homepage_url: Option<String>,
-    #[prop(optional)] breadcrumbs: Option<Vec<BreadcrumbLink>>,
-    #[prop(default = true)] interactive: bool,
-    #[prop(default = true)] show_notifications: bool,
-    #[prop(optional)] show_sidebar_toggle: Option<bool>,
+    /// Stable app id used for avatar letter when set.
+    #[prop(optional)]
+    app_id: Option<&'static str>,
+    /// Optional logo initial override.
+    #[prop(optional)]
+    app_logo_initial: Option<String>,
+    /// Homepage URL for the brand/home control.
+    #[prop(optional)]
+    homepage_url: Option<String>,
+    /// Breadcrumb trail rendered beside the title.
+    #[prop(optional)]
+    breadcrumbs: Option<Vec<BreadcrumbLink>>,
+    /// When false, disables interactive controls (preview mode).
+    #[prop(default = true)]
+    interactive: bool,
+    /// When true, reserves space for a notifications control.
+    #[prop(default = true)]
+    show_notifications: bool,
+    /// Force-show or hide the sidebar toggle; defaults from shell context.
+    #[prop(optional)]
+    show_sidebar_toggle: Option<bool>,
 ) -> impl IntoView {
     let _ = show_notifications;
     let avatar_letter = app_id

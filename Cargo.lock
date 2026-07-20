@@ -6440,7 +6440,8 @@ dependencies = [
 [[package]]
 name = "uf-valence"
 version = "0.1.1"
-source = "git+https://github.com/deathbreakfast/valence.git?rev=fbb2e31acdc4060f885db59e5899283caf048087#fbb2e31acdc4060f885db59e5899283caf048087"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c02aee17d39476616ac652895111848d8e0a93f1afc7e1737ea2f41a19611797"
 dependencies = [
  "uf-valence-backend-mem",
  "uf-valence-backend-surreal",
@@ -6451,7 +6452,8 @@ dependencies = [
 [[package]]
 name = "uf-valence-backend-mem"
 version = "0.1.1"
-source = "git+https://github.com/deathbreakfast/valence.git?rev=fbb2e31acdc4060f885db59e5899283caf048087#fbb2e31acdc4060f885db59e5899283caf048087"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11cf2e4cb8d794fe82e641cbcb46dd4f53835c60220a40bc1adbb68919fda640"
 dependencies = [
  "async-trait",
  "serde_json",
@@ -6462,7 +6464,8 @@ dependencies = [
 [[package]]
 name = "uf-valence-backend-surreal"
 version = "0.1.1"
-source = "git+https://github.com/deathbreakfast/valence.git?rev=fbb2e31acdc4060f885db59e5899283caf048087#fbb2e31acdc4060f885db59e5899283caf048087"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6ea550b629d430ac1f76ea7c704bb195e5937ddaf830c37e555a173343dc8551"
 dependencies = [
  "async-trait",
  "serde",
@@ -6474,7 +6477,8 @@ dependencies = [
 [[package]]
 name = "uf-valence-codegen"
 version = "0.1.1"
-source = "git+https://github.com/deathbreakfast/valence.git?rev=fbb2e31acdc4060f885db59e5899283caf048087#fbb2e31acdc4060f885db59e5899283caf048087"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "524b201b96d643f9e14059d67b60551468c98cb12c7dabccac1e73f917965f55"
 dependencies = [
  "anyhow",
  "prettyplease",
@@ -6488,7 +6492,8 @@ dependencies = [
 [[package]]
 name = "uf-valence-core"
 version = "0.1.1"
-source = "git+https://github.com/deathbreakfast/valence.git?rev=fbb2e31acdc4060f885db59e5899283caf048087#fbb2e31acdc4060f885db59e5899283caf048087"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e156141db923e2e634435fcd5a00404fbdc565a9446fa3c4f7cf00bc0b634253"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6507,7 +6512,8 @@ dependencies = [
 [[package]]
 name = "uf-valence-macros"
 version = "0.1.1"
-source = "git+https://github.com/deathbreakfast/valence.git?rev=fbb2e31acdc4060f885db59e5899283caf048087#fbb2e31acdc4060f885db59e5899283caf048087"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c03bc91880890598ddcd9bac00e29c3112ce8a353e5d73c7bf3a61eea66dd73b"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6518,7 +6524,8 @@ dependencies = [
 [[package]]
 name = "uf-valence-schema-dsl"
 version = "0.1.1"
-source = "git+https://github.com/deathbreakfast/valence.git?rev=fbb2e31acdc4060f885db59e5899283caf048087#fbb2e31acdc4060f885db59e5899283caf048087"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0922374e1d562c2a2e68be28b10eeccd4a7f3a1d435f7d33db8cadf05b708cf5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6528,7 +6535,8 @@ dependencies = [
 [[package]]
 name = "uf-valence-telemetry"
 version = "0.1.1"
-source = "git+https://github.com/deathbreakfast/valence.git?rev=fbb2e31acdc4060f885db59e5899283caf048087#fbb2e31acdc4060f885db59e5899283caf048087"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e634c214f527a4555eaa926b7affaddd5ca466d5815427c1df081f67ec06dc92"
 dependencies = [
  "serde_json",
 ]

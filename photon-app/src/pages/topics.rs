@@ -6,6 +6,7 @@ use orbital::primitives::*;
 use crate::components::TopicCard;
 use crate::server::{get_topics, TopicSummary};
 
+/// Topic index: searchable list of all registered topics with traffic summaries.
 #[component]
 pub fn PhotonTopicsIndexPage() -> impl IntoView {
     let _navigate = use_navigate();

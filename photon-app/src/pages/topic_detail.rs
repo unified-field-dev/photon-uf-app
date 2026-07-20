@@ -6,6 +6,7 @@ use orbital::primitives::*;
 use crate::components::{EventsTable, TopicMetaCard, TopicSubscriptionsTable};
 use crate::server::{get_events, get_subscriptions, get_topic};
 
+/// Detail view for a single topic: schema, subscriptions, and recent events.
 #[component]
 pub fn PhotonTopicDetailPage() -> impl IntoView {
     let params = use_params_map();

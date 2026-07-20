@@ -6,6 +6,7 @@ use orbital::primitives::*;
 use crate::components::EventMetaCard;
 use crate::server::get_event;
 
+/// Detail view for a single event: metadata, payload, and actor context.
 #[component]
 pub fn PhotonEventDetailPage() -> impl IntoView {
     let params = use_params_map();

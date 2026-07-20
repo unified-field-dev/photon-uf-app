@@ -1,28 +1,50 @@
 #![recursion_limit = "256"]
-//! Photon operations app routes and UI composition.
-//!
-//! This app provides the operational UI for inspecting Photon topics,
+//! Photon operations app: routes and UI composition for inspecting Photon topics,
 //! subscriptions, and event streams under `/photon`.
 //!
-//! ## UI features
+//! Photon itself is an event-pipeline crate with no built-in UI; this crate is the
+//! `#[uf_product_macros::orbital_app]`-registered operations surface a host mounts to give
+//! operators visibility into what Photon is doing at runtime.
 //!
-//! - Dashboard cards for topic/subscription/event activity.
-//! - Topic index/detail views.
-//! - Subscription index/detail views.
-//! - Event index/detail views with payload previews.
+//! ## Features
 //!
-//! ## What it manages
+//! - **Dashboard** — [`PhotonDashboardPage`] shows aggregate topic/subscription/event
+//!   activity at a glance.
+//! - **Topics** — [`PhotonTopicsIndexPage`] / [`PhotonTopicDetailPage`] for browsing topic
+//!   schemas, keying, and traffic.
+//! - **Subscriptions** — [`PhotonSubscriptionsIndexPage`] / [`PhotonSubscriptionDetailPage`]
+//!   for subscription configuration and checkpoint/read-state visibility.
+//! - **Events** — [`PhotonEventsIndexPage`] / [`PhotonEventDetailPage`] for inspecting
+//!   individual events, including payload previews and actor context.
+//! - **Read API** — [`server`] exposes the SSR-only server functions and DTOs
+//!   ([`DashboardStats`], [`TopicSummary`], [`SubscriptionSummary`], [`EventSummary`]) backing
+//!   the pages above.
 //!
-//! - Runtime visibility into topic descriptors and traffic.
-//! - Subscription health/read-state visibility.
-//! - Event inspection for debugging and operations.
+//! ## Getting started
 //!
-//! ## Backend API surface
+//! Mount [`PhotonRoutes`] inside your host's `<Routes>`; it registers the `/photon` subtree
+//! (auth-gated) and, via `orbital_app!`, its launcher metadata:
 //!
-//! The app's server module provides read APIs for dashboard stats, topics,
-//! subscriptions, and events in [`server`].
+//! ```rust,ignore
+//! use leptos::prelude::*;
+//! use leptos_router::components::Routes;
+//! use photon_app::PhotonRoutes;
 //!
-//! Route entrypoint: [`PhotonRoutes`].
+//! #[component]
+//! fn App() -> impl IntoView {
+//!     view! {
+//!         <Routes fallback=|| "not found">
+//!             <PhotonRoutes />
+//!         </Routes>
+//!     }
+//! }
+//! ```
+//!
+//! ## Where to look next
+//!
+//! - [`PhotonRoutes`] — the route entrypoint mounted by hosts.
+//! - [`PhotonLayout`] — the shared app bar / nav shell wrapping every route.
+//! - [`server`] — server functions and DTOs backing the UI.
 
 #![cfg_attr(
     feature = "ssr",
@@ -40,8 +62,8 @@ use uf_product_macros::orbital_app;
 
 mod components;
 mod layout;
-mod pages;
-mod server;
+pub mod pages;
+pub mod server;
 
 pub use layout::PhotonLayout;
 pub use pages::{
@@ -70,6 +92,10 @@ orbital_app! {
     route_path: "/photon",
 }
 
+/// Photon's nested route tree, gated behind an auth guard and mounted at `/photon`.
+///
+/// Registers dashboard, topic, subscription, and event index/detail routes. Intended to be
+/// used inside a host `<Routes>` component, e.g. `<PhotonRoutes />`.
 #[orbital_macros::orbital_routes_extract]
 #[component(transparent)]
 pub fn PhotonRoutes() -> impl leptos_router::MatchNestedRoutes + Clone {

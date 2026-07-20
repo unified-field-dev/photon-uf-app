@@ -6,6 +6,7 @@ use orbital::primitives::*;
 use crate::components::{EventsTable, SubscriptionMetaCard};
 use crate::server::{get_events, get_subscription};
 
+/// Detail view for a single subscription: configuration, read-state, and recent events.
 #[component]
 pub fn PhotonSubscriptionDetailPage() -> impl IntoView {
     let params = use_params_map();

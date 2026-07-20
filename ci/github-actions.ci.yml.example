@@ -1,0 +1,53 @@
+# Example GitHub Actions workflow for photon-uf-app.
+#
+# This file is intentionally kept outside `.github/workflows/` so it is not picked up
+# automatically. Copy it to `.github/workflows/ci.yml` (and adjust as needed) to enable it.
+#
+# Notably runs `cargo doc` with `missing_docs = deny` (see workspace `Cargo.toml`
+# `[workspace.lints.rust]`) so undocumented public items fail CI, and caps build
+# parallelism via `CARGO_BUILD_JOBS=1` to keep memory usage predictable on small runners.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_BUILD_JOBS: 1
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: cargo doc (missing_docs = deny)
+        run: cargo doc --workspace --no-deps --document-private-items=false
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      # SSR-only crates; the UI crate's client build is validated separately (trunk/wasm).
+      - run: cargo test --workspace --lib --features ssr

@@ -5,6 +5,9 @@ edition = "2021"
 description = "SSR Valence context helpers for standalone uf-app workspaces (Higgs-backed)"
 license = "MIT"
 
+[lints]
+workspace = true
+
 [dependencies]
 higgs = { workspace = true }
 leptos = { workspace = true, default-features = false }

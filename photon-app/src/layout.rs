@@ -10,6 +10,11 @@ use uf_integrations::{
 use crate::paths;
 use crate::AppMetadata;
 
+/// Photon's shell layout: app bar, left navigation, and a router [`Outlet`] for the
+/// currently active page.
+///
+/// Wraps every route declared in [`crate::PhotonRoutes`] and is only rendered once auth has
+/// been checked by the caller (see `PhotonAuthGuard` in the crate root).
 #[component]
 pub fn PhotonLayout() -> impl IntoView {
     let app_name = AppMetadata::name().to_string();

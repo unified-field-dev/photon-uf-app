@@ -6,6 +6,7 @@ use orbital::primitives::*;
 use crate::components::{SubscriptionCard, SubscriptionFilterToolbar};
 use crate::server::{get_subscriptions, SubscriptionSummary};
 
+/// Subscription index: searchable, filterable list of all subscriptions.
 #[component]
 pub fn PhotonSubscriptionsIndexPage() -> impl IntoView {
     let _navigate = use_navigate();
