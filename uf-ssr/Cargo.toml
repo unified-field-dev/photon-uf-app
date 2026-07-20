@@ -8,7 +8,7 @@ license = "MIT"
 [dependencies]
 higgs = { workspace = true }
 leptos = { workspace = true, default-features = false }
-uf-host = { git = "https://github.com/deathbreakfast/valence-platform", rev = "8e8a4e7", default-features = false }
+uf-host = { path = "../../fleet/repos/valence-platform/uf-host", default-features = false }
 valence = { workspace = true, default-features = false }
 
 [features]

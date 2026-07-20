@@ -2,10 +2,10 @@
 resolver = "2"
 members = [
     "photon-app",
-    "uf-integrations",
-    "uf-product-macros",
     "uf-ssr",
     "uf-app-registry",
+    "uf-integrations",
+    "uf-product-macros",
 ]
 
 [workspace.package]
@@ -31,10 +31,12 @@ serde_json = "1"
 turf = "0.10"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std", "wasmbind", "serde"] }
 
-photon = { git = "https://github.com/deathbreakfast/photon", rev = "8eed155cffc108e8e6989aea99b0d42040805365", default-features = false }
-photon-valence-admin = { git = "https://github.com/deathbreakfast/photon-valence-admin", rev = "91c4db36faca41fb54b428b31d6885b5d2e58aed" }
-valence = { git = "https://github.com/deathbreakfast/valence-platform", rev = "8e8a4e7", package = "valence", default-features = false }
-higgs = { git = "https://github.com/deathbreakfast/valence-platform", rev = "8e8a4e7", package = "higgs", default-features = false }
+photon = { package = "uf-photon", version = "0.1.1", default-features = false }
+photon-valence-admin = { path = "../photon-valence-admin" }
+valence = { package = "uf-valence", version = "0.1.1", default-features = false, features = ["mem", "surreal"] }
+higgs = { path = "../fleet/repos/valence-platform/higgs", default-features = false }
+uf-host = { path = "../fleet/repos/valence-platform/uf-host", default-features = false }
+uf-identity = { path = "../fleet/repos/valence-platform/uf-identity" }
 
 orbital = { git = "https://github.com/deathbreakfast/orbital", rev = "2815678421984f854e2690c6e13d45bc6512ae38", default-features = false }
 orbital-macros = { git = "https://github.com/deathbreakfast/orbital", rev = "2815678421984f854e2690c6e13d45bc6512ae38" }
@@ -44,3 +46,4 @@ uf-product-macros = { path = "uf-product-macros" }
 uf-ssr = { path = "uf-ssr", default-features = false }
 uf-app-registry = { path = "uf-app-registry" }
 inventory = "0.3"
+
