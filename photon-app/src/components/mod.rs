@@ -3,7 +3,6 @@
 mod active_subscriptions_table;
 mod event_filter_toolbar;
 mod event_meta_card;
-use orbital::primitives::*;
 mod events_table;
 mod photon_stats_grid;
 mod subscription_card;

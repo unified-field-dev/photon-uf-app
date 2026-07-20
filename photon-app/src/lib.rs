@@ -6,6 +6,10 @@
 //! `#[uf_product_macros::orbital_app]`-registered operations surface a host mounts to give
 //! operators visibility into what Photon is doing at runtime.
 //!
+//! Orbital inventory macros (`orbital_app!`, `orbital_routes_extract`) emit undocumented
+//! associated items, so this crate allows `missing_docs` at the crate root while keeping
+//! hand-written modules and items documented.
+//!
 //! ## Features
 //!
 //! - **Dashboard** — [`PhotonDashboardPage`] shows aggregate topic/subscription/event
@@ -16,7 +20,7 @@
 //!   for subscription configuration and checkpoint/read-state visibility.
 //! - **Events** — [`PhotonEventsIndexPage`] / [`PhotonEventDetailPage`] for inspecting
 //!   individual events, including payload previews and actor context.
-//! - **Read API** — [`server`] exposes the SSR-only server functions and DTOs
+//! - **Read API** — [`mod@server`] exposes the SSR-only server functions and DTOs
 //!   ([`DashboardStats`], [`TopicSummary`], [`SubscriptionSummary`], [`EventSummary`]) backing
 //!   the pages above.
 //!
@@ -44,8 +48,9 @@
 //!
 //! - [`PhotonRoutes`] — the route entrypoint mounted by hosts.
 //! - [`PhotonLayout`] — the shared app bar / nav shell wrapping every route.
-//! - [`server`] — server functions and DTOs backing the UI.
+//! - [`mod@server`] — server functions and DTOs backing the UI.
 
+#![allow(missing_docs)]
 #![cfg_attr(
     feature = "ssr",
     allow(
@@ -56,13 +61,16 @@
         clippy::all,
     )
 )]
+
 use leptos::prelude::*;
 use leptos_router::{components::*, path};
 use uf_product_macros::orbital_app;
 
 mod components;
 mod layout;
+/// Page components for the Photon ops UI.
 pub mod pages;
+/// SSR server functions and DTOs backing the Photon ops UI.
 pub mod server;
 
 pub use layout::PhotonLayout;

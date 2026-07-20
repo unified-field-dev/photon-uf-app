@@ -3,7 +3,6 @@
 use leptos::prelude::*;
 use orbital::components::{AutoGrid, SpacingSize, StatCard};
 
-use orbital::primitives::*;
 use crate::server::DashboardStats;
 
 /// Renders the three stat cards on the Photon dashboard.

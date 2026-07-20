@@ -20,11 +20,11 @@ pub fn PhotonTopicDetailPage() -> impl IntoView {
     let _navigate = use_navigate();
 
     let topic_res = Resource::new(
-        move || topic_name(),
+        &topic_name,
         |name| async move { get_topic(name).await },
     );
     let events_res = Resource::new(
-        move || topic_name(),
+        &topic_name,
         |name| async move { get_events(Some(name), 20).await },
     );
     let subs_res = Resource::new(|| (), |_| async move { get_subscriptions().await });

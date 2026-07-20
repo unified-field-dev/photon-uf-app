@@ -159,7 +159,10 @@ pub async fn get_dashboard_stats() -> Result<DashboardStats, ServerFnError> {
 
 /// Get recent events for dashboard.
 #[uf_product_macros::server]
-pub async fn get_recent_events(limit: u32) -> Result<Vec<EventSummary>, ServerFnError> {
+pub async fn get_recent_events(
+    /// Maximum number of recent events to return.
+    limit: u32,
+) -> Result<Vec<EventSummary>, ServerFnError> {
     let valence = system_valence().await?;
 
     let events = photon_valence_admin::persistence::EventStore::list_recent(&valence, limit as usize)
@@ -211,7 +214,10 @@ pub async fn get_topics() -> Result<Vec<TopicSummary>, ServerFnError> {
 
 /// Get a single topic by name.
 #[uf_product_macros::server]
-pub async fn get_topic(topic_name: String) -> Result<Option<TopicSummary>, ServerFnError> {
+pub async fn get_topic(
+    /// Name of the topic to look up.
+    topic_name: String,
+) -> Result<Option<TopicSummary>, ServerFnError> {
     let topics = get_topics().await?;
     Ok(topics.into_iter().find(|t| t.topic_name == topic_name))
 }
@@ -257,7 +263,10 @@ pub async fn get_subscriptions() -> Result<Vec<SubscriptionSummary>, ServerFnErr
 
 /// Get a single subscription by ID.
 #[uf_product_macros::server]
-pub async fn get_subscription(id: String) -> Result<Option<SubscriptionSummary>, ServerFnError> {
+pub async fn get_subscription(
+    /// Unique identifier of the subscription to look up.
+    id: String,
+) -> Result<Option<SubscriptionSummary>, ServerFnError> {
     let subs = get_subscriptions().await?;
     Ok(subs.into_iter().find(|s| s.subscription_id == id))
 }
@@ -265,7 +274,10 @@ pub async fn get_subscription(id: String) -> Result<Option<SubscriptionSummary>,
 /// Get events (recent across all topics, or optionally filter by topic).
 #[uf_product_macros::server]
 pub async fn get_events(
+    /// Optional topic name to restrict results to; when omitted, events from all
+    /// topics are considered.
     topic_name: Option<String>,
+    /// Maximum number of events to return.
     limit: u32,
 ) -> Result<Vec<EventSummary>, ServerFnError> {
     let valence = system_valence().await?;
@@ -286,7 +298,10 @@ pub async fn get_events(
 
 /// Get a single event by ID.
 #[uf_product_macros::server]
-pub async fn get_event(id: String) -> Result<Option<EventDetail>, ServerFnError> {
+pub async fn get_event(
+    /// Unique identifier of the event to look up.
+    id: String,
+) -> Result<Option<EventDetail>, ServerFnError> {
     let photon = photon_from_context()?;
     let valence = system_valence().await?;
 

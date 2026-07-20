@@ -2,7 +2,6 @@
 
 use leptos::prelude::*;
 use orbital::components::Body1;
-use orbital::primitives::*;
 
 use crate::components::SubscriptionStatusBadge;
 use crate::server::SubscriptionSummary;

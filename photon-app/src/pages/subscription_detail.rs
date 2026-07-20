@@ -20,7 +20,7 @@ pub fn PhotonSubscriptionDetailPage() -> impl IntoView {
     let _navigate = use_navigate();
 
     let sub_res = Resource::new(
-        move || id(),
+        &id,
         |sid| async move { get_subscription(sid).await },
     );
     let topic_for_events = move || {

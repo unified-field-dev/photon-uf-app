@@ -18,7 +18,7 @@ pub fn PhotonEventDetailPage() -> impl IntoView {
             .unwrap_or_default()
     };
 
-    let event_res = Resource::new(move || id(), |eid| async move { get_event(eid).await });
+    let event_res = Resource::new(&id, |eid| async move { get_event(eid).await });
 
     let (style_sheet, class_names) = turf::inline_style_sheet_values! {
         .Header { margin-bottom: 24px; }
