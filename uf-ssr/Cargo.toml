@@ -11,7 +11,7 @@ workspace = true
 [dependencies]
 higgs = { workspace = true }
 leptos = { workspace = true, default-features = false }
-uf-host = { path = "../../fleet/repos/valence-platform/uf-host", default-features = false }
+uf-host = { workspace = true, default-features = false }
 valence = { workspace = true, default-features = false }
 
 [features]
