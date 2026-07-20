@@ -136,7 +136,7 @@ pub fn UnifiedFieldShellLayout(
 }
 
 /// A single breadcrumb entry rendered by [`UnifiedFieldAppBar`].
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct BreadcrumbLink {
     /// Display text for the breadcrumb.
     pub title: String,
