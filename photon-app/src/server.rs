@@ -101,6 +101,33 @@ pub struct EventDetail {
     pub transport_expired: bool,
 }
 
+/// Formats the short payload-preview chip shown in event list rows.
+pub(crate) fn format_delivery_preview(delivery_status: &str) -> String {
+    format!("[{delivery_status}]")
+}
+
+/// Locates a topic summary by exact name (used by detail lookups).
+pub(crate) fn find_topic_by_name<'a>(
+    topics: &'a [TopicSummary],
+    topic_name: &str,
+) -> Option<&'a TopicSummary> {
+    topics.iter().find(|t| t.topic_name == topic_name)
+}
+
+/// Locates a subscription summary by exact id (used by detail lookups).
+pub(crate) fn find_subscription_by_id<'a>(
+    subs: &'a [SubscriptionSummary],
+    id: &str,
+) -> Option<&'a SubscriptionSummary> {
+    subs.iter().find(|s| s.subscription_id == id)
+}
+
+/// Counts timestamps at or after `since` (dashboard / topic 24h windows).
+#[cfg(feature = "ssr")]
+pub(crate) fn count_since(timestamps: &[chrono::DateTime<chrono::Utc>], since: chrono::DateTime<chrono::Utc>) -> u64 {
+    timestamps.iter().filter(|ts| **ts >= since).count() as u64
+}
+
 #[cfg(feature = "ssr")]
 fn photon_from_context() -> Result<std::sync::Arc<photon::Photon>, ServerFnError> {
     use leptos::prelude::*;
@@ -121,7 +148,7 @@ fn map_event_summary(e: photon_valence_admin::persistence::DbEvent) -> EventSumm
         topic_key: e.topic_key().map(|s| s.to_string()),
         seq: *e.seq(),
         created_at: e.created_at().to_rfc3339(),
-        payload_preview: format!("[{}]", e.delivery_status()),
+        payload_preview: format_delivery_preview(e.delivery_status()),
     }
 }
 
@@ -148,7 +175,8 @@ pub async fn get_dashboard_stats() -> Result<DashboardStats, ServerFnError> {
         .map_err(|e| ServerFnError::new(format!("Failed to list recent events: {}", e)))?;
     let now = chrono::Utc::now();
     let day_ago = now - chrono::Duration::hours(24);
-    let event_count_24h = events.iter().filter(|e| *e.created_at() >= day_ago).count() as u64;
+    let stamps: Vec<_> = events.iter().map(|e| *e.created_at()).collect();
+    let event_count_24h = count_since(&stamps, day_ago);
 
     Ok(DashboardStats {
         topic_count,
@@ -194,11 +222,12 @@ pub async fn get_topics() -> Result<Vec<TopicSummary>, ServerFnError> {
             .map_err(|e| ServerFnError::new(format!("Failed to list events: {}", e)))?;
         let now = chrono::Utc::now();
         let day_ago = now - chrono::Duration::hours(24);
-        let event_count_24h = events
+        let stamps: Vec<_> = events
             .iter()
             .filter(|e| e.topic_name().as_str() == topic_name)
-            .filter(|e| *e.created_at() >= day_ago)
-            .count() as u64;
+            .map(|e| *e.created_at())
+            .collect();
+        let event_count_24h = count_since(&stamps, day_ago);
 
         topics.push(TopicSummary {
             topic_name,
@@ -219,7 +248,7 @@ pub async fn get_topic(
     topic_name: String,
 ) -> Result<Option<TopicSummary>, ServerFnError> {
     let topics = get_topics().await?;
-    Ok(topics.into_iter().find(|t| t.topic_name == topic_name))
+    Ok(find_topic_by_name(&topics, &topic_name).cloned())
 }
 
 /// Get all subscriptions.
@@ -268,7 +297,98 @@ pub async fn get_subscription(
     id: String,
 ) -> Result<Option<SubscriptionSummary>, ServerFnError> {
     let subs = get_subscriptions().await?;
-    Ok(subs.into_iter().find(|s| s.subscription_id == id))
+    Ok(find_subscription_by_id(&subs, &id).cloned())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sample_topic(name: &str) -> TopicSummary {
+        TopicSummary {
+            topic_name: name.into(),
+            keyed_by: None,
+            schema_json: "{}".into(),
+            event_count_24h: 0,
+            subscription_count: 0,
+        }
+    }
+
+    fn sample_sub(id: &str) -> SubscriptionSummary {
+        SubscriptionSummary {
+            subscription_id: id.into(),
+            subscription_name: "sub".into(),
+            topic_name: "t".into(),
+            enabled: true,
+            mode: "at_least_once".into(),
+            topic_key_filter: None,
+            checkpoint_lag: 0,
+            last_seq: None,
+            last_processed_at: None,
+        }
+    }
+
+    #[test]
+    fn format_delivery_preview_wraps_status() {
+        assert_eq!(format_delivery_preview("delivered"), "[delivered]");
+    }
+
+    #[test]
+    fn find_topic_by_name_happy_and_missing() {
+        let topics = vec![sample_topic("alpha"), sample_topic("beta")];
+        assert_eq!(
+            find_topic_by_name(&topics, "beta").map(|t| t.topic_name.as_str()),
+            Some("beta")
+        );
+        assert!(find_topic_by_name(&topics, "missing").is_none());
+    }
+
+    #[test]
+    fn find_subscription_by_id_happy_and_missing() {
+        let subs = vec![sample_sub("s1"), sample_sub("s2")];
+        assert_eq!(
+            find_subscription_by_id(&subs, "s1").map(|s| s.subscription_id.as_str()),
+            Some("s1")
+        );
+        assert!(find_subscription_by_id(&subs, "nope").is_none());
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn count_since_includes_boundary_excludes_older() {
+        let since = chrono::DateTime::parse_from_rfc3339("2026-01-01T00:00:00Z")
+            .unwrap()
+            .with_timezone(&chrono::Utc);
+        let older = since - chrono::Duration::hours(1);
+        let on_boundary = since;
+        let newer = since + chrono::Duration::hours(1);
+        assert_eq!(count_since(&[older, on_boundary, newer], since), 2);
+    }
+
+    #[test]
+    fn topic_summary_serde_roundtrip() {
+        let topic = sample_topic("orders");
+        let json = serde_json::to_string(&topic).expect("serialize");
+        let back: TopicSummary = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(back, topic);
+    }
+
+    #[test]
+    fn event_detail_marks_transport_expired_when_payload_null() {
+        let detail = EventDetail {
+            event_id: "e1".into(),
+            topic_name: "t".into(),
+            topic_key: None,
+            seq: 1,
+            created_at: "2026-01-01T00:00:00Z".into(),
+            delivery_status: "delivered".into(),
+            payload_json: serde_json::Value::Null,
+            actor_json: serde_json::Value::Null,
+            transport_expired: true,
+        };
+        assert!(detail.transport_expired);
+        assert!(detail.payload_json.is_null());
+    }
 }
 
 /// Get events (recent across all topics, or optionally filter by topic).

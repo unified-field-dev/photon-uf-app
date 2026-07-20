@@ -21,8 +21,10 @@ Mount the Photon admin routes from your host shell (SSR + hydrate features as re
 ## Verify
 
 ```bash
+export CARGO_BUILD_JOBS=1
 cargo check --workspace
 cargo check -p photon-app --features ssr
+cargo test -p photon-app --features ssr
 ```
 
 ## License

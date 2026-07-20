@@ -1,3 +1,4 @@
+#![recursion_limit = "1024"]
 //! Lightweight Unified Field shell integrations for exported app crates.
 //!
 //! When a Unified Field app (Photon, Boson, Chronon, …) is exported and run standalone rather
