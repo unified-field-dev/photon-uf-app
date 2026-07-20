@@ -1,7 +1,7 @@
 //! Leptos server functions and DTOs for Photon UI.
 //!
 //! Types are used by both server and client. Server functions run on SSR only
-//! and use [`higgs::Higgs::from_request()`] for unified context extraction.
+//! and use `higgs::Higgs::from_request()` for unified context extraction.
 
 use leptos::prelude::*;
 use serde::{Deserialize, Serialize};

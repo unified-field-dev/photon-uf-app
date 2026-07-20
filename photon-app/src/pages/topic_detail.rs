@@ -1,3 +1,4 @@
+#![allow(clippy::redundant_closure)]
 use leptos::prelude::*;
 use leptos_router::hooks::{use_navigate, use_params_map};
 use orbital::components::{Card, ContentContainer, Subtitle2, Title3};
@@ -20,11 +21,11 @@ pub fn PhotonTopicDetailPage() -> impl IntoView {
     let _navigate = use_navigate();
 
     let topic_res = Resource::new(
-        &topic_name,
+        move || topic_name(),
         |name| async move { get_topic(name).await },
     );
     let events_res = Resource::new(
-        &topic_name,
+        move || topic_name(),
         |name| async move { get_events(Some(name), 20).await },
     );
     let subs_res = Resource::new(|| (), |_| async move { get_subscriptions().await });
