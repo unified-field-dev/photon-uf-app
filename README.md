@@ -1,30 +1,30 @@
-# Photon Uf App
+# Photon UF App
 
-        [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-        Official Unified Field admin UI for Photon.
+Official Unified Field admin UI for Photon (Leptos).
 
-        ## Quick start
+```toml
+[dependencies]
+photon-app = { git = "https://github.com/deathbreakfast/photon-uf-app", package = "photon-app", branch = "main" }
+```
 
-        ```toml
-        [dependencies]
-        # Example — replace branch with a release tag when available.
-        photon-uf-app = { git = "https://github.com/deathbreakfast/photon-uf-app", branch = "main" }
-        ```
+Mount the Photon admin routes from your host shell (SSR + hydrate features as required by your Leptos setup).
 
-        ```rust
-        # Official photon admin UI (Leptos)
-# Enable from your host app via git dependency.
-        ```## Workspace
+## Workspace
 
 | Crate | Role |
 |-------|------|
-| `photon-app` | photon-app crate |
+| `photon-app` | Photon admin UI (topics, subscriptions, ops views) |
+| `uf-*` | Thin shell / registry helpers shared with other uf-app repos |
 
 ## Verify
 
 ```bash
 cargo check --workspace
+cargo check -p photon-app --features ssr
 ```
 
-See [EXTRACTION.md](EXTRACTION.md) for the phased import plan.
+## License
+
+MIT. See [LICENSE](LICENSE), [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
