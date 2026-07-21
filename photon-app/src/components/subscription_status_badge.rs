@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use orbital::primitives::*;
+use orbital::primitives::{Badge, BadgeAppearance, BadgeColor};
 
 /// Badge for subscription enabled/disabled status.
 #[component]

@@ -2,7 +2,7 @@
 use leptos::prelude::*;
 use leptos_router::hooks::{use_navigate, use_params_map};
 use orbital::components::{Card, ContentContainer, Subtitle2, Title3};
-use orbital::primitives::*;
+use orbital::primitives::{MessageBar, MessageBarIntent};
 
 use crate::components::{EventsTable, TopicMetaCard, TopicSubscriptionsTable};
 use crate::server::{get_events, get_subscriptions, get_topic};
@@ -11,13 +11,7 @@ use crate::server::{get_events, get_subscriptions, get_topic};
 #[component]
 pub fn PhotonTopicDetailPage() -> impl IntoView {
     let params = use_params_map();
-    let topic_name = move || {
-        params
-            .get()
-            .get("topic_name")
-            .map(|s| s.to_string())
-            .unwrap_or_default()
-    };
+    let topic_name = move || params.get().get("topic_name").unwrap_or_default();
     let _navigate = use_navigate();
 
     let topic_res = Resource::new(
@@ -28,7 +22,7 @@ pub fn PhotonTopicDetailPage() -> impl IntoView {
         move || topic_name(),
         |name| async move { get_events(Some(name), 20).await },
     );
-    let subs_res = Resource::new(|| (), |_| async move { get_subscriptions().await });
+    let subs_res = Resource::new(|| (), |()| async move { get_subscriptions().await });
 
     let (style_sheet, class_names) = turf::inline_style_sheet_values! {
         .Header { margin-bottom: 24px; }

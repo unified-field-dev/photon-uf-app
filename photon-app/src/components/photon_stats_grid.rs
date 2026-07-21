@@ -11,13 +11,14 @@ use crate::server::DashboardStats;
 /// Does **not** apply outer margin -- use `Flex` with `SpacingSize` at the
 /// call site to control vertical spacing.
 #[component]
+#[allow(clippy::needless_pass_by_value)]
 pub fn PhotonStatsGrid(
     /// Dashboard statistics to display.
     stats: DashboardStats,
 ) -> impl IntoView {
-    let topics = Signal::derive(move || stats.topic_count.to_string());
-    let subs = Signal::derive(move || stats.subscription_count.to_string());
-    let events = Signal::derive(move || stats.event_count_24h.to_string());
+    let topics = stats.topic_count.to_string();
+    let subs = stats.subscription_count.to_string();
+    let events = stats.event_count_24h.to_string();
 
     view! {
         <AutoGrid min="250px" gap=SpacingSize::Size160>

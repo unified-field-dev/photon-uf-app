@@ -100,16 +100,13 @@ pub fn expand_derive_permission_manifest(input: TokenStream) -> TokenStream {
         Err(e) => return e.to_compile_error().into(),
     };
 
-    let data_enum = match &input.data {
-        Data::Enum(data) => data,
-        _ => {
-            return syn::Error::new(
-                input.span(),
-                "OrbitalPermissionManifest can only be derived for enums",
-            )
-            .to_compile_error()
-            .into()
-        }
+    let Data::Enum(data_enum) = &input.data else {
+        return syn::Error::new(
+            input.span(),
+            "OrbitalPermissionManifest can only be derived for enums",
+        )
+        .to_compile_error()
+        .into();
     };
 
     let mut variants = Vec::new();

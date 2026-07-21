@@ -3,7 +3,7 @@
 use leptos::prelude::*;
 
 use crate::server::TopicSummary;
-use orbital::primitives::*;
+use orbital::primitives::Select;
 
 /// Renders a `Select` dropdown to filter events by topic.
 #[component]
@@ -24,7 +24,8 @@ pub fn EventFilterToolbar(
                 <option value="">"Topic: All"</option>
                 {topics.iter().map(|t| {
                     let name = t.topic_name.clone();
-                    view! { <option value=name.clone()>{name.clone()}</option> }
+                    let label = name.clone();
+                    view! { <option value=name>{label}</option> }
                 }).collect_view()}
             </Select>
         </div>

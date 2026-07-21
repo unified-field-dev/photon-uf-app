@@ -104,32 +104,33 @@ pub fn expand_server(attr: TokenStream, input: TokenStream) -> TokenStream {
     let sig = &input_fn.sig;
     let fn_name_str_lit = syn::LitStr::new(&fn_name_str, proc_macro2::Span::call_site());
 
-    let _has_permission_arg = args.permission.is_some();
-    let permission_guard = if let Some(permission) = args.permission {
-        quote! {
-            #[cfg(feature = "ssr")]
-            {
-                let __higgs_ctx = higgs::Higgs::from_request().await?;
-                let __higgs_allowed = gauge::service::actor_can(__higgs_ctx.valence(), #permission)
-                    .await
-                    .map_err(|e| {
-                        leptos::prelude::ServerFnError::new(
-                            higgs::server_runtime::permission_check_failed_payload(#permission, &e.to_string())
-                        )
-                    })?;
+    let has_permission_arg = args.permission.is_some();
+    let permission_guard = args.permission.map_or_else(
+        || quote! {},
+        |permission| {
+            quote! {
+                #[cfg(feature = "ssr")]
+                {
+                    let __higgs_ctx = higgs::Higgs::from_request().await?;
+                    let __higgs_allowed = gauge::service::actor_can(__higgs_ctx.valence(), #permission)
+                        .await
+                        .map_err(|e| {
+                            leptos::prelude::ServerFnError::new(
+                                higgs::server_runtime::permission_check_failed_payload(#permission, &e.to_string())
+                            )
+                        })?;
 
-                if !__higgs_allowed {
-                    return Err(leptos::prelude::ServerFnError::new(
-                        higgs::server_runtime::permission_denied_payload(#permission),
-                    ));
+                    if !__higgs_allowed {
+                        return Err(leptos::prelude::ServerFnError::new(
+                            higgs::server_runtime::permission_denied_payload(#permission),
+                        ));
+                    }
                 }
             }
-        }
-    } else {
-        quote! {}
-    };
+        },
+    );
 
-    let wrapped_body = if _has_permission_arg {
+    let wrapped_body = if has_permission_arg {
         quote! {
             uf_ssr::ssr::with_operation(#fn_name_str_lit, async move {
                 #permission_guard

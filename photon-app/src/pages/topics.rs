@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
-use orbital::components::{Card, Body1, ContentContainer, EmptyState, Title3};
-use orbital::primitives::*;
+use orbital::components::{Body1, Card, ContentContainer, EmptyState, Title3};
+use orbital::primitives::{Input, InputAppearance, MessageBar, MessageBarIntent};
 
 use crate::components::TopicCard;
 use crate::server::{get_topics, TopicSummary};
@@ -11,7 +11,7 @@ use crate::server::{get_topics, TopicSummary};
 pub fn PhotonTopicsIndexPage() -> impl IntoView {
     let _navigate = use_navigate();
     let search_query = RwSignal::new(String::new());
-    let topics_res = Resource::new(|| (), |_| async move { get_topics().await });
+    let topics_res = Resource::new(|| (), |()| async move { get_topics().await });
 
     let (style_sheet, class_names) = turf::inline_style_sheet_values! {
         .Header { margin-bottom: 24px; }
@@ -53,7 +53,7 @@ pub fn PhotonTopicsIndexPage() -> impl IntoView {
                     Some(Ok(_)) => {
                         let f = filtered.get();
                         let total = f.len();
-                        let all_count = topics_res.get().map(|r| r.as_ref().ok().map(|t| t.len()).unwrap_or(0)).unwrap_or(0);
+                        let all_count = topics_res.get().map_or(0, |r| r.as_ref().ok().map_or(0, Vec::len));
                         view! {
                             <div class=class_names.search_box>
                                 <Input bind=search_query appearance=InputAppearance::with_placeholder("Search topics...") />

@@ -2,14 +2,16 @@
 
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
+use leptos_router::NavigateOptions;
 use orbital::components::{Body1, Body1Strong, SpacingSize};
-use orbital::primitives::*;
+use orbital::primitives::{Button, ButtonAppearance, ButtonSize, Flex};
 
 use crate::server::TopicSummary;
 
 /// Renders a single topic card with name, keyed-by, schema, event/subscription
 /// counts, and action buttons.
 #[component]
+#[allow(clippy::needless_pass_by_value)]
 pub fn TopicCard(
     /// Topic data to display.
     topic: TopicSummary,
@@ -51,8 +53,7 @@ pub fn TopicCard(
             data-testid=test_id
             on:click={
                 let nav = nav_store.with_value(|n: &_| n.clone());
-                let name_click = name_click.clone();
-                move |_| nav(&crate::paths::topic(&name_click), Default::default())
+                move |_| nav(&crate::paths::topic(&name_click), NavigateOptions::default())
             }
         >
             <Flex vertical=true gap=SpacingSize::Size40.flex_gap()>
@@ -64,16 +65,15 @@ pub fn TopicCard(
             <div class=class_names.actions>
                 <Button size=ButtonSize::Small appearance=ButtonAppearance::Subtle on_click=Callback::new({
                     let nav = nav_store.with_value(|n: &_| n.clone());
-                    let name_btn = name_btn.clone();
-                    move |_| nav(&crate::paths::topic(&name_btn), Default::default())
+                    move |_| nav(&crate::paths::topic(&name_btn), NavigateOptions::default())
                 })>"View"</Button>
                 <Button size=ButtonSize::Small appearance=ButtonAppearance::Subtle on_click=Callback::new({
                     let nav = nav_store.with_value(|n: &_| n.clone());
-                    move |_| nav(crate::paths::EVENTS, Default::default())
+                    move |_| nav(crate::paths::EVENTS, NavigateOptions::default())
                 })>"View Events"</Button>
                 <Button size=ButtonSize::Small appearance=ButtonAppearance::Subtle on_click=Callback::new({
                     let nav = nav_store.with_value(|n: &_| n.clone());
-                    move |_| nav(crate::paths::SUBSCRIPTIONS, Default::default())
+                    move |_| nav(crate::paths::SUBSCRIPTIONS, NavigateOptions::default())
                 })>"View Subscriptions"</Button>
             </div>
         </div>

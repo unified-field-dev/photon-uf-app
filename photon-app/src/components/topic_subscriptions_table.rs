@@ -3,8 +3,8 @@
 use leptos::prelude::*;
 
 use crate::server::SubscriptionSummary;
-use orbital::primitives::*;
 use orbital::components::Card;
+use orbital::primitives::{Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow};
 
 /// Renders a Name / Enabled table of subscriptions for a given topic.
 #[component]

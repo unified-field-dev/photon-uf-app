@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 /// Summary of a Photon topic for list/detail views: registry metadata plus
 /// recent traffic counts.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TopicSummary {
     /// Topic name as registered with Photon.
     pub topic_name: String,
@@ -28,7 +28,7 @@ pub struct TopicSummary {
 
 /// Summary of a Photon subscription for list/detail views: configuration
 /// plus read-state visibility.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SubscriptionSummary {
     /// Unique subscription identifier.
     pub subscription_id: String,
@@ -51,7 +51,7 @@ pub struct SubscriptionSummary {
 }
 
 /// Summary of a single Photon event for list views and dashboards.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EventSummary {
     /// Unique event identifier.
     pub event_id: String,
@@ -102,11 +102,13 @@ pub struct EventDetail {
 }
 
 /// Formats the short payload-preview chip shown in event list rows.
+#[cfg(any(test, feature = "ssr"))]
 pub(crate) fn format_delivery_preview(delivery_status: &str) -> String {
     format!("[{delivery_status}]")
 }
 
 /// Locates a topic summary by exact name (used by detail lookups).
+#[cfg(any(test, feature = "ssr"))]
 pub(crate) fn find_topic_by_name<'a>(
     topics: &'a [TopicSummary],
     topic_name: &str,
@@ -115,6 +117,7 @@ pub(crate) fn find_topic_by_name<'a>(
 }
 
 /// Locates a subscription summary by exact id (used by detail lookups).
+#[cfg(any(test, feature = "ssr"))]
 pub(crate) fn find_subscription_by_id<'a>(
     subs: &'a [SubscriptionSummary],
     id: &str,

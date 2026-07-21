@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
 use orbital::components::{Card, Body1, ContentContainer, EmptyState, Title3};
-use orbital::primitives::*;
+use orbital::primitives::{MessageBar, MessageBarIntent};
 
 use crate::components::{EventFilterToolbar, EventsTable};
 use crate::server::{get_events, get_topics};
@@ -19,7 +19,7 @@ pub fn PhotonEventsIndexPage() -> impl IntoView {
         topic_filter.set(if val.is_empty() { None } else { Some(val) });
     });
 
-    let topics_res = Resource::new(|| (), |_| async move { get_topics().await });
+    let topics_res = Resource::new(|| (), |()| async move { get_topics().await });
     let events_res = Resource::new(
         move || topic_filter.get(),
         |topic_opt| async move { get_events(topic_opt, 100).await },
@@ -40,7 +40,7 @@ pub fn PhotonEventsIndexPage() -> impl IntoView {
                 {move || match events_res.get() {
                     Some(Ok(events)) => {
                         let total = events.len();
-                        let topics: Vec<_> = topics_res.get().and_then(|r| r.ok()).unwrap_or_default();
+                        let topics: Vec<_> = topics_res.get().and_then(Result::ok).unwrap_or_default();
                         view! {
                             <EventFilterToolbar topic_str=topic_str topics=topics />
                             <Card>

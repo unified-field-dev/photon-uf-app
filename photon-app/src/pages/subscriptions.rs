@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
-use orbital::components::{Card, Body1, ContentContainer, EmptyState, Title3};
-use orbital::primitives::*;
+use orbital::components::{Body1, Card, ContentContainer, EmptyState, Title3};
+use orbital::primitives::{MessageBar, MessageBarIntent};
 
 use crate::components::{SubscriptionCard, SubscriptionFilterToolbar};
 use crate::server::{get_subscriptions, SubscriptionSummary};
@@ -13,7 +13,7 @@ pub fn PhotonSubscriptionsIndexPage() -> impl IntoView {
     let search_query = RwSignal::new(String::new());
     let status_str = RwSignal::new(String::new());
 
-    let subs_res = Resource::new(|| (), |_| async move { get_subscriptions().await });
+    let subs_res = Resource::new(|| (), |()| async move { get_subscriptions().await });
 
     let filtered = Memo::new(move |_| {
         let subs: Vec<SubscriptionSummary> = match subs_res.get() {
@@ -62,7 +62,7 @@ pub fn PhotonSubscriptionsIndexPage() -> impl IntoView {
                     Some(Ok(_)) => {
                         let f = filtered.get();
                         let total = f.len();
-                        let all_count = subs_res.get().map(|r| r.as_ref().ok().map(|v| v.len()).unwrap_or(0)).unwrap_or(0);
+                        let all_count = subs_res.get().map_or(0, |r| r.as_ref().ok().map_or(0, Vec::len));
                         view! {
                             <Card>
                                 {if f.is_empty() {

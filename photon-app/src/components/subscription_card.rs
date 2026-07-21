@@ -3,7 +3,7 @@
 use leptos::prelude::*;
 use leptos_router::components::A;
 use orbital::components::{Body1, Body1Strong, SpacingSize};
-use orbital::primitives::*;
+use orbital::primitives::Flex;
 
 use crate::components::SubscriptionStatusBadge;
 use crate::server::SubscriptionSummary;
@@ -11,6 +11,7 @@ use crate::server::SubscriptionSummary;
 /// Renders a single subscription card with name, status badge, topic, mode,
 /// key filter, checkpoint lag, and last processed time.
 #[component]
+#[allow(clippy::needless_pass_by_value)]
 pub fn SubscriptionCard(
     /// Subscription data to display.
     sub: SubscriptionSummary,
@@ -30,7 +31,7 @@ pub fn SubscriptionCard(
 
     let href = crate::paths::subscription(&sub.subscription_id);
     let sub_name = sub.subscription_name.clone();
-    let test_id = format!("sub-{}", sub_name);
+    let test_id = format!("sub-{sub_name}");
     let topic = sub.topic_name.clone();
     let mode = sub.mode.clone();
     let key_filter = sub
@@ -39,7 +40,7 @@ pub fn SubscriptionCard(
         .unwrap_or_else(|| "(all)".to_string());
     let lag = sub.checkpoint_lag;
     let en = sub.enabled;
-    let last_view = sub.last_processed_at.clone().map(|t| {
+    let last_view = sub.last_processed_at.map(|t| {
         view! {
             <Body1 block=true class=class_names.muted>"Last processed: " {t}</Body1>
         }

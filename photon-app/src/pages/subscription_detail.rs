@@ -2,7 +2,7 @@
 use leptos::prelude::*;
 use leptos_router::hooks::{use_navigate, use_params_map};
 use orbital::components::{Card, ContentContainer, Subtitle2, Title3};
-use orbital::primitives::*;
+use orbital::primitives::{MessageBar, MessageBarIntent};
 
 use crate::components::{EventsTable, SubscriptionMetaCard};
 use crate::server::{get_events, get_subscription};
@@ -12,11 +12,7 @@ use crate::server::{get_events, get_subscription};
 pub fn PhotonSubscriptionDetailPage() -> impl IntoView {
     let params = use_params_map();
     let id = move || {
-        params
-            .get()
-            .get("id")
-            .map(|s| s.to_string())
-            .unwrap_or_default()
+        params.get().get("id").unwrap_or_default()
     };
     let _navigate = use_navigate();
 

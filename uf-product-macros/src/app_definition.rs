@@ -6,7 +6,7 @@ use syn::{
     Expr, Ident, Result, Token,
 };
 
-/// Represents the parsed structure of an orbital_app! macro invocation
+/// Represents the parsed structure of an `orbital_app!` macro invocation
 struct OrbitalAppDefinition {
     fields: Vec<AppField>,
 }
@@ -19,7 +19,7 @@ struct AppField {
 impl Parse for OrbitalAppDefinition {
     fn parse(input: ParseStream) -> Result<Self> {
         let fields = Punctuated::<AppField, Token![,]>::parse_terminated(input)?;
-        Ok(OrbitalAppDefinition {
+        Ok(Self {
             fields: fields.into_iter().collect(),
         })
     }
@@ -30,10 +30,11 @@ impl Parse for AppField {
         let name: Ident = input.parse()?;
         input.parse::<Token![:]>()?;
         let value: Expr = input.parse()?;
-        Ok(AppField { name, value })
+        Ok(Self { name, value })
     }
 }
 
+#[allow(clippy::too_many_lines)]
 pub fn expand_orbital_app(input: TokenStream) -> TokenStream {
     let app_def = match syn::parse::<OrbitalAppDefinition>(input) {
         Ok(def) => def,
@@ -46,8 +47,6 @@ pub fn expand_orbital_app(input: TokenStream) -> TokenStream {
     let mut description = None;
     let mut icon = None;
     let mut version = None;
-    let mut _permissions = None;
-    let mut _navigation = None;
     let mut route_path_param = None;
     let mut route_view = None;
     let mut routes_component = None;
@@ -61,8 +60,8 @@ pub fn expand_orbital_app(input: TokenStream) -> TokenStream {
             "description" => description = Some(&field.value),
             "icon" => icon = Some(&field.value),
             "version" => version = Some(&field.value),
-            "permissions" => _permissions = Some(&field.value),
-            "navigation" => _navigation = Some(&field.value),
+            // Accepted for forward compatibility; not yet expanded.
+            "permissions" | "navigation" => {}
             "route_path" => route_path_param = Some(&field.value),
             "route_view" => route_view = Some(&field.value),
             "routes" => routes_component = Some(&field.value),
@@ -108,38 +107,37 @@ pub fn expand_orbital_app(input: TokenStream) -> TokenStream {
             .filter(|s| !s.is_empty())
             .map(|word| {
                 let mut chars = word.chars();
-                match chars.next() {
-                    None => String::new(),
-                    Some(first) => {
-                        let mut result = first.to_uppercase().to_string();
-                        result.push_str(chars.as_str());
-                        result
-                    }
-                }
+                chars.next().map_or_else(String::new, |first| {
+                    let mut result = first.to_uppercase().to_string();
+                    result.push_str(chars.as_str());
+                    result
+                })
             })
             .collect();
         format_ident!("{}Routes", pascal_case)
     };
 
     // Determine route_path for inventory - use provided route_path_param, or default to "/{id}"
-    let route_path_value = if let Some(rp) = route_path_param {
-        // Extract string literal value if it's a string literal, otherwise use as-is
-        match rp {
-            Expr::Lit(lit) => {
+    let route_path_value = route_path_param.map_or_else(
+        || {
+            // Default to "/{id}"
+            let default_path = format!("/{id_value}");
+            let path_lit = syn::LitStr::new(&default_path, proc_macro2::Span::call_site());
+            quote! { #path_lit }
+        },
+        |rp| {
+            // Extract string literal value if it's a string literal, otherwise use as-is
+            if let Expr::Lit(lit) = rp {
                 if let syn::Lit::Str(s) = &lit.lit {
                     quote! { #s }
                 } else {
                     quote! { #rp }
                 }
+            } else {
+                quote! { #rp }
             }
-            _ => quote! { #rp },
-        }
-    } else {
-        // Default to "/{id}"
-        let default_path = format!("/{}", id_value);
-        let path_lit = syn::LitStr::new(&default_path, proc_macro2::Span::call_site());
-        quote! { #path_lit }
-    };
+        },
+    );
 
     // Generate route registration if route fields are provided
     let route_registration =
@@ -164,19 +162,17 @@ pub fn expand_orbital_app(input: TokenStream) -> TokenStream {
         };
 
     // Generate the app metadata struct
-    let permission_manifest_expr = if let Some(manifest_ty) = permission_manifest {
-        quote! {
-            Some(<#manifest_ty as ::orbital::AppPermissionManifestProvider>::manifest)
-        }
-    } else {
-        quote! { None }
-    };
+    let permission_manifest_expr = permission_manifest.map_or_else(
+        || quote! { None },
+        |manifest_ty| {
+            quote! {
+                Some(<#manifest_ty as ::orbital::AppPermissionManifestProvider>::manifest)
+            }
+        },
+    );
 
-    let brand_seed_expr = if let Some(seed_expr) = brand_seed {
-        quote! { Some(#seed_expr) }
-    } else {
-        quote! { None }
-    };
+    let brand_seed_expr =
+        brand_seed.map_or_else(|| quote! { None }, |seed_expr| quote! { Some(#seed_expr) });
 
     let expanded = quote! {
         /// Application metadata generated by orbital_app! macro
@@ -224,38 +220,39 @@ pub fn expand_orbital_app(input: TokenStream) -> TokenStream {
     // Actually, route components MUST be used in JSX syntax (<Component />), so
     // we can't really return them from a method in a useful way. The best we can do
     // is provide documentation. However, we could add a type alias for convenience.
-    let routes_method = if let Some(routes_comp) = routes_component {
-        quote! {
-            impl AppMetadata {
-                /// Get the route component as a MatchNestedRoutes + Clone
-                ///
-                /// This returns the result of calling the route component function.
-                /// However, note that route components are typically used in JSX syntax
-                /// within a `<Routes>` component for proper integration with Leptos Router.
-                ///
-                /// Example:
-                /// ```ignore
-                /// // Direct usage (recommended):
-                /// use counter_app::CounterRoutes;
-                /// view! {
-                ///     <Routes>
-                ///         <CounterRoutes />
-                ///     </Routes>
-                /// }
-                ///
-                /// // Or through AppMetadata:
-                /// use counter_app::AppMetadata;
-                /// let routes = AppMetadata::routes();
-                /// // Note: This still needs to be used in JSX syntax within Routes
-                /// ```
-                pub fn routes() -> impl ::leptos_router::MatchNestedRoutes + Clone {
-                    #routes_comp()
+    let routes_method = routes_component.map_or_else(
+        || quote! {},
+        |routes_comp| {
+            quote! {
+                impl AppMetadata {
+                    /// Get the route component as a MatchNestedRoutes + Clone
+                    ///
+                    /// This returns the result of calling the route component function.
+                    /// However, note that route components are typically used in JSX syntax
+                    /// within a `<Routes>` component for proper integration with Leptos Router.
+                    ///
+                    /// Example:
+                    /// ```ignore
+                    /// // Direct usage (recommended):
+                    /// use counter_app::CounterRoutes;
+                    /// view! {
+                    ///     <Routes>
+                    ///         <CounterRoutes />
+                    ///     </Routes>
+                    /// }
+                    ///
+                    /// // Or through AppMetadata:
+                    /// use counter_app::AppMetadata;
+                    /// let routes = AppMetadata::routes();
+                    /// // Note: This still needs to be used in JSX syntax within Routes
+                    /// ```
+                    pub fn routes() -> impl ::leptos_router::MatchNestedRoutes + Clone {
+                        #routes_comp()
+                    }
                 }
             }
-        }
-    } else {
-        quote! {}
-    };
+        },
+    );
 
     let expanded = quote! {
         #expanded

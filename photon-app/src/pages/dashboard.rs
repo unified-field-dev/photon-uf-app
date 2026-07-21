@@ -1,7 +1,8 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
+use leptos_router::NavigateOptions;
 use orbital::components::{Card, ContentContainer, SpacingSize, Subtitle2, Title3};
-use orbital::primitives::*;
+use orbital::primitives::{Button, ButtonAppearance, Flex, MessageBar, MessageBarIntent};
 
 use crate::components::{ActiveSubscriptionsTable, EventsTable, PhotonStatsGrid};
 use crate::server::{get_dashboard_stats, get_recent_events, get_subscriptions};
@@ -12,9 +13,9 @@ pub fn PhotonDashboardPage() -> impl IntoView {
     let navigate = use_navigate();
     let nav_events = navigate.clone();
     let nav_subs = navigate.clone();
-    let stats_res = Resource::new(|| (), |_| async move { get_dashboard_stats().await });
-    let events_res = Resource::new(|| (), |_| async move { get_recent_events(10).await });
-    let subs_res = Resource::new(|| (), |_| async move { get_subscriptions().await });
+    let stats_res = Resource::new(|| (), |()| async move { get_dashboard_stats().await });
+    let events_res = Resource::new(|| (), |()| async move { get_recent_events(10).await });
+    let subs_res = Resource::new(|| (), |()| async move { get_subscriptions().await });
 
     let (style_sheet, class_names) = turf::inline_style_sheet_values! {
         .SectionHeader {
@@ -48,7 +49,7 @@ pub fn PhotonDashboardPage() -> impl IntoView {
                         <Subtitle2>"Recent Events"</Subtitle2>
                         <Button
                             appearance=ButtonAppearance::Subtle
-                            on_click=Callback::new(move |_| nav_events(crate::paths::EVENTS, Default::default()))
+                            on_click=Callback::new(move |_| nav_events(crate::paths::EVENTS, NavigateOptions::default()))
                         >
                             "View All \u{2192}"
                         </Button>
@@ -78,7 +79,7 @@ pub fn PhotonDashboardPage() -> impl IntoView {
                         <Subtitle2>"Active Subscriptions"</Subtitle2>
                         <Button
                             appearance=ButtonAppearance::Subtle
-                            on_click=Callback::new(move |_| nav_subs(crate::paths::SUBSCRIPTIONS, Default::default()))
+                            on_click=Callback::new(move |_| nav_subs(crate::paths::SUBSCRIPTIONS, NavigateOptions::default()))
                         >
                             "View All \u{2192}"
                         </Button>

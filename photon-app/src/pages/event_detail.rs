@@ -2,7 +2,7 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_params_map;
 use orbital::components::{Card, ContentContainer, Title3};
-use orbital::primitives::*;
+use orbital::primitives::{MessageBar, MessageBarIntent};
 
 use crate::components::EventMetaCard;
 use crate::server::get_event;
@@ -12,11 +12,7 @@ use crate::server::get_event;
 pub fn PhotonEventDetailPage() -> impl IntoView {
     let params = use_params_map();
     let id = move || {
-        params
-            .get()
-            .get("id")
-            .map(|s| s.to_string())
-            .unwrap_or_default()
+        params.get().get("id").unwrap_or_default()
     };
 
     let event_res = Resource::new(move || id(), |eid| async move { get_event(eid).await });

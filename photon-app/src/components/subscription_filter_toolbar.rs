@@ -1,7 +1,7 @@
 //! Filter toolbar for the subscriptions index page.
 
 use leptos::prelude::*;
-use orbital::primitives::*;
+use orbital::primitives::{Input, InputAppearance, Select};
 
 /// Renders a search input and status select for filtering subscriptions.
 #[component]

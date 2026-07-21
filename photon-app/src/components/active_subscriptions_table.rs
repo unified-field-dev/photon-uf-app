@@ -4,7 +4,7 @@ use leptos::prelude::*;
 
 use crate::components::SubscriptionStatusBadge;
 use crate::server::SubscriptionSummary;
-use orbital::primitives::*;
+use orbital::primitives::{Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow};
 
 /// Renders a table of subscriptions with Name, Topic, Status, and Lag columns.
 #[component]

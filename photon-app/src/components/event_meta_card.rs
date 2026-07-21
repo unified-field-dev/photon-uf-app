@@ -2,7 +2,7 @@
 
 use leptos::prelude::*;
 use orbital::components::{Card, Body1, Subtitle2, Text, TextTag, TextFont, TextSize};
-use orbital::primitives::*;
+use orbital::primitives::{MessageBar, MessageBarIntent};
 
 use crate::server::EventDetail;
 

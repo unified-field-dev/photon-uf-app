@@ -6,13 +6,14 @@
 use leptos::prelude::*;
 
 use crate::server::EventSummary;
-use orbital::primitives::*;
+use orbital::primitives::{Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow};
 
 /// Reusable events table.
 ///
 /// Renders a `Table` of events with an optional Event ID link column. Toggle
 /// individual columns via boolean props (all default to `true`).
 #[component]
+#[allow(clippy::fn_params_excessive_bools)]
 pub fn EventsTable(
     /// Event rows to display.
     events: Vec<EventSummary>,
@@ -74,10 +75,10 @@ pub fn EventsTable(
                             <TableRow class=class_names.row>
                                 {show_event_id.then(|| view! { <TableCell><a href=href class=class_names.link>{id}</a></TableCell> })}
                                 {show_topic.then(|| {
-                                    if !show_event_id {
-                                        view! { <TableCell><a href=href2.clone() class=class_names.link>{topic}</a></TableCell> }
-                                    } else {
+                                    if show_event_id {
                                         view! { <TableCell>{topic}</TableCell> }
+                                    } else {
+                                        view! { <TableCell><a href=href2.clone() class=class_names.link>{topic}</a></TableCell> }
                                     }
                                 })}
                                 {show_key.then(|| view! { <TableCell>{key}</TableCell> })}
