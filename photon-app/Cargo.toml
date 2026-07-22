@@ -54,7 +54,7 @@ ssr = [
     "dep:photon-valence-admin",
     "dep:chrono",
     "dep:valence",
-    "valence/surreal",
+    "valence/sqlite",
     "dep:higgs",
     "higgs/ssr",
     "dep:uf-ssr",
