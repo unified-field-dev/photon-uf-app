@@ -42,7 +42,6 @@ leptos_router = { version = "0.8", default-features = false, features = ["nightl
 leptos_axum = { version = "0.8", default-features = false }
 leptos_config = { version = "0.8", default-features = false }
 leptos_dom = { version = "0.8", default-features = false }
-leptos_integration_utils = { version = "0.8", default-features = false }
 leptos_macro = { version = "0.8", default-features = false }
 leptos_server = { version = "0.8", default-features = false }
 
@@ -56,7 +55,7 @@ chrono = { version = "0.4", default-features = false, features = ["clock", "std"
 photon = { package = "uf-photon", version = "0.1.1", default-features = false }
 photon-valence-admin = { git = "https://github.com/deathbreakfast/photon-valence-admin", branch = "feat/crates-io-uf-deps" }
 valence = { package = "uf-valence", version = "0.1.1", default-features = false, features = ["mem", "sqlite"] }
-higgs = { git = "https://github.com/deathbreakfast/valence-platform", branch = "feat/crates-io-uf-deps", default-features = false }
+higgs = { path = "../fleet/repos/valence-platform/higgs-platform", default-features = false }
 uf-host = { git = "https://github.com/deathbreakfast/valence-platform", branch = "feat/crates-io-uf-deps", default-features = false }
 uf-identity = { git = "https://github.com/deathbreakfast/valence-platform", branch = "feat/crates-io-uf-deps" }
 
