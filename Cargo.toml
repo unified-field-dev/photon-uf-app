@@ -53,11 +53,11 @@ turf = "0.10"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std", "wasmbind", "serde"] }
 
 photon = { package = "uf-photon", version = "0.1.1", default-features = false }
-photon-valence-admin = { git = "https://github.com/deathbreakfast/photon-valence-admin", branch = "feat/crates-io-uf-deps" }
+photon-valence-admin = { git = "https://github.com/deathbreakfast/photon-valence-admin", branch = "main" }
 valence = { package = "uf-valence", version = "0.1.1", default-features = false, features = ["mem", "sqlite"] }
 higgs = { path = "../fleet/repos/valence-platform/higgs-platform", default-features = false }
-uf-host = { git = "https://github.com/deathbreakfast/valence-platform", branch = "feat/crates-io-uf-deps", default-features = false }
-uf-identity = { git = "https://github.com/deathbreakfast/valence-platform", branch = "feat/crates-io-uf-deps" }
+uf-host = { git = "https://github.com/deathbreakfast/valence-platform", branch = "main", default-features = false }
+uf-identity = { git = "https://github.com/deathbreakfast/valence-platform", branch = "main" }
 
 orbital = { package = "orbital-ui", git = "https://github.com/deathbreakfast/orbital", branch = "fix/crates-io-publish", default-features = false }
 orbital-macros = { git = "https://github.com/deathbreakfast/orbital", branch = "fix/crates-io-publish" }
