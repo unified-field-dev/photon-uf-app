@@ -1,8 +1,19 @@
 # Photon App UI & Quality Audit
 
 **Audit date:** 2026-06-30  
+**Value / audience enhancement:** 2026-07-22  
+**This copy:** `~/photon-uf-app/photon-app/PHOTON_UI_AUDIT.md` (primary extracted tree)  
 **Scope:** All Leptos routes and UI components in `photon-app` (25 Rust source files, ~1,764 lines per Sentrux scan)  
-**Reference canon:** Orbital Introduction (`/orbital`), [`.cursor/rules/20-ui-orbital-principles.mdc`](../.cursor/rules/20-ui-orbital-principles.mdc), [`.cursor/rules/21-ui-implementation-patterns.mdc`](../.cursor/rules/21-ui-implementation-patterns.mdc), [`.cursor/rules/31-async-boson-chronon-photon.mdc`](../.cursor/rules/31-async-boson-chronon-photon.mdc), valence-app schema index + help components, [`boson-app/BOSON_UI_AUDIT.md`](../boson-app/BOSON_UI_AUDIT.md), [`chronon-app/CHRONON_UI_AUDIT.md`](../chronon-app/CHRONON_UI_AUDIT.md)
+**Applies to (both trees — same product surface):**
+
+| Tree | Path | Role |
+|---|---|---|
+| Monorepo | `web-app-template/photon-app` | Template / history alignment |
+| **Extracted (this repo)** | `~/photon-uf-app/photon-app` | Downstream home; remediation expected here first |
+
+High-level UI findings apply **1:1**. Extracted drift is wiring/docs only: `uf_product_macros` (vs `orbital_product_macros`), `uf_ssr` + Photon from Leptos context (vs Higgs), richer rustdoc/`server.rs` helpers (~464 lines vs ~282), explicit imports + `NavigateOptions`. Routes, stubs, dashboard composition, and missing Transition/skeletons/DataTable are the same.
+
+**Reference canon (monorepo pattern sources):** Orbital Introduction (`/orbital`), `.cursor/rules/20-ui-orbital-principles.mdc`, `21-ui-implementation-patterns.mdc`, `31-async-boson-chronon-photon.mdc`, valence-app schema index + help, `boson-app/BOSON_UI_AUDIT.md` + `boson-app/src/pages/dashboard/` (Transition + poll), `chronon-app/CHRONON_UI_AUDIT.md`. In the extracted repo these paths live outside the tree — use them as the remediation pattern source, not as in-repo links.
 
 **Baseline metrics (Sentrux `scan` on 2026-06-30):**
 
@@ -21,6 +32,8 @@
 
 Photon-app is **Orbital-first at the shell and page chrome level**: every route uses `ContentContainer`, typography presets (`Title3`, `Subtitle2`, `Body1`), `Card`/`StatCard`, and `UnifiedFieldShellLayout`. The app is usable for developers and operators inspecting event pipelines, but under-serves the **open-platform audience** with no contextual help (`InfoLabel`), no skeleton loading states, hand-rolled tables and card lists instead of `DataTable`, no time-series charts, and no photon-leptos live subscriptions despite being the Photon operations UI.
 
+Treat `/photon` as the **Photon operations cockpit** (same role as Boson’s `/boson` dashboard). Value analysis finds **14 low-or-no-value UI surfaces** today: **3 placeholders** (stub server data), **2 misleading** labels/columns, and **9 redundant or low-value** controls. See [UI value & placeholder analysis](#ui-value--placeholder-analysis).
+
 | Category | Pass | Violations | High severity |
 |---|---:|---:|---:|
 | Orbital surfaces & layout | Partial | 14 | 0 |
@@ -31,25 +44,27 @@ Photon-app is **Orbital-first at the shell and page chrome level**: every route 
 | Code quality (god files, composition, structure) | Partial | 10 | 1 |
 | Test IDs | Partial | 1 gap set | 0 |
 | **Functional wiring** | Partial | 4 | **1** |
+| **Value / placeholders** | Fail | 14 surfaces | **1** (lag stub shown as real) |
 
 **Top findings:**
 
-1. **High — Checkpoint lag stubbed to zero:** [`server.rs`](src/server.rs) line 196 sets `checkpoint_lag: 0i64` for every subscription; the UI displays lag in dashboard, subscription cards, and meta cards but the value is never computed.
-2. **Medium — No skeleton loading:** All seven routes use `<Card>"Loading..."</Card>` or bare `<div>"Loading..."</div>` instead of Orbital `Skeleton`/`SkeletonItem`.
-3. **Medium — No InfoLabel usage anywhere:** Domain jargon (seq, checkpoint lag, keyed-by, mode, delivery status, transport expired) lacks the valence-app help pattern.
-4. **Medium — Hand-rolled lists and tables:** Topics, subscriptions, and events index pages miss `DataTable` search/filter/list-view affordances ([valence schema index](../valence-app/src/pages/schema_index/components/schema_table/schema_data_table.rs) reference).
-5. **Medium — No photon-leptos subscriptions:** The Photon operations app does not use `#[photon::synced]` or client subscribe hooks for live dashboard/events data (counter-app live page pattern).
+1. **High — Checkpoint lag stubbed to zero:** [`server.rs`](src/server.rs) hardcodes `checkpoint_lag: 0i64` for every subscription; the UI still shows lag on the dashboard, subscription cards, and meta cards (V-01 / B-F01).
+2. **High (value) — Misleading “Active Subscriptions”:** Dashboard section title implies enabled-only, but the table lists **all** subscriptions (V-04).
+3. **Medium — No skeleton loading / wrong async wrapper for poll:** All seven routes use text `"Loading..."` fallbacks; stats grid uses `Suspense` with a snapshot prop — would flash on any poll. Boson’s `Transition` + `Resource` pattern is the fix ([Boson dashboard reference](#boson-dashboard-reference-pattern)).
+4. **Medium — No InfoLabel usage anywhere:** Domain jargon (seq, checkpoint lag, keyed-by, mode, delivery status) lacks the valence/boson help pattern.
+5. **Medium — Hand-rolled lists and tables:** Topics, subscriptions, and events miss `DataTable` LIST_VIEW affordances.
+6. **Medium — No live refresh:** No poll tick / photon-leptos on the Photon cockpit despite being the event-pipeline UI.
 
 **Phased remediation estimate:**
 
 | Phase | Focus | Effort |
 |---|---|---|
 | P0 | Audit document (this file) | Done |
-| P1 | Quick wins (skeletons, test ids, `<a>` → `Link`, page subtitles, fix lag stub) | S–M |
+| P1 | Quick wins: skeletons, hide stub lag, rename Active Subs, test ids, `<a>` → `Link`, page subtitles, Boson-style `Transition` stats grid | S–M |
 | P2 | Help & composition (`PhotonHelpCardHeader`, route folders, `EventsTableConfig`) | M |
 | P3 | DataTable migration (topics → subscriptions → events) | M–L |
-| P4 | Dashboard charts + time-series server endpoints | M |
-| P5 | Async + Photon live updates | M |
+| P4 | Dashboard charts + time-series (`PhotonEventTrendCard` like Boson) | M |
+| P5 | Async poll / Photon live updates with `Transition` (no skeleton flash) | M |
 | P6 | Server refactor + unit tests | L |
 | P7 | Motion polish (optional) | S |
 
@@ -66,6 +81,166 @@ Photon is the platform UI for **publish/subscribe event pipelines** — register
 | **General registered users** | Understand what Photon does on the platform | Plain-language page intros; avoid unexplained jargon (seq, checkpoint lag, keyed-by, mode) |
 
 The app today optimizes for the **developer/ops** persona (metadata-heavy cards, table snapshots, status badges) but does not explain domain concepts to general users.
+
+Per-route audience detail and feature mapping: [Per-route audience & information matrix](#per-route-audience--information-matrix), [Feature ↔ route map](#feature--route-map).
+
+---
+
+## UI value & placeholder analysis
+
+How many UI elements are useless, future-feature placeholders, or low value today?
+
+### Classification legend
+
+| Class | Meaning |
+|---|---|
+| **Useless** | Rendered but always wrong, empty, or duplicate — misleads the user |
+| **Placeholder** | UI + DTO exist; server always returns stub — “future feature” shell |
+| **Low value** | Technically works but redundant, unfiltered, or weak deep-link |
+| **Missing** | Expected for a persona but not present (not counted in useless tally) |
+
+### Inventory (14 surfaces)
+
+| ID | Element | Route(s) | Class | Evidence |
+|---|---|---|---|---|
+| V-01 | **Checkpoint lag** column/field | Dashboard, sub cards, meta cards | **Placeholder** | Hardcoded `0i64` in `get_subscriptions` ([`src/server.rs`](src/server.rs) ~196 monorepo / ~280 UF; also `get_subscription` path in UF) |
+| V-02 | **Last processed** line | Subscription cards | **Placeholder** | Always `None` — UI branch never renders (both trees) |
+| V-03 | **Payload preview** | Events DTO / omitted column | **Placeholder** | Maps to `[delivery_status]` (UF: `format_delivery_preview`); `EventsTable` never shows column |
+| V-04 | **“Active Subscriptions”** section title | Dashboard | **Useless / misleading** | [`src/pages/dashboard.rs`](src/pages/dashboard.rs) passes **all** subs — no `enabled` filter |
+| V-05 | **Lag** column header | Dashboard table | **Useless** until V-01 fixed | Always shows `0` |
+| V-06 | **Topic card “View” button** | Topics index | **Low value** | Duplicates whole-card click ([`src/components/topic_card.rs`](src/components/topic_card.rs)) |
+| V-07 | **“View Events” button** | Topics index | **Low value** | Goes to `/photon/events` without topic filter |
+| V-08 | **“View Subscriptions” button** | Topics index | **Low value** | Goes to `/photon/subscriptions` unfiltered |
+| V-09 | **“ KEYED” title suffix** | Topics index | **Low value** | Redundant with `Keyed by:` line |
+| V-10 | **Full schema JSON inline** | Topics index / topic meta | **Low value** | Unreadable at list density; no truncate/copy |
+| V-11 | **Event ID hidden** on dashboard | Dashboard recent events | **Low value** | `show_event_id=false` — id is the primary nav key |
+| V-12 | **Yes/No enabled column** | Topic detail | **Low value** | Inconsistent with `SubscriptionStatusBadge` |
+| V-13 | **Count footers** (“Showing N of M”) | Index pages | **Low value** | No paging context; events capped at 100 with no UI warning |
+| V-14 | **Three “View All →” buttons** | Dashboard | **Low value** | Duplicates left nav; no Quick Links card |
+
+### Summary counts
+
+| Class | Count |
+|---|---:|
+| Placeholder (misleading if shown) | **3** (lag, last processed, payload preview) |
+| Useless / misleading labels | **2** (Active Subscriptions, Lag column) |
+| Low value / redundant UI | **9** |
+| **Total low-or-no-value surfaces** | **14** |
+
+**Disposition rule:** For placeholders — **hide until wired**, **fix the server**, or **remove from the UI**. Never display stub zero as if it were a live metric. Full dispositions: [Appendix D](#appendix-d-valueplaceholder-disposition).
+
+---
+
+## Dashboard field value analysis
+
+`/photon` is the **Photon operations cockpit**. Composition today (validated against both monorepo and `~/photon-uf-app` dashboards — same structure):
+
+```mermaid
+flowchart TD
+    dash[PhotonDashboardPage]
+    dash --> stats[PhotonStatsGrid - 3 StatCards]
+    dash --> events[Recent Events - EventsTable limit 10]
+    dash --> subs[Active Subscriptions - all subs table]
+```
+
+### Field-by-field matrix
+
+| Block | Field / column | Source | Useful today? | Primary persona | Gap |
+|---|---|---|---|---|---|
+| StatCard | Topics count | Registry len | **Yes** | All | No InfoLabel |
+| StatCard | Subscriptions count | DB list len | **Yes** | Ops/dev | Includes disabled; no enabled split |
+| StatCard | Events (24h) | Scan recent 1000 | **Partial** | Ops | No UTC window label; no trend |
+| Recent Events | Key | EventSummary | **Yes** | Dev | — |
+| Recent Events | Topic | EventSummary | **Yes** | Dev | — |
+| Recent Events | Seq | EventSummary | **Partial** | Dev | No InfoLabel |
+| Recent Events | Created | EventSummary | **Yes** | Ops | — |
+| Recent Events | Event ID | — | **Missing** | Dev | Hidden (`show_event_id=false`) — V-11 |
+| Recent Events | Payload preview | DTO | **No** | Dev | Not rendered; stub — V-03 |
+| Active Subs | Name | SubscriptionSummary | **Yes** | Ops | — |
+| Active Subs | Topic | SubscriptionSummary | **Yes** | Ops | — |
+| Active Subs | Status badge | enabled | **Yes** | Ops | — |
+| Active Subs | Lag | stub 0 | **No** | Ops | Hide or fix — V-01 / V-05 |
+| **Missing** | Event throughput chart | — | — | Ops | Boson: `BosonRunTrendCard` |
+| **Missing** | Quick links | — | — | General | Boson: `QuickLinks` |
+| **Missing** | Page subtitle | — | — | General | Boson: `Subtitle2` under title |
+| **Missing** | Live refresh | — | — | Ops | Boson: 20s poll + `Transition` |
+
+### Dashboard vs Boson gap
+
+| Boson dashboard feature | Photon equivalent | Status |
+|---|---|---|
+| `Subtitle2` page description | — | Missing |
+| `DashboardStatsGrid(stats_res)` + `Transition` | `PhotonStatsGrid(stats)` + `Suspense` | Wrong async pattern |
+| `BosonHelpStatCard` + InfoLabel on 24h metric | Plain `StatCard` | Missing help |
+| `use_boson_poll_tick` + refetch | No poll / no live module | Missing |
+| `BosonRunTrendCard` (chart, range, Transition) | — | Missing |
+| `QuickLinks` card | Nav rail only | Missing |
+| `RecentTasksTable` + Suspense skeleton | `EventsTable` + text fallback | Weaker async UX |
+
+---
+
+## Per-route audience & information matrix
+
+| Route | Primary audience | Information shown | Useful? | Biggest gaps / missing |
+|---|---|---|---|---|
+| `/photon` | Ops → Dev → General | 3 KPIs; 10 recent events; all-subs table | Ops: Partial; Dev: Partial; General: Fail | Chart; live refresh; filter “active”; hide lag; subtitle; QuickLinks |
+| `/photon/topics` | Dev → General | Search; topic cards (name, keyed, schema, counts); actions | Dev: Partial; General: Fail | Truncate schema; InfoLabels; deep links; drop redundant buttons (V-06–V-09) |
+| `/photon/topics/:name` | Dev → Ops | Meta card; topic subs; recent events | Dev: Yes; Ops: Partial | Back nav; server-side sub filter; badge consistency (V-12) |
+| `/photon/subscriptions` | Ops → Dev | Search + status filter; sub cards (mode, lag, key filter) | Ops: Partial (lag useless) | Fix/hide lag (V-01); InfoLabels; DataTable |
+| `/photon/subscriptions/:id` | Ops → Dev | Meta; recent topic events | Ops: Partial; Dev: Yes | Back nav; live lag; `last_processed_at` (V-02) |
+| `/photon/events` | Dev → Ops | Topic filter; event table (≤100) | Dev: Yes; Ops: Partial | Payload column; Transition on filter; URL `?topic=`; 100-cap warning (V-13) |
+| `/photon/events/:id` | Dev → Ops | Meta; payload; actor; transport-expired warning | Dev: Yes; Ops: Yes | InfoLabels; back nav |
+
+### Persona coverage score (today)
+
+| Persona | Best-served routes | Overall |
+|---|---|---|
+| Platform developers | Event detail, topic detail, events index | **Partial** |
+| Product support / ops | Dashboard (once lag fixed), subscriptions | **Partial → Fail** on lag |
+| General registered users | None without subtitles/help | **Fail** |
+
+---
+
+## Feature ↔ route map
+
+```mermaid
+flowchart TD
+    subgraph photonApp [photon-app routes]
+        R0["/photon Dashboard cockpit"]
+        R1["/photon/topics Topic registry"]
+        R2["/photon/topics/:topic_name Topic inspect"]
+        R3["/photon/subscriptions Consumer monitor"]
+        R4["/photon/subscriptions/:id Consumer debug"]
+        R5["/photon/events Event log"]
+        R6["/photon/events/:id Event inspect"]
+    end
+```
+
+| Feature | Route(s) | Component(s) | Server fn(s) | Status |
+|---|---|---|---|---|
+| KPI: topic count | `/photon` | `PhotonStatsGrid` | `get_dashboard_stats` | Live |
+| KPI: subscription count | `/photon` | `PhotonStatsGrid` | `get_dashboard_stats` | Live |
+| KPI: events 24h | `/photon` | `PhotonStatsGrid` | `get_dashboard_stats` | Live (approx) |
+| Recent events snapshot | `/photon` | `EventsTable` | `get_recent_events(10)` | Live |
+| Subscriptions snapshot | `/photon` | `ActiveSubscriptionsTable` | `get_subscriptions` | Live (mislabeled “active”) |
+| Topic search | `/photon/topics` | inline `Input` | `get_topics` | Live (client filter) |
+| Topic card actions | `/photon/topics` | `TopicCard` | — | Partial deep links |
+| Topic metadata | `/photon/topics/:name` | `TopicMetaCard` | `get_topic` | Live |
+| Topic-scoped subs | `/photon/topics/:name` | `TopicSubscriptionsTable` | `get_subscriptions` + client filter | Inefficient |
+| Topic-scoped events | `/photon/topics/:name` | `EventsTable` | `get_events` | Live |
+| Sub search + status filter | `/photon/subscriptions` | `SubscriptionFilterToolbar` | `get_subscriptions` | Live (client) |
+| Sub card list | `/photon/subscriptions` | `SubscriptionCard` | — | Live |
+| Sub metadata | `/photon/subscriptions/:id` | `SubscriptionMetaCard` | `get_subscription` | Partial (lag stub) |
+| Sub topic events | `/photon/subscriptions/:id` | `EventsTable` | `get_events` | Live |
+| Event topic filter | `/photon/events` | `EventFilterToolbar` | `get_events` | Live (Suspense not Transition) |
+| Event log table | `/photon/events` | `EventsTable` | `get_events(100)` | Live |
+| Event payload/actor | `/photon/events/:id` | `EventMetaCard` | `get_event` | Live |
+| Transport expired warning | `/photon/events/:id` | `EventMetaCard` | `get_event` | Live |
+| Checkpoint lag display | Multiple | cards/tables | `get_subscriptions` | **Stub** |
+| Payload preview | — | not rendered | `map_event_summary` | **Stub** |
+| Live WS / poll refresh | — | — | — | **Not implemented** |
+| Charts / trends | — | — | — | **Not implemented** |
+| Create/edit topic or sub | — | — | — | **Out of scope** (read-only UI) |
 
 ---
 
@@ -175,6 +350,58 @@ Per [`.cursor/rules/21-ui-implementation-patterns.mdc`](../.cursor/rules/21-ui-i
 ### Motion
 
 Use `OrbitalPresence` + `PresenceMotion` for filter panel reveal, card list enter, section expand. Respect `use_reduced_motion()`. Decorative motion is optional polish (Phase 7).
+
+---
+
+## Boson dashboard reference pattern
+
+Boson (monorepo `web-app-template/boson-app` only — not present in `photon-uf-app`) is the canonical post-remediation example for Photon’s cockpit uplift. It solves **skeleton flash on every poll** by keeping StatCards mounted and updating values through memos. Apply the same pattern when remediating either photon-app tree.
+
+### Anti-flash pattern
+
+| Concern | Mechanism | File (monorepo pattern source) |
+|---|---|---|
+| Poll trigger | `use_boson_poll_tick()` → `Effect` → `stats_res.refetch()` | `boson-app/src/live.rs`, `pages/dashboard/mod.rs` |
+| Initial + refetch UI | `<Transition fallback=DashboardStatsSkeleton>` | `boson-app/src/pages/dashboard/stats_grid.rs` |
+| Stable mounted cards | Grid receives `Resource`; values via `Memo` / `Signal::derive` | `stats_grid.rs` |
+| First-load motion only | `OrbitalPresenceGroup` + `kpi_enter` signal | `stats_grid.rs` |
+| Help on KPI | `BosonHelpStatCard` + InfoLabel | `boson-app/src/components/stat_card.rs` |
+| One-shot sections | `RecentTasksTable` uses `Suspense` (no poll) | `recent_tasks_table.rs` |
+| Refetching chart | `BosonRunTrendCard` uses `Transition` on range change | `run_trend_card.rs` |
+
+**Why Photon fails today (monorepo and UF):** `PhotonStatsGrid` takes a snapshot `stats: DashboardStats` inside page-level **`Suspense`** ([`src/pages/dashboard.rs`](src/pages/dashboard.rs), [`src/components/photon_stats_grid.rs`](src/components/photon_stats_grid.rs)). Any future poll would re-enter Suspense and flash `"Loading..."` or remount cards.
+
+```mermaid
+sequenceDiagram
+    participant Page as PhotonDashboardPage
+    participant Tick as use_photon_poll_tick
+    participant Res as stats_res Resource
+    participant Grid as PhotonStatsGrid
+    participant UI as StatCards
+
+    Page->>Res: Resource::new initial fetch
+    Grid->>UI: Transition shows skeleton once
+    Res-->>Grid: Ok stats
+    Grid->>UI: Mount StatCards with Memos
+    loop Every 20s
+        Tick->>Page: poll_tick bump
+        Page->>Res: refetch
+        Res-->>Grid: new values
+        Grid->>UI: Memos update values only
+    end
+```
+
+### Photon cockpit uplift checklist
+
+Implement in **`~/photon-uf-app/photon-app` first** (mirror into monorepo if still synced):
+
+1. Add `src/live.rs` with `use_photon_poll_tick()` (mirror Boson ~20s interval, or WS triggers later).
+2. Refactor `PhotonStatsGrid` to accept `stats_res: Resource<Result<DashboardStats, _>>`.
+3. Wrap stats in `<Transition fallback=PhotonDashboardStatsSkeleton>` — **not** Suspense.
+4. Keep recent events / subs on `Suspense` for first load; use `Transition` when those resources also poll.
+5. Add `PhotonHelpStatCard` for “Events (24h)” with UTC window InfoLabel.
+6. Add page `Subtitle2` + optional `QuickLinks` (Topics / Subscriptions / Events).
+7. **Hide Lag column** until V-01 fixed; rename section to **Subscriptions** or filter `enabled == true` (V-04 / V-05).
 
 ---
 
@@ -394,20 +621,25 @@ Provides the Unified Field shell (AppBar + left nav) and route/auth wiring for a
 | D-02 | `dashboard.rs` | Medium | Async | Events/subs fallbacks use `<Card>"Loading..."</Card>` — no Skeleton |
 | D-03 | `dashboard.rs` | Medium | Charts | No time-series visualization for 24h event throughput |
 | D-04 | `dashboard.rs` | Medium | Presentation | No page subtitle for general-user context |
-| D-05 | `dashboard.rs` | Medium | Async/Photon | No `#[photon::synced]` on stats or recent events |
-| D-06 | `active_subscriptions_table.rs` | Low | Raw HTML | Raw `<a href>` for subscription links (L75 pattern in events_table) |
+| D-05 | `dashboard.rs` | Medium | Async/Photon | No poll / `#[photon::synced]`; Suspense+snapshot would flash on refetch |
+| D-06 | `active_subscriptions_table.rs` | Low | Raw HTML | Raw `<a href>` for subscription links |
 | D-07 | `dashboard.rs` | Low | Layout | Section headers via turf div instead of `Flex justify=SpaceBetween` |
 | D-08 | `dashboard.rs` | Low | Test IDs | Missing hooks on stat cards and table sections |
+| D-09 | `dashboard.rs` | High | Value V-04 | “Active Subscriptions” lists all subs — not filtered to enabled |
+| D-10 | `active_subscriptions_table.rs` | High | Value V-01/V-05 | Lag column always shows stub `0` |
+| D-11 | `dashboard.rs` | Low | Value V-11 | Event ID column hidden on recent events |
 
 #### Recommendations
 
-1. Add `PhotonDashboardSkeleton` with `SkeletonItem` placeholders for stats grid + two table cards. **[P1]**
-2. Add muted `Body1` subtitle under title: "Monitor topics, subscriptions, and recent event activity." **[P1]**
-3. Add `PhotonHelpColumnHeader` on "Lag" and "Seq" table columns. **[P2]**
-4. Add `get_event_throughput_series()` server fn + `LineChart`/`AreaChart` card (valence dashboard pattern). **[P4]**
-5. Annotate `get_dashboard_stats` / `get_recent_events` with `#[photon::synced]`; wrap live sections in `Transition`. **[P5]**
-6. Replace raw `<a>` in `ActiveSubscriptionsTable` with Orbital `Link`. **[P1]**
-7. Add `data-testid` wrappers on stat cards and section containers. **[P1]**
+1. Refactor stats to Boson pattern: `PhotonStatsGrid(stats_res)` + `<Transition>` + value-only skeleton — see [Boson dashboard reference](#boson-dashboard-reference-pattern). **[P1 / P5]**
+2. Hide Lag column (or fix server) and rename section to “Subscriptions” or filter `enabled`. **[P1]** — V-01, V-04, V-05
+3. Show event id on dashboard recent events (or link via topic+seq). **[P1]** — V-11
+4. Add muted subtitle under title. **[P1]**
+5. Add `PhotonHelpStatCard` for Events (24h) + column help for Seq. **[P2]**
+6. Add `PhotonEventTrendCard` mirroring `BosonRunTrendCard`. **[P4]**
+7. Add `live.rs` poll tick; wrap live sections in `Transition`. **[P5]**
+8. Replace raw `<a>` with Orbital `Link`. **[P1]**
+9. Add `data-testid` wrappers on stat cards and sections. **[P1]**
 
 ---
 
@@ -871,13 +1103,13 @@ photon-app/src/pages/
 
 | Issue | File | Severity |
 |---|---|---|
-| `checkpoint_lag` hardcoded to `0` | `server.rs:196` | **High (B-F01)** |
-| `get_topic` / `get_subscription` re-fetch entire lists | `server.rs:167-217` | Medium (B-F02) |
-| `get_topics` loads 10,000 events per topic for 24h count | `server.rs:142-151` | Medium (B-F03) |
-| `payload_preview` maps to `[delivery_status]` not payload | `server.rs:74` | Low (B-F04) |
-| `last_processed_at` always `None` | `server.rs:206` | Medium (B-F05) |
-| No paged APIs for DataTable migration | `server.rs` | Medium (blocks P3) |
-| No time-series API for charts | `server.rs` | Medium (blocks P4) |
+| `checkpoint_lag` hardcoded to `0` | `src/server.rs` (`get_subscriptions`; ~196 monorepo / ~280 UF) | **High (B-F01)** |
+| `get_topic` / `get_subscription` re-fetch entire lists | `src/server.rs` | Medium (B-F02) |
+| `get_topics` loads large recent-event scans for 24h counts | `src/server.rs` | Medium (B-F03) |
+| `payload_preview` maps to `[delivery_status]` not payload | `src/server.rs` (UF: `format_delivery_preview`) | Low (B-F04) |
+| `last_processed_at` always `None` | `src/server.rs` | Medium (B-F05) |
+| No paged APIs for DataTable migration | `src/server.rs` | Medium (blocks P3) |
+| No time-series API for charts | `src/server.rs` | Medium (blocks P4) |
 
 **Violation IDs:** B-F01 (High), B-F02–B-F05 (Medium/Low)
 
@@ -906,15 +1138,19 @@ Six props (1 data + 5 booleans) should become `EventsTableConfig` struct per ≤
 | Item | Violation IDs | Files |
 |---|---|---|
 | `PhotonSkeletons` module (dashboard, index, detail variants) | D-01, D-02, T-03, S-03, E-03, TD-02, SD-03, ED-03 | new `components/skeletons.rs` |
-| Replace raw `<a>` with Orbital `Link` in all tables | D-06, TD-06, CC-02 | `events_table.rs`, `active_subscriptions_table.rs`, `topic_subscriptions_table.rs` |
+| Boson-style stats: `PhotonStatsGrid(stats_res)` + `Transition` (no Suspense flash) | D-05, D-01 | `photon_stats_grid.rs`, `dashboard.rs` |
+| Hide Lag column until fixed; rename “Active Subscriptions” → “Subscriptions” or filter enabled | D-09, D-10, V-01, V-04, V-05, B-F01 | `active_subscriptions_table.rs`, `dashboard.rs`, cards |
+| Show event id on dashboard recent events | D-11, V-11 | `dashboard.rs` |
+| Replace raw `<a>` with Orbital `Link` in all tables | D-06, TD-06, CC-02 | table components |
 | Page subtitles on all index pages | D-04, T-04, S-04, E-04 | `pages/*.rs` |
 | Back links on all detail pages | TD-01, SD-01, ED-01 | detail pages |
-| Fix `checkpoint_lag` computation | B-F01 | `server.rs` |
+| Fix `checkpoint_lag` computation (or keep hidden) | B-F01, V-01 | `server.rs` |
 | Add `get_subscriptions_for_topic` | TD-04 | `server.rs`, `topic_detail.rs` |
-| `SubscriptionStatusBadge` in topic subs table | TD-07 | `topic_subscriptions_table.rs` |
+| `SubscriptionStatusBadge` in topic subs table | TD-07, V-12 | `topic_subscriptions_table.rs` |
 | Test ID wrappers (filters, stats, sections) | D-08, T-09, S-06, E-08 | see Appendix B |
 | Split events page: Suspense (topics) + Transition (events) | E-01 | `events.rs` |
 | Remove unused `_navigate` bindings | CC-05 | multiple pages |
+| Drop or deep-link topic card action buttons | V-06–V-08 | `topic_card.rs` |
 
 ### Phase 2 — Help & composition (M, ~2–3 days)
 
@@ -927,6 +1163,7 @@ Six props (1 data + 5 booleans) should become `EventsTableConfig` struct per ≤
 | Shared `photon_table_styles()` | CC-01 | `components/table_styles.rs` |
 | Reorganize into route folders | CC-04 | `pages/` tree |
 | `Caption1` for metadata instead of `Body1` + `.Muted` | Typography | meta cards, cards |
+| Truncate / copy schema on topic cards | V-10 | `topic_card.rs`, `topic_meta_card.rs` |
 
 ### Phase 3 — DataTable migration (M–L, ~3–5 days)
 
@@ -935,7 +1172,7 @@ Six props (1 data + 5 booleans) should become `EventsTableConfig` struct per ≤
 | `get_topics_page` + `TopicsDataTable` | T-02 | Topics first |
 | `get_subscriptions_page` + `SubscriptionsDataTable` | S-02 | Subscriptions second |
 | `get_events_page` + `EventsDataTable` | E-02 | Events third |
-| URL `?q=` / `?topic=` sync | E-06, T-06 | Index pages |
+| URL `?q=` / `?topic=` sync | E-06, T-06, V-07 | Index pages |
 
 Reference: [`schema_data_table.rs`](../valence-app/src/pages/schema_index/components/schema_table/schema_data_table.rs).
 
@@ -943,18 +1180,20 @@ Reference: [`schema_data_table.rs`](../valence-app/src/pages/schema_index/compon
 
 | Item | Violation IDs | Files |
 |---|---|---|
-| `get_event_throughput_series()` | D-03, B-F chart gap | `server.rs` |
-| Dashboard chart card + skeleton | D-03 | `pages/dashboard/charts.rs` |
+| `get_event_throughput_series()` | D-03 | `server.rs` |
+| `PhotonEventTrendCard` mirroring `BosonRunTrendCard` (range toggle + Transition) | D-03 | `pages/dashboard/charts.rs`, `run_trend`-style card |
 | Optional topic sparkline on detail | — | `topic_detail.rs` |
+| Optional QuickLinks card | V-14 | `pages/dashboard/quick_links.rs` |
 
 ### Phase 5 — Async + Photon live updates (M, ~2–3 days)
 
 | Item | Violation IDs | Notes |
 |---|---|---|
-| `#[photon::synced]` on dashboard stats/events | D-05 | Subscribe while dashboard mounted |
+| `live.rs` + `use_photon_poll_tick` (Boson pattern) | D-05 | Poll KPIs without Suspense flash |
+| `Transition` on all refetching dashboard sections | D-05, E-01 | Values update in place |
+| `#[photon::synced]` on dashboard stats/events (optional upgrade from poll) | D-05 | Subscribe while dashboard mounted |
 | `#[photon::synced]` on events index | E-01 follow-up | Live event tail |
 | `#[photon::synced]` on subscription detail | SD-04 | Lag/last_seq refresh |
-| Wrap live sections in `Transition` | E-01, D-05 | Counter-app live page pattern |
 
 Reference: [`counter-app/.../pages/live/mod.rs`](../counter-app/src/counter/counter_example/pages/live/mod.rs).
 
@@ -1076,6 +1315,27 @@ All components are within the **≤11 props** guideline.
 
 ---
 
+## Appendix D: Value/placeholder disposition
+
+| ID | Disposition | Phase | Notes |
+|---|---|---|---|
+| V-01 | **Hide until fixed**, then show with InfoLabel | P1 → P6 | Prefer hide over showing `0` |
+| V-02 | **Hide** until `last_processed_at` populated | P1 / P6 | Card already conditional; keep None silent |
+| V-03 | **Fix mapper or remove field**; add column only when real preview exists | P2 / P6 | Do not show `[status]` as “payload” |
+| V-04 | **Rename** to “Subscriptions” **or** filter `enabled == true` | P1 | Title must match data |
+| V-05 | **Remove column** until V-01 fixed | P1 | Same as lag field |
+| V-06 | **Remove** “View” button (card click is enough) | P1 | Redundant |
+| V-07 | **Deep-link** `?topic=` or remove button | P1 / P3 | Needs events URL sync |
+| V-08 | **Deep-link** filter or remove button | P1 / P3 | Needs subscriptions URL sync |
+| V-09 | **Remove** “ KEYED” suffix; keep `Keyed by:` line or Badge | P1 | Redundant |
+| V-10 | **Truncate** + expand/copy on detail | P2 | List density |
+| V-11 | **Show** event id (or make row navigate) | P1 | Primary key for ops |
+| V-12 | Use `SubscriptionStatusBadge` | P1 | Consistency |
+| V-13 | Keep counts; add “max 100” / paging note | P1 / P3 | Honesty about cap |
+| V-14 | Optional QuickLinks card; simplify View All to `Link` | P4 | Nav rail already covers |
+
+---
+
 ## Data flow reference
 
 ```mermaid
@@ -1102,4 +1362,4 @@ flowchart LR
 
 ---
 
-*End of audit. Implementation tracked via phased remediation above (P1–P7).*
+*End of audit. Implementation tracked via phased remediation above (P1–P7). Value/audience enhancement 2026-07-22 applies to monorepo and extracted `photon-uf-app`.*
