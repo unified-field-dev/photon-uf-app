@@ -16,12 +16,12 @@ pub fn EventMetaCard(
     let transport_expired = event.transport_expired;
     let (style_sheet, class_names) = turf::inline_style_sheet_values! {
         .Section { margin-bottom: 24px; }
-        .Muted { color: var(--colorNeutralForeground3); }
+        .Muted { color: var(--orb-color-text-tertiary); }
         .CodeBlock {
             white-space: pre-wrap;
             word-break: break-all;
             padding: 12px;
-            background: var(--colorNeutralBackground2);
+            background: var(--orb-color-surface-muted);
             border-radius: 8px;
         }
     };

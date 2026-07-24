@@ -38,7 +38,7 @@ pub fn EventsTable(
     let (style_sheet, class_names) = turf::inline_style_sheet_values! {
         .Table { width: 100%; }
         .Row { cursor: pointer; }
-        .Row:hover { background: var(--colorNeutralBackground1Hover); }
+        .Row:hover { background: var(--orb-color-surface-canvas-hover); }
         .Link {
             color: var(--colorBrandForeground1);
             text-decoration: none;

@@ -13,7 +13,7 @@ pub fn TopicMetaCard(
     topic: TopicSummary,
 ) -> impl IntoView {
     let (style_sheet, class_names) = turf::inline_style_sheet_values! {
-        .Meta { color: var(--colorNeutralForeground3); margin-bottom: 8px; }
+        .Meta { color: var(--orb-color-text-tertiary); margin-bottom: 8px; }
     };
 
     view! {
