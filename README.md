@@ -2,20 +2,37 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Official Unified Field admin UI for Photon (Leptos).
+Leptos admin UI for Photon topics, subscriptions, and events — mounted under `/photon`.
 
 ```toml
 [dependencies]
 photon-app = { git = "https://github.com/deathbreakfast/photon-uf-app", package = "photon-app", branch = "main" }
 ```
 
-Mount the Photon admin routes from your host shell (SSR + hydrate features as required by your Leptos setup).
+```rust
+use photon_app::PhotonRoutes;
+use leptos_router::components::Routes;
+
+view! {
+    <Routes fallback=|| "not found">
+        <PhotonRoutes />
+    </Routes>
+}
+```
+
+## About
+
+- Dashboard for topic/subscription/event activity
+- Topic and subscription detail (schemas, checkpoints)
+- Event browse with payload and actor context
+
+Host must supply a Photon runtime and auth guard context. Enable `ssr` / hydrate features to match your host.
 
 ## Workspace
 
 | Crate | Role |
 |-------|------|
-| `photon-app` | Photon admin UI (topics, subscriptions, ops views) |
+| `photon-app` | Photon admin UI |
 | `uf-*` | Thin shell / registry helpers shared with other uf-app repos |
 
 ## Verify
