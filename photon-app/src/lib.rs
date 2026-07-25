@@ -65,33 +65,30 @@
 use leptos::prelude::*;
 use leptos_router::{
     components::{ParentRoute, Route},
-    path,
+    path, Lazy,
 };
 use uf_product_macros::orbital_app;
 
 mod components;
 mod layout;
+mod lazy_routes;
 /// Page components for the Photon ops UI.
 pub mod pages;
 /// SSR server functions and DTOs backing the Photon ops UI.
 pub mod server;
 
 pub use layout::PhotonLayout;
+pub use lazy_routes::{
+    prefetch_family, PhotonDashboardRoute, PhotonEventDetailRoute, PhotonEventsIndexRoute,
+    PhotonLayoutRouteView, PhotonSubscriptionDetailRoute, PhotonSubscriptionsIndexRoute,
+    PhotonTopicDetailRoute, PhotonTopicsIndexRoute,
+};
 pub use pages::{
     PhotonDashboardPage, PhotonEventDetailPage, PhotonEventsIndexPage,
     PhotonSubscriptionDetailPage, PhotonSubscriptionsIndexPage, PhotonTopicDetailPage,
     PhotonTopicsIndexPage,
 };
 pub use server::{DashboardStats, EventSummary, SubscriptionSummary, TopicSummary};
-
-#[component]
-fn PhotonAuthGuard() -> impl IntoView {
-    view! {
-        <orbital::routes::RequireAuthenticated>
-            <PhotonLayout />
-        </orbital::routes::RequireAuthenticated>
-    }
-}
 
 orbital_app! {
     name: "Photon",
@@ -105,20 +102,22 @@ orbital_app! {
 
 /// Photon's nested route tree, gated behind an auth guard and mounted at `/photon`.
 ///
+/// Leaf pages are [`LazyRoute`](leptos_router::LazyRoute) views so
+/// `cargo leptos --split` can emit a separate WASM chunk for this family.
 /// Registers dashboard, topic, subscription, and event index/detail routes. Intended to be
 /// used inside a host `<Routes>` component, e.g. `<PhotonRoutes />`.
 #[orbital_macros::orbital_routes_extract]
 #[component(transparent)]
 pub fn PhotonRoutes() -> impl leptos_router::MatchNestedRoutes + Clone {
     view! {
-        <ParentRoute path=path!("photon") view=PhotonAuthGuard>
-            <Route path=path!("") view=PhotonDashboardPage />
-            <Route path=path!("topics") view=PhotonTopicsIndexPage />
-            <Route path=path!("topics/:topic_name") view=PhotonTopicDetailPage />
-            <Route path=path!("subscriptions") view=PhotonSubscriptionsIndexPage />
-            <Route path=path!("subscriptions/:id") view=PhotonSubscriptionDetailPage />
-            <Route path=path!("events") view=PhotonEventsIndexPage />
-            <Route path=path!("events/:id") view=PhotonEventDetailPage />
+        <ParentRoute path=path!("photon") view=PhotonLayoutRouteView>
+            <Route path=path!("") view={Lazy::<PhotonDashboardRoute>::new()} />
+            <Route path=path!("topics") view={Lazy::<PhotonTopicsIndexRoute>::new()} />
+            <Route path=path!("topics/:topic_name") view={Lazy::<PhotonTopicDetailRoute>::new()} />
+            <Route path=path!("subscriptions") view={Lazy::<PhotonSubscriptionsIndexRoute>::new()} />
+            <Route path=path!("subscriptions/:id") view={Lazy::<PhotonSubscriptionDetailRoute>::new()} />
+            <Route path=path!("events") view={Lazy::<PhotonEventsIndexRoute>::new()} />
+            <Route path=path!("events/:id") view={Lazy::<PhotonEventDetailRoute>::new()} />
         </ParentRoute>
     }
     .into_inner()
