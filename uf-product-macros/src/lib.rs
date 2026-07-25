@@ -1,44 +1,40 @@
-//! Proc macros for host-product Orbital apps (registration, server context, search sources).
+//! Proc macros for Unified Field product apps (registration, server context, search sources).
 //!
 //! Design-system macros (`#[component_doc]`, route extraction) live in `orbital-macros`.
 //!
 //! ## Features
 //!
-//! - [`orbital_app!`] — registers an app's metadata (name, id, icon, route) with
-//!   [`uf_app_registry`] and optionally generates its top-level route component.
-//! - [`#[server]`](macro@server) — wraps Leptos's `#[server]` with operation context and an
-//!   optional permission gate.
-//! - [`#[derive(OrbitalPermissionManifest)]`](derive@OrbitalPermissionManifest) — derives a
-//!   crate-local Orbital permission manifest from attributes on a type.
-//! - [`define_search_sources!`] — declares search sources and their SSR descriptor
-//!   registrations in one call.
+//! - [`uf_app!`] — register a product app (id, name, icon, routes) so the
+//!   shell can discover it, and so `uf-codegen`'s build-script scan can find its route component.
+//! - `#[server]` ([`macro@server`]) — wraps Leptos's `#[server]` with operation-context plumbing
+//!   and an optional permission gate.
+//! - `#[derive(UfPermissionManifest)]` ([`derive_uf_permission_manifest`]) — derive
+//!   a permission manifest for a crate-local enum/struct.
+//! - [`define_search_sources!`] — register one or more backend search sources for the
+//!   `/search` command palette.
 //!
 //! ## Getting started
 //!
-//! Most apps only need [`orbital_app!`] in their crate root:
+//! In a product-app crate's `lib.rs`:
 //!
 //! ```rust,ignore
-//! use uf_product_macros::orbital_app;
+//! use uf_product_macros::uf_app;
 //!
-//! orbital_app! {
-//!     name: "Photon",
-//!     id: "photon",
-//!     description: "Event pipeline management",
-//!     icon: "💫",
+//! uf_app! {
+//!     name: "Counter",
+//!     id: "counter",
+//!     description: "A simple counter application",
+//!     icon: "📊",
 //!     version: "0.1.0",
-//!     routes: PhotonRoutes,
-//!     route_path: "/photon",
+//!     routes: CounterRoutes,
+//!     route_path: "/counter",
 //! }
 //! ```
 //!
 //! ## Where to look next
 //!
-//! - [`orbital_app!`] — app metadata + route registration.
-//! - [`macro@server`] — the `#[server]` attribute macro.
-//! - [`derive@OrbitalPermissionManifest`] — the permission manifest derive.
-//! - [`define_search_sources!`] — search source declarations.
-
-#![deny(missing_docs)]
+//! - [`uf_app`] — expands to app metadata + `inventory::submit!` registration.
+//! - [`macro@server`] — SSR-side operation context wrapper around `#[leptos::server]`.
 
 use proc_macro::TokenStream;
 
@@ -47,10 +43,10 @@ mod permission_manifest_derive;
 mod search_sources;
 mod server;
 
-/// Register a product app for Orbital shell discovery.
+/// Register a product app for Unified Field shell discovery.
 #[proc_macro]
-pub fn orbital_app(input: TokenStream) -> TokenStream {
-    app_definition::expand_orbital_app(input)
+pub fn uf_app(input: TokenStream) -> TokenStream {
+    app_definition::expand_uf_app(input)
 }
 
 /// Wrapper around Leptos `#[server]` with operation context and optional permission gate.
@@ -59,9 +55,9 @@ pub fn server(attr: TokenStream, input: TokenStream) -> TokenStream {
     server::expand_server(attr, input)
 }
 
-/// Derive helper for crate-local Orbital permission manifests.
-#[proc_macro_derive(OrbitalPermissionManifest, attributes(permission_manifest, permission))]
-pub fn derive_orbital_permission_manifest(input: TokenStream) -> TokenStream {
+/// Derive helper for crate-local Unified Field permission manifests.
+#[proc_macro_derive(UfPermissionManifest, attributes(permission_manifest, permission))]
+pub fn derive_uf_permission_manifest(input: TokenStream) -> TokenStream {
     permission_manifest_derive::expand_derive_permission_manifest(input)
 }
 

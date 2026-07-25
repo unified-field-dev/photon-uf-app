@@ -103,7 +103,7 @@ pub fn expand_derive_permission_manifest(input: TokenStream) -> TokenStream {
     let Data::Enum(data_enum) = &input.data else {
         return syn::Error::new(
             input.span(),
-            "OrbitalPermissionManifest can only be derived for enums",
+            "UfPermissionManifest can only be derived for enums",
         )
         .to_compile_error()
         .into();
@@ -115,7 +115,7 @@ pub fn expand_derive_permission_manifest(input: TokenStream) -> TokenStream {
         if !matches!(variant.fields, Fields::Unit) {
             return syn::Error::new_spanned(
                 &variant.fields,
-                "OrbitalPermissionManifest only supports fieldless enum variants",
+                "UfPermissionManifest only supports fieldless enum variants",
             )
             .to_compile_error()
             .into();
@@ -159,15 +159,15 @@ pub fn expand_derive_permission_manifest(input: TokenStream) -> TokenStream {
             #(#enum_ident::#variants,)*
         ];
 
-        const #permission_specs_const: &[::orbital::PermissionSpec] = &[
-            #(::orbital::PermissionSpec {
+        const #permission_specs_const: &[::uf_product::PermissionSpec] = &[
+            #(::uf_product::PermissionSpec {
                 name: stringify!(#variants),
                 description: #descriptions,
             },)*
         ];
 
-        const #domain_specs_const: &[::orbital::PermissionDomainSpec] = &[
-            ::orbital::PermissionDomainSpec {
+        const #domain_specs_const: &[::uf_product::PermissionDomainSpec] = &[
+            ::uf_product::PermissionDomainSpec {
                 key: #domain_key,
                 name: #domain_name,
                 description: #domain_description,
@@ -175,12 +175,12 @@ pub fn expand_derive_permission_manifest(input: TokenStream) -> TokenStream {
             }
         ];
 
-        static #manifest_static: ::orbital::AppPermissionManifest = ::orbital::AppPermissionManifest {
+        static #manifest_static: ::uf_product::AppPermissionManifest = ::uf_product::AppPermissionManifest {
             app_id: #domain_key,
             domains: #domain_specs_const,
         };
 
-        impl ::orbital::PermissionEnum for #enum_ident {
+        impl ::uf_product::PermissionEnum for #enum_ident {
             fn as_str(self) -> &'static str {
                 self.as_str()
             }
@@ -190,8 +190,8 @@ pub fn expand_derive_permission_manifest(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl ::orbital::AppPermissionManifestProvider for #enum_ident {
-            fn manifest() -> &'static ::orbital::AppPermissionManifest {
+        impl ::uf_product::AppPermissionManifestProvider for #enum_ident {
+            fn manifest() -> &'static ::uf_product::AppPermissionManifest {
                 &#manifest_static
             }
         }

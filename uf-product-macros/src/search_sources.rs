@@ -103,7 +103,7 @@ pub fn expand_define_search_sources(input: TokenStream) -> TokenStream {
     let key_arms = variants.iter().map(|v| {
         let name = &v.name;
         quote! {
-            Self::#name => ::orbital_search_core::SearchSourceKey::new(self.as_str(), self.label())
+            Self::#name => ::uf_search_core::SearchSourceKey::new(self.as_str(), self.label())
         }
     });
 
@@ -132,7 +132,7 @@ pub fn expand_define_search_sources(input: TokenStream) -> TokenStream {
         quote! {
             #[cfg(feature = "ssr")]
             ::inventory::submit! {
-                ::orbital_search_core::SearchSourceDescriptor {
+                ::uf_search_core::SearchSourceDescriptor {
                     id: #id,
                     label: #label,
                     description: #description,
@@ -168,14 +168,14 @@ pub fn expand_define_search_sources(input: TokenStream) -> TokenStream {
                 }
             }
 
-            pub fn key(self) -> ::orbital_search_core::SearchSourceKey {
+            pub fn key(self) -> ::uf_search_core::SearchSourceKey {
                 match self {
                     #(#key_arms),*
                 }
             }
         }
 
-        impl From<#enum_name> for ::orbital_search_core::SearchSourceKey {
+        impl From<#enum_name> for ::uf_search_core::SearchSourceKey {
             fn from(value: #enum_name) -> Self {
                 value.key()
             }

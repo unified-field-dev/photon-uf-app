@@ -11,7 +11,7 @@
 //! ## Getting started
 //!
 //! Apps don't construct [`AppRegistration`] directly; the
-//! `#[uf_product_macros::orbital_app]` macro submits one on SSR builds. Hosts that want to
+//! `#[uf_product_macros::uf_app]` macro submits one on SSR builds. Hosts that want to
 //! enumerate registered apps iterate the inventory:
 //!
 //! ```rust
@@ -28,7 +28,7 @@
 
 #![deny(missing_docs)]
 
-/// Metadata submitted by `#[uf_product_macros::orbital_app]` on SSR builds.
+/// Metadata submitted by `#[uf_product_macros::uf_app]` on SSR builds.
 ///
 /// One instance is registered per app crate via [`inventory::collect!`]; host shells iterate
 /// `inventory::iter::<AppRegistration>()` to discover installed apps without a compile-time

@@ -3,10 +3,10 @@
 //! subscriptions, and event streams under `/photon`.
 //!
 //! Photon itself is an event-pipeline crate with no built-in UI; this crate is the
-//! `#[uf_product_macros::orbital_app]`-registered operations surface a host mounts to give
+//! `#[uf_product_macros::uf_app]`-registered operations surface a host mounts to give
 //! operators visibility into what Photon is doing at runtime.
 //!
-//! Orbital inventory macros (`orbital_app!`, `orbital_routes_extract`) emit undocumented
+//! Orbital inventory macros (`uf_app!`, `orbital_routes_extract`) emit undocumented
 //! associated items, so this crate allows `missing_docs` at the crate root while keeping
 //! hand-written modules and items documented.
 //!
@@ -27,7 +27,7 @@
 //! ## Getting started
 //!
 //! Mount [`PhotonRoutes`] inside your host's `<Routes>`; it registers the `/photon` subtree
-//! (auth-gated) and, via `orbital_app!`, its launcher metadata:
+//! (auth-gated) and, via `uf_app!`, its launcher metadata:
 //!
 //! ```rust,ignore
 //! use leptos::prelude::*;
@@ -67,7 +67,7 @@ use leptos_router::{
     components::{ParentRoute, Route},
     path, Lazy,
 };
-use uf_product_macros::orbital_app;
+use uf_product_macros::uf_app;
 
 mod components;
 mod layout;
@@ -90,7 +90,7 @@ pub use pages::{
 };
 pub use server::{DashboardStats, EventSummary, SubscriptionSummary, TopicSummary};
 
-orbital_app! {
+uf_app! {
     name: "Photon",
     id: "photon",
     description: "Event pipeline management",
