@@ -14,14 +14,10 @@ pub async fn prefetch_family() {
     PhotonDashboardRoute::preload().await;
 }
 
-/// Eager auth-gated layout shell for `/photon/*` ParentRoute.
+/// Eager layout shell for `/photon/*` ParentRoute (auth gate lives inside [`PhotonLayout`]).
 #[component]
 pub fn PhotonLayoutRouteView() -> impl IntoView {
-    view! {
-        <orbital::routes::RequireAuthenticated>
-            <PhotonLayout />
-        </orbital::routes::RequireAuthenticated>
-    }
+    view! { <PhotonLayout /> }
 }
 
 /// Lazy `/photon` dashboard.

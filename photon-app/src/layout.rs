@@ -4,6 +4,7 @@ use lepton_shell::AppBarUserMenu;
 use orbital::components::{
     Navigation, NavigationBody, NavigationConfig, NavigationLink, NavigationMaterial,
 };
+use orbital::routes::RequireAuthenticated;
 use uf_integrations::{
     ShellAppBar, ShellAuthMenu, ShellLeftNav, UnifiedFieldAppBar, UnifiedFieldShellLayout,
 };
@@ -14,8 +15,8 @@ use crate::AppMetadata;
 /// Photon's shell layout: app bar, left navigation, and a router [`Outlet`] for the
 /// currently active page.
 ///
-/// Wraps every route declared in [`crate::PhotonRoutes`] and is only rendered once auth has
-/// been checked by the caller (see `PhotonAuthGuard` in the crate root).
+/// Wraps every route declared in [`crate::PhotonRoutes`]. Auth gating lives inside the
+/// shell so the app bar stays visible when sign-in is required.
 #[component]
 pub fn PhotonLayout() -> impl IntoView {
     let app_name = AppMetadata::name().to_string();
@@ -47,7 +48,9 @@ pub fn PhotonLayout() -> impl IntoView {
                     </NavigationBody>
                 </Navigation>
             </ShellLeftNav>
-            <Outlet />
+            <RequireAuthenticated>
+                <Outlet />
+            </RequireAuthenticated>
         </UnifiedFieldShellLayout>
         </div>
     }

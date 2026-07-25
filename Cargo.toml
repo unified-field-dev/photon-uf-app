@@ -13,7 +13,7 @@ license = "MIT"
 missing_docs = "deny"
 
 [workspace.lints.rustdoc]
-# Sibling crates and cfg-gated modules are often referenced from facade docs without
+# Sibling crates and cfg-gated modules are often referenced from public crate docs without
 # being in the same rustdoc unit when building with --no-deps.
 broken_intra_doc_links = "allow"
 

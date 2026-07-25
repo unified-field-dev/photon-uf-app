@@ -1,6 +1,6 @@
 # photon-app Quality Gates
 
-This crate uses Sentrux MCP (`user-sentrux`) as a structure-health signal and
+This crate uses cargo quality gates (`fmt` / `clippy` / `test` / `doc`) and
 `cargo llvm-cov` as the source of truth for executable line coverage.
 
 ## Current Health Report
@@ -8,11 +8,10 @@ This crate uses Sentrux MCP (`user-sentrux`) as a structure-health signal and
 Last updated: 2026-03-17
 
 Baseline metric source:
-- `user-sentrux.scan(path="/home/seanorourke/web-app-template/photon-app")`
 - `cargo test -p photon-app`
 - `cargo llvm-cov -p photon-app --summary-only`
 
-- Sentrux MCP scan:
+- Structure health (historical):
   - Overall grade: `unknown`
   - Structure grade: `D`
   - Architecture grade: `A`
@@ -40,7 +39,7 @@ Generate this crate baseline end-to-end with the shared tool:
 cargo run -p quality -- check --target photon-app
 ```
 
-### Sentrux MCP (preferred)
+### Cargo quality gates (preferred)
 
 Run in this order:
 1. `scan(path="/home/seanorourke/web-app-template/photon-app")`
@@ -69,5 +68,5 @@ cargo llvm-cov -p photon-app --json --summary-only --output-path photon-app/cove
 
 - CI should enforce `cargo test -p photon-app`.
 - CI should capture LLVM coverage summary when `cargo-llvm-cov` is available.
-- Sentrux checks should run as best-effort in CI (`scan`, `cycles`, `coupling`, `health`) when Sentrux CLI is available.
+- quality review checks should run as best-effort in CI (`scan`, `cycles`, `coupling`, `health`) when quality review CLI is available.
 - Trend structure grade, architecture grade, and LLVM line coverage for this crate.

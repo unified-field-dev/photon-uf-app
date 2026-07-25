@@ -3,7 +3,7 @@
 **Audit date:** 2026-06-30  
 **Value / audience enhancement:** 2026-07-22  
 **This copy:** `~/photon-uf-app/photon-app/PHOTON_UI_AUDIT.md` (primary extracted tree)  
-**Scope:** All Leptos routes and UI components in `photon-app` (25 Rust source files, ~1,764 lines per Sentrux scan)  
+**Scope:** All Leptos routes and UI components in `photon-app` (25 Rust source files, ~1,764 lines per quality review scan)  
 **Applies to (both trees — same product surface):**
 
 | Tree | Path | Role |
@@ -15,7 +15,7 @@ High-level UI findings apply **1:1**. Extracted drift is wiring/docs only: `uf_p
 
 **Reference canon (monorepo pattern sources):** Orbital Introduction (`/orbital`), `.cursor/rules/20-ui-orbital-principles.mdc`, `21-ui-implementation-patterns.mdc`, `31-async-boson-chronon-photon.mdc`, valence-app schema index + help, `boson-app/BOSON_UI_AUDIT.md` + `boson-app/src/pages/dashboard/` (Transition + poll), `chronon-app/CHRONON_UI_AUDIT.md`. In the extracted repo these paths live outside the tree — use them as the remediation pattern source, not as in-repo links.
 
-**Baseline metrics (Sentrux `scan` on 2026-06-30):**
+**Baseline metrics (quality review `scan` on 2026-06-30):**
 
 | Metric | Value |
 |---|---|
