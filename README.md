@@ -26,14 +26,14 @@ view! {
 - Topic and subscription detail (schemas, checkpoints)
 - Event browse with payload and actor context
 
-Host must supply a Photon runtime and auth guard context. Enable `ssr` / hydrate features to match your host.
+Host must supply a Photon runtime and auth guard context. Enable `ssr` / hydrate features to match your host. See the `photon-app` crate rustdocs for the full Concern → route → server fn table.
 
 ## Workspace
 
 | Crate | Role |
 |-------|------|
 | `photon-app` | Photon admin UI |
-| `uf-*` | Thin shell / registry helpers shared with other uf-app repos |
+| `uf-*` (top-level `uf-app-registry`, `uf-integrations`, `uf-product-macros`, `uf-ssr`) | Not workspace members and not depended on — the workspace's real `uf-*` crates come from `L3-products-zones-hosts` (see `[workspace.dependencies]` in `Cargo.toml`). These local trees are unused leftovers; do not treat them as source of truth. |
 
 ## Verify
 

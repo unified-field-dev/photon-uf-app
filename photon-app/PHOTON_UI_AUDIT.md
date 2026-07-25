@@ -1,7 +1,7 @@
 # Photon App UI & Quality Audit
 
 **Audit date:** 2026-06-30  
-**Value / audience enhancement:** 2026-07-22  
+**Value / UX enhancement:** 2026-07-22  
 **This copy:** `~/photon-uf-app/photon-app/PHOTON_UI_AUDIT.md` (primary extracted tree)  
 **Scope:** All Leptos routes and UI components in `photon-app` (25 Rust source files, ~1,764 lines per quality review scan)  
 **Applies to (both trees — same product surface):**
@@ -30,7 +30,7 @@ High-level UI findings apply **1:1**. Extracted drift is wiring/docs only: `uf_p
 
 ## Executive summary
 
-Photon-app is **Orbital-first at the shell and page chrome level**: every route uses `ContentContainer`, typography presets (`Title3`, `Subtitle2`, `Body1`), `Card`/`StatCard`, and `UnifiedFieldShellLayout`. The app is usable for developers and operators inspecting event pipelines, but under-serves the **open-platform audience** with no contextual help (`InfoLabel`), no skeleton loading states, hand-rolled tables and card lists instead of `DataTable`, no time-series charts, and no photon-leptos live subscriptions despite being the Photon operations UI.
+Photon-app is **Orbital-first at the shell and page chrome level**: every route uses `ContentContainer`, typography presets (`Title3`, `Subtitle2`, `Body1`), `Card`/`StatCard`, and `UnifiedFieldShellLayout`. The app is usable for developers and operators inspecting event pipelines, but under-serves less technical readers with no contextual help (`InfoLabel`), no skeleton loading states, hand-rolled tables and card lists instead of `DataTable`, no time-series charts, and no photon-leptos live subscriptions despite being the Photon operations UI.
 
 Treat `/photon` as the **Photon operations cockpit** (same role as Boson’s `/boson` dashboard). Value analysis finds **14 low-or-no-value UI surfaces** today: **3 placeholders** (stub server data), **2 misleading** labels/columns, and **9 redundant or low-value** controls. See [UI value & placeholder analysis](#ui-value--placeholder-analysis).
 
@@ -70,19 +70,13 @@ Treat `/photon` as the **Photon operations cockpit** (same role as Boson’s `/b
 
 ---
 
-## Audience & product intent
+## Product surface & UI notes
 
-Photon is the platform UI for **publish/subscribe event pipelines** — registered topics, consumer subscriptions, and event history. Any **registered authenticated user** can browse; the app is read-only today (no create/edit flows in UI).
+Photon is the platform UI for **publish/subscribe event pipelines** — registered topics, consumer subscriptions, and event history. Any registered authenticated user can browse; the app is read-only today (no create/edit flows in UI).
 
-| Persona | Primary goals | UX expectations |
-|---|---|---|
-| **Platform developers** | Inspect topic schemas, debug subscriptions, trace events by seq/key | Dense metadata OK; needs InfoLabels on seq, checkpoint lag, keyed topics, delivery status, mode |
-| **Product support / ops** | Monitor subscription health, spot lag, inspect failed/expired payloads | Scan-friendly status badges with text, filterable lists, clear transport-expired warnings |
-| **General registered users** | Understand what Photon does on the platform | Plain-language page intros; avoid unexplained jargon (seq, checkpoint lag, keyed-by, mode) |
+The app today is metadata-heavy (dense cards, table snapshots, status badges) and assumes familiarity with event-pipeline vocabulary (seq, checkpoint lag, keyed-by, mode, delivery status) without explaining it in-page. Concrete gaps: no `InfoLabel` coverage on that jargon, no scan-friendly filters beyond basic search/status, and no plain-language intro text for readers unfamiliar with the domain.
 
-The app today optimizes for the **developer/ops** persona (metadata-heavy cards, table snapshots, status badges) but does not explain domain concepts to general users.
-
-Per-route audience detail and feature mapping: [Per-route audience & information matrix](#per-route-audience--information-matrix), [Feature ↔ route map](#feature--route-map).
+Per-route detail and feature mapping: [Per-route information matrix](#per-route-information-matrix), [Feature ↔ route map](#feature--route-map).
 
 ---
 
@@ -97,7 +91,7 @@ How many UI elements are useless, future-feature placeholders, or low value toda
 | **Useless** | Rendered but always wrong, empty, or duplicate — misleads the user |
 | **Placeholder** | UI + DTO exist; server always returns stub — “future feature” shell |
 | **Low value** | Technically works but redundant, unfiltered, or weak deep-link |
-| **Missing** | Expected for a persona but not present (not counted in useless tally) |
+| **Missing** | Expected on this route but not present (not counted in useless tally) |
 
 ### Inventory (14 surfaces)
 
@@ -145,7 +139,7 @@ flowchart TD
 
 ### Field-by-field matrix
 
-| Block | Field / column | Source | Useful today? | Primary persona | Gap |
+| Block | Field / column | Source | Useful today? | Primary user | Gap |
 |---|---|---|---|---|---|
 | StatCard | Topics count | Registry len | **Yes** | All | No InfoLabel |
 | StatCard | Subscriptions count | DB list len | **Yes** | Ops/dev | Includes disabled; no enabled split |
@@ -179,25 +173,17 @@ flowchart TD
 
 ---
 
-## Per-route audience & information matrix
+## Per-route information matrix
 
-| Route | Primary audience | Information shown | Useful? | Biggest gaps / missing |
-|---|---|---|---|---|
-| `/photon` | Ops → Dev → General | 3 KPIs; 10 recent events; all-subs table | Ops: Partial; Dev: Partial; General: Fail | Chart; live refresh; filter “active”; hide lag; subtitle; QuickLinks |
-| `/photon/topics` | Dev → General | Search; topic cards (name, keyed, schema, counts); actions | Dev: Partial; General: Fail | Truncate schema; InfoLabels; deep links; drop redundant buttons (V-06–V-09) |
-| `/photon/topics/:name` | Dev → Ops | Meta card; topic subs; recent events | Dev: Yes; Ops: Partial | Back nav; server-side sub filter; badge consistency (V-12) |
-| `/photon/subscriptions` | Ops → Dev | Search + status filter; sub cards (mode, lag, key filter) | Ops: Partial (lag useless) | Fix/hide lag (V-01); InfoLabels; DataTable |
-| `/photon/subscriptions/:id` | Ops → Dev | Meta; recent topic events | Ops: Partial; Dev: Yes | Back nav; live lag; `last_processed_at` (V-02) |
-| `/photon/events` | Dev → Ops | Topic filter; event table (≤100) | Dev: Yes; Ops: Partial | Payload column; Transition on filter; URL `?topic=`; 100-cap warning (V-13) |
-| `/photon/events/:id` | Dev → Ops | Meta; payload; actor; transport-expired warning | Dev: Yes; Ops: Yes | InfoLabels; back nav |
-
-### Persona coverage score (today)
-
-| Persona | Best-served routes | Overall |
-|---|---|---|
-| Platform developers | Event detail, topic detail, events index | **Partial** |
-| Product support / ops | Dashboard (once lag fixed), subscriptions | **Partial → Fail** on lag |
-| General registered users | None without subtitles/help | **Fail** |
+| Route | Information shown | Useful today? | Biggest gaps / missing |
+|---|---|---|---|
+| `/photon` | 3 KPIs; 10 recent events; all-subs table | Partial | Chart; live refresh; filter “active”; hide lag; subtitle; QuickLinks |
+| `/photon/topics` | Search; topic cards (name, keyed, schema, counts); actions | Partial | Truncate schema; InfoLabels; deep links; drop redundant buttons (V-06–V-09) |
+| `/photon/topics/:name` | Meta card; topic subs; recent events | Yes, with gaps | Back nav; server-side sub filter; badge consistency (V-12) |
+| `/photon/subscriptions` | Search + status filter; sub cards (mode, lag, key filter) | Partial (lag useless) | Fix/hide lag (V-01); InfoLabels; DataTable |
+| `/photon/subscriptions/:id` | Meta; recent topic events | Yes, with gaps | Back nav; live lag; `last_processed_at` (V-02) |
+| `/photon/events` | Topic filter; event table (≤100) | Yes, with gaps | Payload column; Transition on filter; URL `?topic=`; 100-cap warning (V-13) |
+| `/photon/events/:id` | Meta; payload; actor; transport-expired warning | Yes | InfoLabels; back nav |
 
 ---
 
@@ -511,9 +497,9 @@ Implement in **`~/photon-uf-app/photon-app` first** (mirror into monorepo if sti
 
 **Files:** [`layout.rs`](src/layout.rs), [`lib.rs`](src/lib.rs)
 
-#### Purpose & audience
+#### Purpose
 
-Provides the Unified Field shell (AppBar + left nav) and route/auth wiring for all Photon pages. All personas interact with this on every visit. `PhotonAuthGuard` wraps the layout in `RequireAuthenticated` — all `/photon/*` routes require authentication.
+Provides the Unified Field shell (AppBar + left nav) and route/auth wiring for all Photon pages. Every route renders inside this shell. `PhotonAuthGuard` wraps the layout in `RequireAuthenticated` — all `/photon/*` routes require authentication.
 
 #### Orbital conformance
 
@@ -562,7 +548,7 @@ Provides the Unified Field shell (AppBar + left nav) and route/auth wiring for a
 
 **Files:** [`pages/dashboard.rs`](src/pages/dashboard.rs), [`components/photon_stats_grid.rs`](src/components/photon_stats_grid.rs), [`components/events_table.rs`](src/components/events_table.rs), [`components/active_subscriptions_table.rs`](src/components/active_subscriptions_table.rs)
 
-#### Purpose & audience
+#### Purpose
 
 **Purpose:** At-a-glance pipeline health — topic count, subscription count, 24h event volume, plus snapshots of recent events and active subscriptions.
 
@@ -647,7 +633,7 @@ Provides the Unified Field shell (AppBar + left nav) and route/auth wiring for a
 
 **Files:** [`pages/topics.rs`](src/pages/topics.rs), [`components/topic_card.rs`](src/components/topic_card.rs)
 
-#### Purpose & audience
+#### Purpose
 
 **Purpose:** Browse all registered Photon topics with schema and activity counts.
 
@@ -726,7 +712,7 @@ Provides the Unified Field shell (AppBar + left nav) and route/auth wiring for a
 
 **Files:** [`pages/topic_detail.rs`](src/pages/topic_detail.rs), [`components/topic_meta_card.rs`](src/components/topic_meta_card.rs), [`components/topic_subscriptions_table.rs`](src/components/topic_subscriptions_table.rs), [`components/events_table.rs`](src/components/events_table.rs)
 
-#### Purpose & audience
+#### Purpose
 
 **Purpose:** Inspect one topic's metadata, related subscriptions, and recent events.
 
@@ -800,7 +786,7 @@ Provides the Unified Field shell (AppBar + left nav) and route/auth wiring for a
 
 **Files:** [`pages/subscriptions.rs`](src/pages/subscriptions.rs), [`components/subscription_card.rs`](src/components/subscription_card.rs), [`components/subscription_filter_toolbar.rs`](src/components/subscription_filter_toolbar.rs)
 
-#### Purpose & audience
+#### Purpose
 
 **Purpose:** Monitor all event consumers — subscription name, topic, mode, lag, and enabled status.
 
@@ -868,7 +854,7 @@ Provides the Unified Field shell (AppBar + left nav) and route/auth wiring for a
 
 **Files:** [`pages/subscription_detail.rs`](src/pages/subscription_detail.rs), [`components/subscription_meta_card.rs`](src/components/subscription_meta_card.rs), [`components/events_table.rs`](src/components/events_table.rs)
 
-#### Purpose & audience
+#### Purpose
 
 **Purpose:** Debug one subscription — configuration, lag, last seq, and recent events on the subscribed topic.
 
@@ -932,7 +918,7 @@ Provides the Unified Field shell (AppBar + left nav) and route/auth wiring for a
 
 **Files:** [`pages/events.rs`](src/pages/events.rs), [`components/event_filter_toolbar.rs`](src/components/event_filter_toolbar.rs), [`components/events_table.rs`](src/components/events_table.rs)
 
-#### Purpose & audience
+#### Purpose
 
 **Purpose:** Browse the event log across all topics or filtered to one topic.
 
@@ -1003,7 +989,7 @@ Provides the Unified Field shell (AppBar + left nav) and route/auth wiring for a
 
 **Files:** [`pages/event_detail.rs`](src/pages/event_detail.rs), [`components/event_meta_card.rs`](src/components/event_meta_card.rs)
 
-#### Purpose & audience
+#### Purpose
 
 **Purpose:** Inspect one event's metadata, JSON payload, and actor context.
 
@@ -1362,4 +1348,4 @@ flowchart LR
 
 ---
 
-*End of audit. Implementation tracked via phased remediation above (P1–P7). Value/audience enhancement 2026-07-22 applies to monorepo and extracted `photon-uf-app`.*
+*End of audit. Implementation tracked via phased remediation above (P1–P7). Value/UX enhancement 2026-07-22 applies to monorepo and extracted `photon-uf-app`.*

@@ -24,6 +24,22 @@
 //!   ([`DashboardStats`], [`TopicSummary`], [`SubscriptionSummary`], [`EventSummary`]) backing
 //!   the pages above.
 //!
+//! ## Routes
+//!
+//! Mounted under `/photon` by [`PhotonRoutes`]. Concern → page → key server fn(s):
+//!
+//! | Path | Page | Key server fn(s) |
+//! |---|---|---|
+//! | `/photon` | [`PhotonDashboardPage`] | `get_dashboard_stats`, `get_recent_events` |
+//! | `/photon/topics` | [`PhotonTopicsIndexPage`] | `get_topics` |
+//! | `/photon/topics/:topic_name` | [`PhotonTopicDetailPage`] | `get_topic`, `get_subscriptions`, `get_events` |
+//! | `/photon/subscriptions` | [`PhotonSubscriptionsIndexPage`] | `get_subscriptions` |
+//! | `/photon/subscriptions/:id` | [`PhotonSubscriptionDetailPage`] | `get_subscription`, `get_events` |
+//! | `/photon/events` | [`PhotonEventsIndexPage`] | `get_events` |
+//! | `/photon/events/:id` | [`PhotonEventDetailPage`] | `get_event` |
+//!
+//! All routes are read-only today; there are no create/edit flows in this UI.
+//!
 //! ## Getting started
 //!
 //! Mount [`PhotonRoutes`] inside your host's `<Routes>`; it registers the `/photon` subtree
