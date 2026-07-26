@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
-use orbital::components::{Card, Body1, ContentContainer, EmptyState, Title3};
+use orbital::components::{Body1, Card, ContentContainer, EmptyState, Title3};
 use orbital::primitives::{MessageBar, MessageBarIntent};
 
 use crate::components::{EventFilterToolbar, EventsTable};

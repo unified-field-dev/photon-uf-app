@@ -22,6 +22,7 @@ icondata_core.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 turf.workspace = true
+photon-backend = { path = "../photon-backend" }
 
 orbital = { workspace = true, default-features = false }
 uf-integrations = { workspace = true, default-features = false }

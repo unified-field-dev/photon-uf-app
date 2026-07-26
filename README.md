@@ -33,15 +33,17 @@ Host must supply a Photon runtime and auth guard context. Enable `ssr` / hydrate
 | Crate | Role |
 |-------|------|
 | `photon-app` | Photon admin UI |
+| `photon-backend` | Pure topic/subscription/event contracts (no Leptos) |
 | `uf-*` (top-level `uf-app-registry`, `uf-integrations`, `uf-product-macros`, `uf-ssr`) | Not workspace members and not depended on — the workspace's real `uf-*` crates come from `L3-products-zones-hosts` (see `[workspace.dependencies]` in `Cargo.toml`). These local trees are unused leftovers; do not treat them as source of truth. |
 
 ## Verify
 
+See [`docs/VERIFICATION.md`](docs/VERIFICATION.md). Preferred backend CI:
+
 ```bash
 export CARGO_BUILD_JOBS=1
-cargo check --workspace
-cargo check -p photon-app --features ssr
-cargo test -p photon-app --features ssr
+cargo clippy -p photon-backend --all-targets -- -D warnings
+cargo test -p photon-backend
 ```
 
 ## License

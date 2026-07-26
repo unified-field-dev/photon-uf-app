@@ -3193,6 +3193,7 @@ dependencies = [
  "leptos_server",
  "orbital-macros",
  "orbital-ui",
+ "photon-backend 0.1.0",
  "photon-valence-admin",
  "serde",
  "serde_json",
@@ -3214,11 +3215,20 @@ checksum = "4c36ec29cb88468ab8cf95d9a4242f7918509a558925638e0ac88b694ac089be"
 dependencies = [
  "axum",
  "futures",
- "photon-backend",
+ "photon-backend 0.1.1",
  "photon-runtime",
  "serde_json",
  "tokio",
  "uf-quark",
+]
+
+[[package]]
+name = "photon-backend"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -3300,7 +3310,7 @@ checksum = "dc624b15fee48e8acd2b528e8a6093ec1bd88cc7c2e4e3a9047a1b9507d5aeda"
 dependencies = [
  "anyhow",
  "futures",
- "photon-backend",
+ "photon-backend 0.1.1",
  "photon-telemetry",
  "serde",
  "serde_json",
@@ -3329,7 +3339,7 @@ dependencies = [
  "axum",
  "chrono",
  "futures",
- "photon-backend",
+ "photon-backend 0.1.1",
  "photon-runtime",
  "photon-telemetry",
  "photon-valence-identity",
@@ -3347,7 +3357,7 @@ source = "git+https://github.com/deathbreakfast/photon-valence-identity?branch=m
 dependencies = [
  "anyhow",
  "futures",
- "photon-backend",
+ "photon-backend 0.1.1",
  "photon-runtime",
  "photon-telemetry",
  "serde",
@@ -5170,7 +5180,7 @@ version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4b6b51fae35b6986fef9593b0fa9c8c3c35b3c196db1c916ac6dc15b9f8caa7a"
 dependencies = [
- "photon-backend",
+ "photon-backend 0.1.1",
  "photon-macros",
  "photon-runtime",
  "photon-telemetry",

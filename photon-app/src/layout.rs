@@ -1,6 +1,6 @@
+use lepton_shell::AppBarUserMenu;
 use leptos::prelude::*;
 use leptos_router::components::Outlet;
-use lepton_shell::AppBarUserMenu;
 use orbital::components::{
     Navigation, NavigationBody, NavigationConfig, NavigationLink, NavigationMaterial,
 };

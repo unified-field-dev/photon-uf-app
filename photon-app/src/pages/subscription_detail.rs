@@ -11,9 +11,7 @@ use crate::server::{get_events, get_subscription};
 #[component]
 pub fn PhotonSubscriptionDetailPage() -> impl IntoView {
     let params = use_params_map();
-    let id = move || {
-        params.get().get("id").unwrap_or_default()
-    };
+    let id = move || params.get().get("id").unwrap_or_default();
     let _navigate = use_navigate();
 
     let sub_res = Resource::new(

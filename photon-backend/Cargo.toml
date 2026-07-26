@@ -1,0 +1,15 @@
+[package]
+name = "photon-backend"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Pure topic/subscription/event contracts backing photon-app server functions"
+readme = "README.md"
+
+[lints]
+workspace = true
+
+[dependencies]
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

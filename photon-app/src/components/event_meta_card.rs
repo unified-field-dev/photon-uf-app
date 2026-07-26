@@ -1,7 +1,7 @@
 //! Event metadata card for the event detail page.
 
 use leptos::prelude::*;
-use orbital::components::{Card, Body1, Subtitle2, Text, TextTag, TextFont, TextSize};
+use orbital::components::{Body1, Card, Subtitle2, Text, TextFont, TextSize, TextTag};
 use orbital::primitives::{MessageBar, MessageBarIntent};
 
 use crate::server::EventDetail;

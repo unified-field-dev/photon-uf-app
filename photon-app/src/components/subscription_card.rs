@@ -4,12 +4,8 @@ use leptos::ev;
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
 use leptos_router::NavigateOptions;
-use orbital::components::{
-    Body1Strong, Caption1, Card, CardButtonArea, CardContent,
-};
-use orbital::primitives::{
-    Flex, FlexGap, MaterialElevation, MaterialVariant,
-};
+use orbital::components::{Body1Strong, Caption1, Card, CardButtonArea, CardContent};
+use orbital::primitives::{Flex, FlexGap, MaterialElevation, MaterialVariant};
 
 use crate::components::SubscriptionStatusBadge;
 use crate::server::SubscriptionSummary;

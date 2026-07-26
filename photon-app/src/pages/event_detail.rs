@@ -11,9 +11,7 @@ use crate::server::get_event;
 #[component]
 pub fn PhotonEventDetailPage() -> impl IntoView {
     let params = use_params_map();
-    let id = move || {
-        params.get().get("id").unwrap_or_default()
-    };
+    let id = move || params.get().get("id").unwrap_or_default();
 
     let event_res = Resource::new(move || id(), |eid| async move { get_event(eid).await });
 
