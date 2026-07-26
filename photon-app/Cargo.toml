@@ -39,6 +39,7 @@ photon-valence-admin = { workspace = true, optional = true }
 chrono = { workspace = true, optional = true }
 valence = { workspace = true, optional = true }
 higgs = { workspace = true, optional = true }
+gauge = { workspace = true, optional = true }
 
 [features]
 default = []
@@ -66,6 +67,8 @@ ssr = [
     "valence/sqlite",
     "dep:higgs",
     "higgs/ssr",
+    "dep:gauge",
+    "gauge/ssr",
     "dep:uf-ssr",
     "uf-ssr/ssr",
     "dep:uf-product",

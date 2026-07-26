@@ -439,6 +439,103 @@ dependencies = [
 ]
 
 [[package]]
+name = "chrono-tz"
+version = "0.10.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a6139a8597ed92cf816dfb33f5dd6cf0bb93a6adc938f11039f371bc5bcd26c3"
+dependencies = [
+ "chrono",
+ "phf 0.12.1",
+]
+
+[[package]]
+name = "chronon-coordinator"
+version = "0.1.0"
+source = "git+https://github.com/deathbreakfast/chronon-coordinator?branch=main#a4df1d7d9d80cf5889f35567f3d7173ca7548b94"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "chronon-core",
+ "chronon-executor",
+ "chronon-scheduler",
+ "log",
+ "serde",
+ "serde_json",
+ "uf-quark",
+ "uf-valence",
+]
+
+[[package]]
+name = "chronon-core"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72f1a7c4e40022df353828d0487695c817b6d5d4ef6b83b3b9227409a9679d6a"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.19",
+ "uuid",
+]
+
+[[package]]
+name = "chronon-executor"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bde2d993f805e619c79da7e449eb11443fe6719463ae0e5ef15aae5d79004980"
+dependencies = [
+ "chrono",
+ "chronon-core",
+ "chronon-telemetry",
+ "serde_json",
+ "tokio",
+ "uf-quark",
+]
+
+[[package]]
+name = "chronon-macros-valence"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "serde_json",
+ "syn 2.0.119",
+]
+
+[[package]]
+name = "chronon-scheduler"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f75dae576bfe4f5055ceca98955a99b97a485ba0d5465fc0d41f1c114dcd7d00"
+dependencies = [
+ "chrono",
+ "chrono-tz",
+ "chronon-core",
+ "chronon-telemetry",
+ "croner",
+ "tokio",
+ "uuid",
+ "xxhash-rust",
+]
+
+[[package]]
+name = "chronon-telemetry"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f21e62eac301d557ef996172ae1a7e38b4179c1b813a3a95c21316158c241f2a"
+
+[[package]]
+name = "chronon-valence-identity"
+version = "0.1.0"
+dependencies = [
+ "chronon-core",
+ "serde_json",
+ "uf-valence",
+]
+
+[[package]]
 name = "cipher"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -637,6 +734,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9481c1c90cbf2ac953f07c8d4a58aa3945c425b7185c9154d67a65e4230da511"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "croner"
+version = "2.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c344b0690c1ad1c7176fe18eb173e0c927008fdaaa256e40dfd43ddd149c0843"
+dependencies = [
+ "chrono",
 ]
 
 [[package]]
@@ -955,7 +1061,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1147,6 +1253,37 @@ dependencies = [
  "memchr",
  "pin-project-lite",
  "slab",
+]
+
+[[package]]
+name = "gauge"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "chronon-coordinator",
+ "chronon-core",
+ "chronon-executor",
+ "chronon-macros-valence",
+ "chronon-valence-identity",
+ "higgs",
+ "inventory",
+ "lepton",
+ "leptos",
+ "log",
+ "serde",
+ "serde_json",
+ "uf-host",
+ "uf-notifications-core",
+ "uf-product-macros",
+ "uf-quark",
+ "uf-search-core",
+ "uf-spectra",
+ "uf-spectra-core",
+ "uf-valence",
+ "uf-valence-codegen",
+ "uuid",
 ]
 
 [[package]]
@@ -1399,6 +1536,7 @@ dependencies = [
  "async-trait",
  "higgs-core",
  "leptos",
+ "log",
  "serde_json",
  "thiserror 2.0.19",
  "uf-host",
@@ -1408,14 +1546,15 @@ dependencies = [
 
 [[package]]
 name = "higgs-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "async-trait",
  "leptos",
+ "log",
  "serde_json",
  "thiserror 2.0.19",
- "tracing",
+ "tokio",
  "uf-host",
  "uf-identity",
  "uf-valence",
@@ -1873,6 +2012,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 dependencies = [
  "spin",
+]
+
+[[package]]
+name = "lepton"
+version = "0.2.0"
+dependencies = [
+ "lepton-host-adapter",
 ]
 
 [[package]]
@@ -3094,6 +3240,15 @@ dependencies = [
 
 [[package]]
 name = "phf"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "913273894cec178f401a31ec4b656318d95473527be05c0752cc41cdc32be8b7"
+dependencies = [
+ "phf_shared 0.12.1",
+]
+
+[[package]]
+name = "phf"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c1562dc717473dbaa4c1f85a36410e03c047b2e7df7f45ee938fbef64ae7fadf"
@@ -3166,6 +3321,15 @@ dependencies = [
 
 [[package]]
 name = "phf_shared"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "06005508882fb681fd97892ecff4b7fd0fee13ef1aa569f8695dae7ab9099981"
+dependencies = [
+ "siphasher",
+]
+
+[[package]]
+name = "phf_shared"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e57fef6bc5981e38c2ce2d63bfa546861309f875b8a75f092d1d54ae2d64f266"
@@ -3178,6 +3342,7 @@ name = "photon-app"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "gauge",
  "higgs",
  "icondata",
  "icondata_core",
@@ -5090,7 +5255,7 @@ dependencies = [
 
 [[package]]
 name = "uf-host"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -5105,7 +5270,7 @@ dependencies = [
 
 [[package]]
 name = "uf-identity"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "async-trait",
  "serde",
@@ -5211,6 +5376,7 @@ dependencies = [
  "dashmap 5.5.3",
  "higgs",
  "inventory",
+ "lepton-identity",
  "leptos",
  "leptos_axum",
  "leptos_router",
@@ -5364,7 +5530,6 @@ dependencies = [
 name = "uf-valence-core"
 version = "0.1.1"
 dependencies = [
- "anyhow",
  "async-trait",
  "chrono",
  "inventory",
@@ -5374,6 +5539,7 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.19",
  "tokio",
+ "tracing",
  "uf-valence-telemetry",
  "uuid",
 ]
@@ -5694,7 +5860,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -6094,7 +6260,3 @@ dependencies = [
  "log",
  "simd-adler32",
 ]
-
-[[patch.unused]]
-name = "lepton"
-version = "0.2.0"

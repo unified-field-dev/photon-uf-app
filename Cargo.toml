@@ -55,6 +55,7 @@ valence = { package = "uf-valence", version = "0.1.1", default-features = false,
 higgs = { path = "../../L1-host-stack-kits/higgs/higgs", default-features = false }
 uf-host = { path = "../../L1-host-stack-kits/higgs/uf-host", default-features = false }
 uf-identity = { path = "../../L1-host-stack-kits/higgs/uf-identity" }
+gauge = { path = "../../L3-products-zones-hosts/gauge/gauge", default-features = false }
 
 orbital = { package = "orbital-ui", git = "https://github.com/deathbreakfast/orbital", branch = "fix/crates-io-publish", default-features = false }
 orbital-macros = { git = "https://github.com/deathbreakfast/orbital", branch = "fix/crates-io-publish" }

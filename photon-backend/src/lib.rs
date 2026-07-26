@@ -139,6 +139,15 @@ pub fn validate_event_id(id: &str) -> Result<(), String> {
     }
 }
 
+/// Maximum events returned by a single `get_events` / `get_recent_events` call.
+pub const MAX_EVENT_LIST_LIMIT: u32 = 100;
+
+/// Cap requested event list limits to [`MAX_EVENT_LIST_LIMIT`].
+#[must_use]
+pub fn clamp_event_list_limit(limit: u32) -> usize {
+    limit.min(MAX_EVENT_LIST_LIMIT) as usize
+}
+
 /// Formats the short payload-preview chip shown in event list rows.
 #[must_use]
 pub fn format_delivery_preview(delivery_status: &str) -> String {
@@ -407,5 +416,17 @@ mod tests {
     #[test]
     fn stub_checkpoint_lag_is_zero_happy_path() {
         assert_eq!(stub_checkpoint_lag(), 0);
+    }
+
+    #[test]
+    fn clamp_event_list_limit_caps_oversized_sad() {
+        assert_eq!(clamp_event_list_limit(10_000), MAX_EVENT_LIST_LIMIT as usize);
+        assert_eq!(clamp_event_list_limit(MAX_EVENT_LIST_LIMIT), MAX_EVENT_LIST_LIMIT as usize);
+    }
+
+    #[test]
+    fn clamp_event_list_limit_preserves_small_happy_path() {
+        assert_eq!(clamp_event_list_limit(20), 20);
+        assert_eq!(clamp_event_list_limit(0), 0);
     }
 }

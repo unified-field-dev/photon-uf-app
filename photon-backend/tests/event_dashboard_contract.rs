@@ -6,8 +6,8 @@
 
 use chrono::{DateTime, Utc};
 use photon_backend::{
-    count_since, dashboard_stats, event_detail_transport_expired, event_summary_from_meta,
-    format_delivery_preview, validate_event_id,
+    clamp_event_list_limit, count_since, dashboard_stats, event_detail_transport_expired,
+    event_summary_from_meta, format_delivery_preview, validate_event_id, MAX_EVENT_LIST_LIMIT,
 };
 
 #[test]
@@ -81,4 +81,13 @@ fn validate_event_id_rejects_blank_sad() {
     assert!(err.contains("required"), "{err}");
     let err = validate_event_id(" \t ").expect_err("whitespace");
     assert!(err.contains("required"), "{err}");
+}
+
+#[test]
+fn clamp_event_list_limit_caps_at_max_happy_path() {
+    assert_eq!(clamp_event_list_limit(50), 50);
+    assert_eq!(
+        clamp_event_list_limit(MAX_EVENT_LIST_LIMIT + 500),
+        MAX_EVENT_LIST_LIMIT as usize
+    );
 }

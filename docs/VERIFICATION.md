@@ -50,7 +50,8 @@ cargo test -p photon-app --features ssr
 | `event_summary_from_meta` / preview | unit+integ | `[status]` preview | — | recent/events list |
 | `event_detail_transport_expired` | unit+integ | null payload + flag | — | transport gone |
 | `stub_checkpoint_lag` | unit | always `0` | — | lag UI stub (known gap) |
-| Higgs `#[server]` fns + Photon context | — | — | — | deferred — needs host SSR |
+| `clamp_event_list_limit` | unit+integ | caps at `MAX_EVENT_LIST_LIMIT` | oversized → 100 | PH-03 scope |
+| Higgs `#[server]` fns + PhotonAdmin session | — | — | — | deferred — needs host SSR (PH-01..04) |
 | Leptos UI / Playwright / `cargo leptos` e2e | e2e | — | — | **waived** — covering integ named below |
 | IsolatedLab topic/subscription e2e | e2e | — | — | **waived** — covered by photon core / valence-admin + Layer 1 integ |
 | AWS / soak | AWS | — | — | **waived** — L2 app; no cloud resources |

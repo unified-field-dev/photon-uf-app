@@ -90,6 +90,8 @@ mod layout;
 mod lazy_routes;
 /// Page components for the Photon ops UI.
 pub mod pages;
+/// Permission manifest for Photon admin server functions.
+pub mod permissions;
 /// SSR server functions and DTOs backing the Photon ops UI.
 pub mod server;
 
@@ -114,6 +116,7 @@ uf_app! {
     version: "0.1.0",
     routes: PhotonRoutes,
     route_path: "/photon",
+    permission_manifest: permissions::PhotonPermission,
 }
 
 /// Photon's nested route tree, gated behind an auth guard and mounted at `/photon`.
