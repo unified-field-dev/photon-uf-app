@@ -1554,7 +1554,6 @@ dependencies = [
  "log",
  "serde_json",
  "thiserror 2.0.19",
- "tokio",
  "uf-host",
  "uf-identity",
  "uf-valence",
@@ -2058,6 +2057,8 @@ dependencies = [
  "uf-valence",
  "url",
  "urlencoding",
+ "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]
@@ -2079,6 +2080,7 @@ dependencies = [
  "rand_core 0.6.4",
  "serde",
  "serde_json",
+ "sha2",
  "tokio",
  "uf-host",
  "uf-identity",
@@ -3700,6 +3702,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "protected-photon-host"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "http-body-util",
+ "photon-backend 0.1.0",
+ "serde_json",
+ "tokio",
+ "tower",
+]
+
+[[package]]
 name = "pulldown-cmark"
 version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5274,6 +5288,7 @@ version = "0.2.0"
 dependencies = [
  "async-trait",
  "serde",
+ "subtle",
 ]
 
 [[package]]

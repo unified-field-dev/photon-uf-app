@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "photon-app",
     "photon-backend",
+    "examples/protected-photon-host",
 ]
 
 [workspace.package]
