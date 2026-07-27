@@ -6,8 +6,6 @@
 //! - **Request-scoped Valence** — `ssr::valence` resolves the current request's actor
 //!   (via `higgs::Higgs`) into a permission-checked Valence handle, so server functions
 //!   never have to parse claims themselves.
-//! - **System-scoped Valence** — `ssr::system_valence` does the same for background work
-//!   that runs outside a single request (startup jobs, sweeps, health checks).
 //! - **Operation context passthrough** — `ssr::current_operation` / `ssr::with_operation`
 //!   are re-exported from `uf_host` so callers only need to depend on this crate.
 //!
@@ -34,12 +32,11 @@
 //!
 //! ## Where to look next
 //!
-//! - `ssr` — the SSR-only module with `valence` and `system_valence` (requires the `ssr`
-//!   Cargo feature).
+//! - `ssr` — the SSR-only module with `valence` (requires the `ssr` Cargo feature).
 
 #![deny(missing_docs)]
 
-/// SSR-only helpers for resolving a request or background operation into a Valence session.
+/// SSR-only helpers for resolving a request into a Valence session.
 ///
 /// Only compiled when the `ssr` feature is enabled; client (WASM) builds see no items from this
 /// module at all.
@@ -58,17 +55,6 @@ pub mod ssr {
     /// no active request context or the actor cannot be resolved.
     pub async fn valence() -> Result<Valence, ServerFnError> {
         let ctx = Higgs::from_request().await?;
-        ctx.valence()
-            .map_err(|e| ServerFnError::new(e.to_string()))
-    }
-
-    /// Build a system-scoped Valence for the current operation context.
-    ///
-    /// Use this for background work (retention sweeps, startup jobs, scheduled tasks, …) that
-    /// runs outside any single subscribed request but still needs a permission-checked session.
-    pub async fn system_valence() -> Result<Valence, ServerFnError> {
-        let ctx = Higgs::from_request().await?;
-        ctx.system_valence()
-            .map_err(|e| ServerFnError::new(e.to_string()))
+        ctx.valence().map_err(|e| ServerFnError::new(e.to_string()))
     }
 }

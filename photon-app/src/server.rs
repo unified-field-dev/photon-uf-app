@@ -185,9 +185,8 @@ pub async fn get_subscriptions() -> Result<Vec<SubscriptionSummary>, ServerFnErr
     let ctx = higgs::Higgs::from_request().await?;
     require_session(&ctx)?;
     let valence = session_valence().await?;
-    // Checkpoints are SYSTEM_ONLY — authorized admin may use system Valence here only.
     let system = ctx
-        .system_valence()
+        .valence()
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let subs = photon_valence_admin::persistence::SubscriptionStore::list(&valence)
