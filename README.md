@@ -42,7 +42,7 @@ Full ladder: [`examples/README.md`](examples/README.md).
 |-------|------|
 | `photon-app` | Photon admin UI |
 | `photon-backend` | Pure topic/subscription/event contracts (no Leptos) |
-| `uf-*` (top-level `uf-app-registry`, `uf-integrations`, `uf-product-macros`, `uf-ssr`) | Not workspace members and not depended on — the workspace's real `uf-*` crates come from `L3-products-zones-hosts` (see `[workspace.dependencies]` in `Cargo.toml`). These local trees are unused leftovers; do not treat them as source of truth. |
+| `uf-*` (top-level `uf-app-registry`, `uf-integrations`, `uf-product-macros`, `uf-ssr`) | Not workspace members and not depended on — the workspace's real `uf-*` crates come from `L3-zone-products` (see `[workspace.dependencies]` in `Cargo.toml`). These local trees are unused leftovers; do not treat them as source of truth. |
 
 ## Verify
 
