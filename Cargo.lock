@@ -451,7 +451,7 @@ dependencies = [
 [[package]]
 name = "chronon-coordinator"
 version = "0.1.0"
-source = "git+https://github.com/deathbreakfast/chronon-coordinator?branch=main#a4df1d7d9d80cf5889f35567f3d7173ca7548b94"
+source = "git+https://github.com/unified-field-dev/chronon-coordinator?branch=main#6567eec80461421cbbbb08c4dc181b9d2e8315c3"
 dependencies = [
  "anyhow",
  "async-trait",
