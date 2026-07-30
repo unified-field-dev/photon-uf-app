@@ -261,7 +261,7 @@ pub fn expand_uf_app(input: TokenStream) -> TokenStream {
         #route_registration
 
         // Register app metadata with inventory (SSR only - doesn't work in WASM)
-        // This registration always happens, not just when routes are provided
+        // This registration always runs on SSR, whether or not routes are provided
         #[cfg(feature = "ssr")]
         ::uf_product::inventory::submit! {
             ::uf_product::AppRegistration {
