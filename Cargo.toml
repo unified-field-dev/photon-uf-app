@@ -54,26 +54,26 @@ photon = { package = "uf-photon", version = "0.1.1", default-features = false }
 photon-valence-admin = { git = "https://github.com/deathbreakfast/photon-valence-admin", branch = "main" }
 valence = { package = "uf-valence", version = "0.1.1", default-features = false, features = ["mem", "sqlite"] }
 higgs = { path = "../../L1-host-stack-kits/higgs/higgs", default-features = false }
-uf-host = { path = "../../L1-host-stack-kits/higgs/uf-host", default-features = false }
-uf-identity = { path = "../../L1-host-stack-kits/higgs/uf-identity" }
-gauge = { path = "../../L3-products-zones-hosts/gauge/gauge", default-features = false }
+higgs-host = { path = "../../L1-host-stack-kits/higgs/higgs-host", default-features = false }
+higgs-identity = { path = "../../L1-host-stack-kits/higgs/higgs-identity" }
+gauge = { path = "../../L3-zone-products/gauge/gauge", default-features = false }
 
 orbital = { package = "orbital-ui", git = "https://github.com/deathbreakfast/orbital", branch = "fix/crates-io-publish", default-features = false }
 orbital-macros = { git = "https://github.com/deathbreakfast/orbital", branch = "fix/crates-io-publish" }
 
-uf-integrations = { path = "../../L3-products-zones-hosts/unified-field-product/uf-integrations", default-features = false }
-uf-product-macros = { path = "../../L3-products-zones-hosts/unified-field-product/uf-product-macros" }
-uf-product = { path = "../../L3-products-zones-hosts/unified-field-product/uf-product", default-features = false }
-uf-ssr = { path = "../../L3-products-zones-hosts/counter-app/uf-ssr", default-features = false }
-uf-app-registry = { path = "../../L3-products-zones-hosts/counter-app/uf-app-registry" }
+uf-integrations = { path = "../../L2-product-platform/unified-field-product/uf-integrations", default-features = false }
+uf-product-macros = { path = "../../L2-product-platform/unified-field-product/uf-product-macros" }
+uf-product = { path = "../../L2-product-platform/unified-field-product/uf-product", default-features = false }
+uf-ssr = { path = "../../L3-zone-products/counter-app/uf-ssr", default-features = false }
+uf-app-registry = { path = "../../L3-zone-products/counter-app/uf-app-registry" }
 lepton-shell = { path = "../../L1-host-stack-kits/lepton-auth/lepton-shell", default-features = false }
 inventory = "0.3"
 wasm-bindgen = "=0.2.126"
 
 [patch."https://github.com/deathbreakfast/higgs"]
 higgs = { path = "../../L1-host-stack-kits/higgs/higgs" }
-uf-host = { path = "../../L1-host-stack-kits/higgs/uf-host" }
-uf-identity = { path = "../../L1-host-stack-kits/higgs/uf-identity" }
+higgs-host = { path = "../../L1-host-stack-kits/higgs/higgs-host" }
+higgs-identity = { path = "../../L1-host-stack-kits/higgs/higgs-identity" }
 
 [patch."https://github.com/deathbreakfast/lepton-auth"]
 lepton-shell = { path = "../../L1-host-stack-kits/lepton-auth/lepton-shell" }
@@ -83,12 +83,12 @@ lepton-host-adapter = { path = "../../L1-host-stack-kits/lepton-auth/lepton-host
 lepton = { path = "../../L1-host-stack-kits/lepton-auth/lepton" }
 
 [patch."https://github.com/deathbreakfast/unified-field-product"]
-uf-product = { path = "../../L3-products-zones-hosts/unified-field-product/uf-product" }
-uf-integrations = { path = "../../L3-products-zones-hosts/unified-field-product/uf-integrations" }
-uf-product-macros = { path = "../../L3-products-zones-hosts/unified-field-product/uf-product-macros" }
-uf-notifications-core = { path = "../../L3-products-zones-hosts/unified-field-product/uf-notifications-core" }
-uf-notifications-api = { path = "../../L3-products-zones-hosts/unified-field-product/uf-notifications-api" }
-uf-search-core = { path = "../../L3-products-zones-hosts/unified-field-product/uf-search-core" }
+uf-product = { path = "../../L2-product-platform/unified-field-product/uf-product" }
+uf-integrations = { path = "../../L2-product-platform/unified-field-product/uf-integrations" }
+uf-product-macros = { path = "../../L2-product-platform/unified-field-product/uf-product-macros" }
+uf-notifications-core = { path = "../../L2-product-platform/unified-field-product/uf-notifications-core" }
+uf-notifications-api = { path = "../../L2-product-platform/unified-field-product/uf-notifications-api" }
+uf-search-core = { path = "../../L2-product-platform/unified-field-product/uf-search-core" }
 
 [patch.crates-io]
 uf-valence = { path = "../../L0-upstream-cores/valence/valence" }

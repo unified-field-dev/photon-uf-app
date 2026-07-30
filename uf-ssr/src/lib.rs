@@ -7,7 +7,7 @@
 //!   (via `higgs::Higgs`) into a permission-checked Valence handle, so server functions
 //!   never have to parse claims themselves.
 //! - **Operation context passthrough** — `ssr::current_operation` / `ssr::with_operation`
-//!   are re-exported from `uf_host` so callers only need to depend on this crate.
+//!   are re-exported from `higgs_host` so callers only need to depend on this crate.
 //!
 //! *This crate has no auth model of its own* — it only adapts `higgs::Higgs` request context
 //! into the Valence type your server functions already expect.
@@ -46,7 +46,7 @@ pub mod ssr {
     use leptos::prelude::ServerFnError;
     use valence::Valence;
 
-    pub use uf_host::{current_operation, with_operation};
+    pub use higgs_host::{current_operation, with_operation};
 
     /// Build a Valence for the current request's actor via Higgs.
     ///

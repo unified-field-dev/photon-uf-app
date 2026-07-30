@@ -1274,7 +1274,7 @@ dependencies = [
  "log",
  "serde",
  "serde_json",
- "uf-host",
+ "higgs-host",
  "uf-notifications-core",
  "uf-product-macros",
  "uf-quark",
@@ -1539,8 +1539,8 @@ dependencies = [
  "log",
  "serde_json",
  "thiserror 2.0.19",
- "uf-host",
- "uf-identity",
+ "higgs-host",
+ "higgs-identity",
  "uf-valence",
 ]
 
@@ -1554,8 +1554,8 @@ dependencies = [
  "log",
  "serde_json",
  "thiserror 2.0.19",
- "uf-host",
- "uf-identity",
+ "higgs-host",
+ "higgs-identity",
  "uf-valence",
 ]
 
@@ -2082,8 +2082,8 @@ dependencies = [
  "serde_json",
  "sha2",
  "tokio",
- "uf-host",
- "uf-identity",
+ "higgs-host",
+ "higgs-identity",
  "uf-valence",
  "uf-valence-codegen",
 ]
@@ -5268,7 +5268,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "uf-host"
+name = "higgs-host"
 version = "0.2.0"
 dependencies = [
  "anyhow",
@@ -5278,12 +5278,12 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
- "uf-identity",
+ "higgs-identity",
  "uf-valence",
 ]
 
 [[package]]
-name = "uf-identity"
+name = "higgs-identity"
 version = "0.2.0"
 dependencies = [
  "async-trait",
@@ -5329,7 +5329,7 @@ dependencies = [
  "photon-leptos",
  "serde",
  "serde_json",
- "uf-host",
+ "higgs-host",
  "uf-notifications-core",
  "uf-photon",
  "uf-valence",
@@ -5402,7 +5402,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "turf",
- "uf-host",
+ "higgs-host",
  "uf-quark",
  "uf-search-core",
  "uf-spectra",
@@ -5479,7 +5479,7 @@ version = "0.1.0"
 dependencies = [
  "higgs",
  "leptos",
- "uf-host",
+ "higgs-host",
  "uf-valence",
 ]
 
