@@ -1,10 +1,10 @@
 # photon-uf-app verification
 
-Re-run after code or doc changes. This workspace is the L2 Photon operations app
+Re-run after code or doc changes. This workspace is the Photon operations app
 (`photon-app` Leptos UI + `photon-backend` pure server contracts). Layer 1 unit +
 integration tests cover topic/subscription/event/dashboard helpers backing the
 `#[server]` surface. No Leptos UI e2e, `*-e2e` crate, or AWS campaign is required
-for this L2 app. Photon core / `photon-valence-admin` IsolatedLab contracts own
+for this workspace. Photon core / `photon-valence-admin` IsolatedLab contracts own
 persistence and transport; this repo verifies the UF app mapping layer.
 
 ## Environment
@@ -54,7 +54,7 @@ cargo test -p photon-app --features ssr
 | Higgs `#[server]` fns + PhotonAdmin session | — | — | — | deferred — needs host SSR (PH-01..04) |
 | Leptos UI / Playwright / `cargo leptos` e2e | e2e | — | — | **waived** — covering integ named below |
 | IsolatedLab topic/subscription e2e | e2e | — | — | **waived** — covered by photon core / valence-admin + Layer 1 integ |
-| AWS / soak | AWS | — | — | **waived** — L2 app; no cloud resources |
+| AWS / soak | AWS | — | — | **waived** — no cloud resources |
 | Micro-benchmarks | bench | — | — | **waived** — no hot-path campaign |
 
 ## Layer 2 — E2E
@@ -62,7 +62,7 @@ cargo test -p photon-app --features ssr
 **Waived.** Topic/subscription list+detail, topic-scoped subscription filter,
 dashboard 24h counting, and event preview/transport-expired shapes are exercised
 by Layer 1 integration tests named below. A Leptos/UI browser suite or IsolatedLab
-`*-e2e` crate is out of scope for this backend-first L2 remediation; live Photon
+`*-e2e` crate is out of scope for this backend-first remediation; live Photon
 transport/persistence IsolatedLab belongs in photon core / `photon-valence-admin`.
 
 Covering integ tests for the e2e waiver:
@@ -78,7 +78,7 @@ Covering integ tests for the e2e waiver:
 
 ## Layer 3 — AWS campaigns + performance
 
-**Waived.** L2 application workspace; no cloud resources or Criterion benches.
+**Waived.** This application workspace; no cloud resources or Criterion benches.
 Correctness is in-process against Photon UF app DTO/mapping contracts only.
 
 ## Notes
