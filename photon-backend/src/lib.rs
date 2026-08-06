@@ -96,7 +96,7 @@ pub struct EventDetail {
     pub payload_json: serde_json::Value,
     /// Raw actor JSON captured at publish time, if the transport record is still available.
     pub actor_json: serde_json::Value,
-    /// True when Valence metadata exists but continuum transport payload is gone.
+    /// True when the transport record is no longer available for this event id.
     pub transport_expired: bool,
 }
 
@@ -226,6 +226,25 @@ pub fn event_summary_from_meta(
     }
 }
 
+/// Builds an [`EventSummary`] from a transport-log event (ops browse via Photon list APIs).
+#[must_use]
+pub fn event_summary_from_transport(
+    event_id: impl Into<String>,
+    topic_name: impl Into<String>,
+    topic_key: Option<String>,
+    seq: i64,
+    created_at: impl Into<String>,
+) -> EventSummary {
+    event_summary_from_meta(
+        event_id,
+        topic_name,
+        topic_key,
+        seq,
+        created_at,
+        "stored",
+    )
+}
+
 /// Builds [`EventDetail`] when Valence metadata exists but transport payload is gone.
 #[must_use]
 pub fn event_detail_transport_expired(
@@ -249,7 +268,90 @@ pub fn event_detail_transport_expired(
     }
 }
 
-/// Checkpoint lag placeholder until live lag is wired in the host projection path.
+/// Builds [`EventDetail`] from a live transport event.
+#[must_use]
+pub fn event_detail_from_transport(
+    event_id: impl Into<String>,
+    topic_name: impl Into<String>,
+    topic_key: Option<String>,
+    seq: i64,
+    created_at: impl Into<String>,
+    payload_json: serde_json::Value,
+    actor_json: serde_json::Value,
+) -> EventDetail {
+    EventDetail {
+        event_id: event_id.into(),
+        topic_name: topic_name.into(),
+        topic_key,
+        seq,
+        created_at: created_at.into(),
+        delivery_status: "stored".into(),
+        payload_json,
+        actor_json,
+        transport_expired: false,
+    }
+}
+
+/// Builds a [`SubscriptionSummary`] from Photon admin_snapshot handler + checkpoint fields.
+#[must_use]
+pub fn subscription_summary_from_handler(
+    registry_key: impl Into<String>,
+    subscription_name: Option<String>,
+    topic_name: impl Into<String>,
+    mode: impl Into<String>,
+    last_seq: Option<i64>,
+) -> SubscriptionSummary {
+    let topic_name = topic_name.into();
+    let registry_key = registry_key.into();
+    let display_name = subscription_name
+        .clone()
+        .unwrap_or_else(|| registry_key.clone());
+    SubscriptionSummary {
+        subscription_id: registry_key,
+        subscription_name: display_name,
+        topic_name,
+        enabled: true,
+        mode: mode.into(),
+        topic_key_filter: None,
+        checkpoint_lag: stub_checkpoint_lag(),
+        last_seq,
+        last_processed_at: None,
+    }
+}
+
+/// Matches a checkpoint `last_seq` for a handler subscription/topic pair.
+#[must_use]
+pub fn find_checkpoint_seq(
+    checkpoints: &[(String, String, Option<String>, Option<i64>)],
+    subscription_name: Option<&str>,
+    topic_name: &str,
+) -> Option<i64> {
+    let sub = subscription_name?;
+    checkpoints
+        .iter()
+        .find(|(s, t, _, _)| s == sub && t == topic_name)
+        .and_then(|(_, _, _, seq)| *seq)
+}
+
+/// Builds a [`TopicSummary`] from registry metadata plus traffic counts.
+#[must_use]
+pub fn topic_summary(
+    topic_name: impl Into<String>,
+    keyed_by: Option<String>,
+    schema_json: impl Into<String>,
+    event_count_24h: u64,
+    subscription_count: u32,
+) -> TopicSummary {
+    TopicSummary {
+        topic_name: topic_name.into(),
+        keyed_by,
+        schema_json: schema_json.into(),
+        event_count_24h,
+        subscription_count,
+    }
+}
+
+/// Checkpoint lag placeholder until live lag is wired from Photon checkpoints vs head.
 #[must_use]
 pub const fn stub_checkpoint_lag() -> i64 {
     0
@@ -416,6 +518,41 @@ mod tests {
     #[test]
     fn stub_checkpoint_lag_is_zero_happy_path() {
         assert_eq!(stub_checkpoint_lag(), 0);
+    }
+
+    #[test]
+    fn subscription_summary_from_handler_uses_registry_key_happy_path() {
+        let sub = subscription_summary_from_handler(
+            "reg.key",
+            Some("orders.sub".into()),
+            "orders",
+            "durable",
+            Some(42),
+        );
+        assert_eq!(sub.subscription_id, "reg.key");
+        assert_eq!(sub.subscription_name, "orders.sub");
+        assert_eq!(sub.last_seq, Some(42));
+        assert!(sub.enabled);
+    }
+
+    #[test]
+    fn find_checkpoint_seq_matches_subscription_topic_happy_path() {
+        let cps = vec![
+            ("sub-a".into(), "orders".into(), None, Some(9)),
+            ("sub-b".into(), "orders".into(), None, Some(3)),
+        ];
+        assert_eq!(
+            find_checkpoint_seq(&cps, Some("sub-a"), "orders"),
+            Some(9)
+        );
+        assert_eq!(find_checkpoint_seq(&cps, None, "orders"), None);
+        assert_eq!(find_checkpoint_seq(&cps, Some("missing"), "orders"), None);
+    }
+
+    #[test]
+    fn event_summary_from_transport_marks_stored_happy_path() {
+        let row = event_summary_from_transport("e1", "t", None, 1, "2026-01-01T00:00:00Z");
+        assert_eq!(row.payload_preview, "[stored]");
     }
 
     #[test]

@@ -50,8 +50,7 @@ serde_json = "1"
 turf = "0.10"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std", "wasmbind", "serde"] }
 
-photon = { package = "uf-photon", version = "0.1.1", default-features = false }
-photon-valence-admin = { git = "https://github.com/deathbreakfast/photon-valence-admin", branch = "main" }
+photon = { package = "uf-photon", path = "../../L0-upstream-cores/photon/photon", default-features = false }
 valence = { package = "uf-valence", version = "0.1.1", default-features = false, features = ["mem", "sqlite"] }
 higgs = { path = "../../L1-host-stack-kits/higgs/higgs", default-features = false }
 higgs-host = { path = "../../L1-host-stack-kits/higgs/higgs-host", default-features = false }

@@ -4,8 +4,9 @@ Re-run after code or doc changes. This workspace is the Photon operations app
 (`photon-app` Leptos UI + `photon-backend` pure server contracts). Layer 1 unit +
 integration tests cover topic/subscription/event/dashboard helpers backing the
 `#[server]` surface. No Leptos UI e2e, `*-e2e` crate, or AWS campaign is required
-for this workspace. Photon core / `photon-valence-admin` IsolatedLab contracts own
-persistence and transport; this repo verifies the UF app mapping layer.
+for this workspace. Photon core IsolatedLab / storage contracts own transport
+persistence; this repo verifies the UF app mapping layer over Photon
+(`admin_snapshot`, `list_recent_events`, `list_events_by_topic`, `get_event`).
 
 ## Environment
 
@@ -48,12 +49,14 @@ cargo test -p photon-app --features ssr
 | `sort_topics_by_name` (`get_topics`) | unit+integ | lexicographic order | — | stable list |
 | `dashboard_stats` / `count_since` | unit+integ | KPI shape / 24h window | all older → `0` | dashboard |
 | `event_summary_from_meta` / preview | unit+integ | `[status]` preview | — | recent/events list |
+| `event_summary_from_transport` / `event_detail_from_transport` | unit | `[stored]` preview / live detail | — | Photon list/get path |
+| `subscription_summary_from_handler` / `find_checkpoint_seq` | unit | registry_key id + checkpoint match | missing sub → `None` | admin_snapshot mapping |
 | `event_detail_transport_expired` | unit+integ | null payload + flag | — | transport gone |
 | `stub_checkpoint_lag` | unit | always `0` | — | lag UI stub (known gap) |
 | `clamp_event_list_limit` | unit+integ | caps at `MAX_EVENT_LIST_LIMIT` | oversized → 100 | PH-03 scope |
 | Higgs `#[server]` fns + PhotonAdmin session | — | — | — | deferred — needs host SSR (PH-01..04) |
 | Leptos UI / Playwright / `cargo leptos` e2e | e2e | — | — | **waived** — covering integ named below |
-| IsolatedLab topic/subscription e2e | e2e | — | — | **waived** — covered by photon core / valence-admin + Layer 1 integ |
+| IsolatedLab topic/subscription e2e | e2e | — | — | **waived** — covered by photon core + Layer 1 integ |
 | AWS / soak | AWS | — | — | **waived** — no cloud resources |
 | Micro-benchmarks | bench | — | — | **waived** — no hot-path campaign |
 
@@ -63,7 +66,7 @@ cargo test -p photon-app --features ssr
 dashboard 24h counting, and event preview/transport-expired shapes are exercised
 by Layer 1 integration tests named below. A Leptos/UI browser suite or IsolatedLab
 `*-e2e` crate is out of scope for this backend-first remediation; live Photon
-transport/persistence IsolatedLab belongs in photon core / `photon-valence-admin`.
+transport/persistence IsolatedLab belongs in photon core.
 
 Covering integ tests for the e2e waiver:
 

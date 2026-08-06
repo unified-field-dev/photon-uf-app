@@ -2,16 +2,15 @@
 //!
 //! DTOs and pure mapping helpers live in [`photon_backend`] so contracts stay
 //! unit/integration-testable without the host UI graph. Server functions run on
-//! SSR only and use Photon / Valence request context for IO.
+//! SSR only and use Photon request context for IO (Chronon/Boson-shaped: no
+//! Valence ops projection).
 //!
 //! ## Security map
 //!
 //! - Every ops-UI server fn requires an authenticated session and
 //!   `PhotonAdmin` (via `#[uf_product_macros::server(permission = "...")]`).
-//! - User-triggered reads use **session Valence** so AUTHENTICATED store
-//!   policies apply (topics, subscriptions, events).
-//! - Checkpoint reads are `SYSTEM_ONLY`: after session + `PhotonAdmin`, use
-//!   system Valence only for that store access.
+//! - Catalog, subscription, and event reads come from Photon (`admin_snapshot`,
+//!   registry, `list_*`, `get_event`).
 
 use leptos::prelude::*;
 pub use photon_backend::{
@@ -24,9 +23,10 @@ pub const PHOTON_ADMIN_PERMISSION: &str = "PhotonAdmin";
 
 #[cfg(feature = "ssr")]
 use photon_backend::{
-    clamp_event_list_limit, count_since, dashboard_stats, event_detail_transport_expired,
-    event_summary_from_meta, find_subscription_by_id, find_topic_by_name, sort_topics_by_name,
-    stub_checkpoint_lag, validate_event_id, validate_subscription_id, validate_topic_name,
+    clamp_event_list_limit, count_since, dashboard_stats, event_detail_from_transport,
+    event_summary_from_transport, find_checkpoint_seq, find_subscription_by_id, find_topic_by_name,
+    sort_topics_by_name, subscription_summary_from_handler, topic_summary, validate_event_id,
+    validate_subscription_id, validate_topic_name,
 };
 
 #[cfg(feature = "ssr")]
@@ -45,20 +45,53 @@ fn require_session(ctx: &higgs::Higgs) -> Result<(), ServerFnError> {
 }
 
 #[cfg(feature = "ssr")]
-async fn session_valence() -> Result<valence::Valence, ServerFnError> {
-    uf_ssr::ssr::valence().await
+fn map_transport_event(ev: &photon::Event) -> EventSummary {
+    event_summary_from_transport(
+        ev.event_id.clone(),
+        ev.topic_name.clone(),
+        ev.topic_key.clone(),
+        ev.seq,
+        ev.created_at.to_rfc3339(),
+    )
 }
 
 #[cfg(feature = "ssr")]
-fn map_event_summary(e: photon_valence_admin::persistence::DbEvent) -> EventSummary {
-    event_summary_from_meta(
-        e.id().map(|x| x.to_string()).unwrap_or_default(),
-        e.topic_name().to_string(),
-        e.topic_key().map(|s| s.to_string()),
-        *e.seq(),
-        e.created_at().to_rfc3339(),
-        e.delivery_status(),
-    )
+async fn subscriptions_from_photon(
+    photon: &photon::Photon,
+) -> Result<Vec<SubscriptionSummary>, ServerFnError> {
+    let snap = photon
+        .admin_snapshot()
+        .await
+        .map_err(|e| ServerFnError::new(format!("Failed to load admin snapshot: {e}")))?;
+    let checkpoints: Vec<(String, String, Option<String>, Option<i64>)> = snap
+        .checkpoints
+        .iter()
+        .map(|c| {
+            (
+                c.subscription_name.clone(),
+                c.topic_name.clone(),
+                c.topic_key.clone(),
+                c.last_seq,
+            )
+        })
+        .collect();
+
+    let mut list = Vec::with_capacity(snap.handlers.len());
+    for h in snap.handlers {
+        let last_seq = find_checkpoint_seq(
+            &checkpoints,
+            h.subscription_name.as_deref(),
+            &h.topic_name,
+        );
+        list.push(subscription_summary_from_handler(
+            h.registry_key,
+            h.subscription_name.or(h.consumer_group),
+            h.topic_name,
+            h.mode,
+            last_seq,
+        ));
+    }
+    Ok(list)
 }
 
 // ============================================================================
@@ -71,25 +104,17 @@ pub async fn get_dashboard_stats() -> Result<DashboardStats, ServerFnError> {
     let ctx = higgs::Higgs::from_request().await?;
     require_session(&ctx)?;
     let photon = photon_from_context()?;
-    let valence = session_valence().await?;
 
-    let registry = photon.registry();
-    let topic_count = registry.len() as u32;
+    let topic_count = photon.registry().len() as u32;
+    let subscription_count = subscriptions_from_photon(&photon).await?.len() as u32;
 
-    let subs = photon_valence_admin::persistence::SubscriptionStore::list(&valence)
+    let events = photon
+        .list_recent_events(clamp_event_list_limit(1000))
         .await
-        .map_err(|e| ServerFnError::new(format!("Failed to list subscriptions: {e}")))?;
-    let subscription_count = subs.len() as u32;
-
-    let events = photon_valence_admin::persistence::EventStore::list_recent(
-        &valence,
-        clamp_event_list_limit(1000),
-    )
-    .await
-    .map_err(|e| ServerFnError::new(format!("Failed to list recent events: {e}")))?;
+        .map_err(|e| ServerFnError::new(format!("Failed to list recent events: {e}")))?;
     let now = chrono::Utc::now();
     let day_ago = now - chrono::Duration::hours(24);
-    let stamps: Vec<_> = events.iter().map(|e| *e.created_at()).collect();
+    let stamps: Vec<_> = events.iter().map(|e| e.created_at).collect();
     let event_count_24h = count_since(&stamps, day_ago);
 
     Ok(dashboard_stats(
@@ -107,60 +132,50 @@ pub async fn get_recent_events(
 ) -> Result<Vec<EventSummary>, ServerFnError> {
     let ctx = higgs::Higgs::from_request().await?;
     require_session(&ctx)?;
-    let valence = session_valence().await?;
+    let photon = photon_from_context()?;
     let limit = clamp_event_list_limit(limit);
 
-    let events = photon_valence_admin::persistence::EventStore::list_recent(&valence, limit)
+    let events = photon
+        .list_recent_events(limit)
         .await
         .map_err(|e| ServerFnError::new(format!("Failed to list recent events: {e}")))?;
 
-    let list: Vec<EventSummary> = events.into_iter().map(map_event_summary).collect();
-    Ok(list)
+    Ok(events.iter().map(map_transport_event).collect())
 }
 
-/// Get all topics (from registry + optional DB counts).
+/// Get all topics (from registry + Photon list counts).
 #[uf_product_macros::server(permission = "PhotonAdmin")]
 pub async fn get_topics() -> Result<Vec<TopicSummary>, ServerFnError> {
     let ctx = higgs::Higgs::from_request().await?;
     require_session(&ctx)?;
     let photon = photon_from_context()?;
-    let valence = session_valence().await?;
 
+    let subs = subscriptions_from_photon(&photon).await?;
     let registry = photon.registry();
     let mut topics = Vec::new();
     for desc in registry.iter() {
         let topic_name = desc.topic_name.to_string();
-        let subscription_count =
-            photon_valence_admin::persistence::SubscriptionStore::list_by_topic(
-                &valence,
-                &topic_name,
-            )
-            .await
-            .map_err(|e| ServerFnError::new(format!("Failed to list subscriptions: {e}")))?
-            .len() as u32;
+        let subscription_count = subs
+            .iter()
+            .filter(|s| s.topic_name == topic_name)
+            .count() as u32;
 
-        // Topic-scoped fetch (avoids cross-topic over-fetch used for 24h counts).
-        let events = photon_valence_admin::persistence::EventStore::list_by_topic(
-            &valence,
-            &topic_name,
-            None,
-            None,
-            clamp_event_list_limit(1000),
-        )
-        .await
-        .map_err(|e| ServerFnError::new(format!("Failed to list events: {e}")))?;
+        let events = photon
+            .list_events_by_topic(&topic_name, None, None, clamp_event_list_limit(1000))
+            .await
+            .map_err(|e| ServerFnError::new(format!("Failed to list events: {e}")))?;
         let now = chrono::Utc::now();
         let day_ago = now - chrono::Duration::hours(24);
-        let stamps: Vec<_> = events.iter().map(|e| *e.created_at()).collect();
+        let stamps: Vec<_> = events.iter().map(|e| e.created_at).collect();
         let event_count_24h = count_since(&stamps, day_ago);
 
-        topics.push(TopicSummary {
+        topics.push(topic_summary(
             topic_name,
-            keyed_by: desc.keyed_by.map(|s| s.to_string()),
-            schema_json: desc.schema_json.to_string(),
+            desc.keyed_by.map(|s| s.to_string()),
+            desc.schema_json.to_string(),
             event_count_24h,
             subscription_count,
-        });
+        ));
     }
     sort_topics_by_name(&mut topics);
     Ok(topics)
@@ -179,47 +194,13 @@ pub async fn get_topic(
     Ok(find_topic_by_name(&topics, &topic_name).cloned())
 }
 
-/// Get all subscriptions.
+/// Get all subscriptions (handler inventory + checkpoints via `admin_snapshot`).
 #[uf_product_macros::server(permission = "PhotonAdmin")]
 pub async fn get_subscriptions() -> Result<Vec<SubscriptionSummary>, ServerFnError> {
     let ctx = higgs::Higgs::from_request().await?;
     require_session(&ctx)?;
-    let valence = session_valence().await?;
-    let system = ctx
-        .valence()
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
-
-    let subs = photon_valence_admin::persistence::SubscriptionStore::list(&valence)
-        .await
-        .map_err(|e| ServerFnError::new(format!("Failed to list subscriptions: {e}")))?;
-
-    let mut list = Vec::with_capacity(subs.len());
-    for s in subs {
-        let sub_id = s.id().map(|x| x.to_string()).unwrap_or_default();
-        let topic_name = s.topic_name().to_string();
-        let sub_name = s.subscription_name().to_string();
-        let topic_key_filter = s.topic_key_filter().map(|x| x.to_string());
-        let last_seq = s.get_checkpoints(&system).await.ok().and_then(|cps| {
-            cps.into_iter()
-                .find(|c| {
-                    *c.topic_name() == topic_name
-                        && c.topic_key().map(|k| k.as_str()) == topic_key_filter.as_deref()
-                })
-                .map(|c| *c.last_seq())
-        });
-        list.push(SubscriptionSummary {
-            subscription_id: sub_id,
-            subscription_name: sub_name,
-            topic_name,
-            enabled: *s.enabled(),
-            mode: s.mode().to_string(),
-            topic_key_filter,
-            checkpoint_lag: stub_checkpoint_lag(),
-            last_seq,
-            last_processed_at: None,
-        });
-    }
-    Ok(list)
+    let photon = photon_from_context()?;
+    subscriptions_from_photon(&photon).await
 }
 
 /// Get a single subscription by ID.
@@ -238,7 +219,7 @@ pub async fn get_subscription(
 /// Get events (recent across all topics, or optionally filter by topic).
 ///
 /// Results are capped at [`photon_backend::MAX_EVENT_LIST_LIMIT`]. When
-/// `topic_name` is set, the query is topic-scoped via `list_by_topic`.
+/// `topic_name` is set, the query is topic-scoped via Photon `list_events_by_topic`.
 #[uf_product_macros::server(permission = "PhotonAdmin")]
 pub async fn get_events(
     /// Optional topic name to restrict results to; when omitted, events from all
@@ -249,24 +230,23 @@ pub async fn get_events(
 ) -> Result<Vec<EventSummary>, ServerFnError> {
     let ctx = higgs::Higgs::from_request().await?;
     require_session(&ctx)?;
-    let valence = session_valence().await?;
+    let photon = photon_from_context()?;
     let limit = clamp_event_list_limit(limit);
 
     let events = if let Some(topic) = &topic_name {
         validate_topic_name(topic).map_err(ServerFnError::new)?;
-        photon_valence_admin::persistence::EventStore::list_by_topic(
-            &valence, topic, None, None, limit,
-        )
-        .await
-        .map_err(|e| ServerFnError::new(format!("Failed to list events: {e}")))?
+        photon
+            .list_events_by_topic(topic, None, None, limit)
+            .await
+            .map_err(|e| ServerFnError::new(format!("Failed to list events: {e}")))?
     } else {
-        photon_valence_admin::persistence::EventStore::list_recent(&valence, limit)
+        photon
+            .list_recent_events(limit)
             .await
             .map_err(|e| ServerFnError::new(format!("Failed to list recent events: {e}")))?
     };
 
-    let list: Vec<EventSummary> = events.into_iter().map(map_event_summary).collect();
-    Ok(list)
+    Ok(events.iter().map(map_transport_event).collect())
 }
 
 /// Get a single event by ID.
@@ -279,40 +259,21 @@ pub async fn get_event(
     require_session(&ctx)?;
     validate_event_id(&id).map_err(ServerFnError::new)?;
     let photon = photon_from_context()?;
-    let valence = session_valence().await?;
-
-    let meta = photon_valence_admin::persistence::EventStore::get_by_id(&valence, &id)
-        .await
-        .map_err(|e| ServerFnError::new(format!("Failed to load projection: {e}")))?;
-
-    let Some(meta) = meta else {
-        return Ok(None);
-    };
 
     let transport = photon
         .get_event(&id)
         .await
         .map_err(|e| ServerFnError::new(format!("Failed to get transport event: {e}")))?;
 
-    match transport {
-        Some(t) => Ok(Some(EventDetail {
-            event_id: id,
-            topic_name: meta.topic_name().to_string(),
-            topic_key: meta.topic_key().map(|s| s.to_string()),
-            seq: *meta.seq(),
-            created_at: meta.created_at().to_rfc3339(),
-            delivery_status: meta.delivery_status().to_string(),
-            payload_json: t.payload_json,
-            actor_json: t.actor_json,
-            transport_expired: false,
-        })),
-        None => Ok(Some(event_detail_transport_expired(
-            id,
-            meta.topic_name().to_string(),
-            meta.topic_key().map(|s| s.to_string()),
-            *meta.seq(),
-            meta.created_at().to_rfc3339(),
-            meta.delivery_status().to_string(),
-        ))),
-    }
+    Ok(transport.map(|t| {
+        event_detail_from_transport(
+            t.event_id,
+            t.topic_name,
+            t.topic_key,
+            t.seq,
+            t.created_at.to_rfc3339(),
+            t.payload_json,
+            t.actor_json,
+        )
+    }))
 }

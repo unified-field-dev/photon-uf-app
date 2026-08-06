@@ -36,9 +36,7 @@ inventory = { workspace = true, optional = true }
 uf-app-registry = { workspace = true, optional = true }
 
 photon = { workspace = true, optional = true }
-photon-valence-admin = { workspace = true, optional = true }
 chrono = { workspace = true, optional = true }
-valence = { workspace = true, optional = true }
 higgs = { workspace = true, optional = true }
 gauge = { workspace = true, optional = true }
 
@@ -62,10 +60,7 @@ ssr = [
     "dep:photon",
     "photon/runtime",
     "photon/mem",
-    "dep:photon-valence-admin",
     "dep:chrono",
-    "dep:valence",
-    "valence/sqlite",
     "dep:higgs",
     "higgs/ssr",
     "dep:gauge",

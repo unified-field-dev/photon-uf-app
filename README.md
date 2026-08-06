@@ -26,7 +26,7 @@ view! {
 - Topic and subscription detail (schemas, checkpoints)
 - Event browse with payload and actor context
 
-Host must supply a Photon runtime and auth guard context. Enable `ssr` / hydrate features to match your host. See the `photon-app` crate rustdocs for the full Concern → route → server fn table.
+Reads Photon's runtime directly (`admin_snapshot`, list/get event APIs) — same pattern as Chronon/Boson ops UIs. Host must supply a Photon runtime and auth guard context. Enable `ssr` / hydrate features to match your host. See the `photon-app` crate rustdocs for the full Concern → route → server fn table.
 
 ## Examples
 
