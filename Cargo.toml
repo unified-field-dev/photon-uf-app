@@ -85,9 +85,11 @@ lepton = { path = "../../L1-host-stack-kits/lepton/lepton" }
 uf-product = { path = "../../L2-product-platform/unified-field-product/uf-product" }
 uf-integrations = { path = "../../L2-product-platform/unified-field-product/uf-integrations" }
 uf-product-macros = { path = "../../L2-product-platform/unified-field-product/uf-product-macros" }
-uf-notifications-core = { path = "../../L2-product-platform/unified-field-product/uf-notifications-core" }
-uf-notifications-api = { path = "../../L2-product-platform/unified-field-product/uf-notifications-api" }
 uf-search-core = { path = "../../L2-product-platform/unified-field-product/uf-search-core" }
+
+[patch."https://github.com/deathbreakfast/uf-notifications"]
+uf-notifications-core = { path = "../../L2-product-platform/uf-notifications/uf-notifications-core" }
+uf-notifications-api = { path = "../../L2-product-platform/uf-notifications/uf-notifications-api" }
 
 [patch.crates-io]
 uf-valence = { path = "../../L0-upstream-cores/valence/valence" }
