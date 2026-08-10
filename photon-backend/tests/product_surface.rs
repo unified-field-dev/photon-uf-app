@@ -329,6 +329,40 @@ fn permission_manifest_photon_admin_happy_path() {
 }
 
 #[test]
+fn protected_photon_host_matches_uf_app_happy_path() {
+    let host =
+        fs::read_to_string(workspace_root().join("examples/protected-photon-host/src/main.rs"))
+            .expect("protected-photon-host main.rs");
+    for needle in [
+        "\"app_id\": \"photon\"",
+        "\"route_path\": \"/photon\"",
+        "\"auth_gate\": \"RequireAuthenticated\"",
+        "\"admin_permission\": \"PhotonAdmin\"",
+        "dashboard_stats",
+    ] {
+        assert!(
+            host.contains(needle),
+            "protected-photon-host missing contract `{needle}`"
+        );
+    }
+    let lib = read_app("lib.rs");
+    assert!(
+        lib.contains("id: \"photon\"") && lib.contains("route_path: \"/photon\""),
+        "host inventory must stay aligned with uf_app!"
+    );
+    let layout = read_app("layout.rs");
+    assert!(
+        layout.contains("RequireAuthenticated"),
+        "host auth_gate must stay aligned with PhotonLayout guard"
+    );
+    let perms = read_app("permissions.rs");
+    assert!(
+        perms.contains("PhotonAdmin"),
+        "host admin_permission must stay aligned with PhotonPermission"
+    );
+}
+
+#[test]
 fn lazy_routes_wire_pages_happy_path() {
     let lazy = read_app("lazy_routes.rs");
     for needle in [

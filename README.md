@@ -67,15 +67,17 @@ live in workspace `[workspace.dependencies]` (see `Cargo.toml`).
 
 | Host | When to use | Command | Success | Look next |
 |------|-------------|---------|---------|-----------|
-| [`protected-photon-host`](examples/protected-photon-host/) | Auth + `/photon` dashboard API | `CARGO_BUILD_JOBS=1 CARGO_TARGET_DIR=target-photon-uf-app cargo run -p protected-photon-host` | Deny/allow + KPI JSON | Product host with `PhotonRoutes` |
+| [`protected-photon-host`](examples/protected-photon-host/) | Auth + `/photon` dashboard API | `CARGO_BUILD_JOBS=1 CARGO_TARGET_DIR=target-photon-uf-app cargo run -p protected-photon-host` | Deny/allow + KPI JSON | Mount `PhotonRoutes` |
 
+Copy table + product mount `Cargo.toml`:
+[`examples/protected-photon-host/README.md`](examples/protected-photon-host/README.md).
 Full ladder: [`examples/README.md`](examples/README.md).
 
 | Level | Where |
 |-------|--------|
 | Highlight | Mount snippet above; crate-root Getting started |
 | Mid | `photon-backend` unit + integ suites (see `docs/VERIFICATION.md`) |
-| Detailed | `protected-photon-host` (session gate + dashboard KPIs) |
+| Detailed | `protected-photon-host` (session gate + dashboard KPIs; inventory `photon` / `/photon`) |
 
 ## Security
 
@@ -90,15 +92,18 @@ Local gates (fmt/clippy/CI workflow not claimed here):
 ```bash
 export CARGO_BUILD_JOBS=1
 export CARGO_TARGET_DIR=target-photon-uf-app
+cargo check -p protected-photon-host
+cargo run -p protected-photon-host
 cargo clippy -p photon-backend --all-targets -- -D warnings
 cargo test -p photon-backend
 RUSTDOCFLAGS="-D rustdoc::broken-intra-doc-links" cargo doc -p photon-backend --no-deps
 ```
 
-Prefer `photon-backend` for contract CI. `photon-app` compile/doc can fail when
-the path-patched Orbital / host graph is broken upstream — treat that as
-host-product debt, not a Photon mapping gap. Full command block:
-[`docs/VERIFICATION.md`](docs/VERIFICATION.md). Contribute:
+Prefer `photon-backend` for contract CI. Teaching host success line:
+`protected_photon_host: OK — /photon deny/allow + dashboard KPIs`.
+`photon-app` compile/doc can fail when the path-patched Orbital / host graph is
+broken upstream — treat that as host-product debt, not a Photon mapping gap.
+Full command block: [`docs/VERIFICATION.md`](docs/VERIFICATION.md). Contribute:
 [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## FAQ

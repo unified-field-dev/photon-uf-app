@@ -16,6 +16,20 @@ export CARGO_BUILD_JOBS=1
 export CARGO_TARGET_DIR=target-photon-uf-app
 ```
 
+## Teaching host (Pass 3 gate)
+
+Axum oneshot under [`examples/protected-photon-host`](../examples/protected-photon-host/).
+Copy table + product mount sketches live in that host README.
+
+```bash
+cargo check -p protected-photon-host
+cargo run -p protected-photon-host
+```
+
+Success line: `protected_photon_host: OK — /photon deny/allow + dashboard KPIs`.
+Hydrate/browser is out of gate for the oneshot (`cargo-leptos` + `wasm32` +
+Orbital / `uf-product` belong to a composite product host).
+
 ## Layer 1 — Unit + integration (CI)
 
 Sibling-source UI contracts (no Orbital / `photon-app` compile):
@@ -27,10 +41,14 @@ cargo test -p photon-backend --test workspace_members --test product_surface
 Backend contracts (preferred path; no UI graph):
 
 ```bash
-cargo fmt --all --check
+cargo fmt -p photon-backend -p photon-app -p protected-photon-host -- --check
 cargo clippy -p photon-backend --all-targets -- -D warnings
 cargo test -p photon-backend
 ```
+
+`cargo fmt --all` can fail in this monorepo checkout when a path-patched
+`neutrino/uf-host` sits outside that workspace; package-scoped fmt is the honest
+local gate.
 
 Full workspace (includes `photon-app` UI). May fail when the path-patched
 `uf-product` / `uf-integrations` UI graph is broken upstream — that is a
@@ -65,6 +83,7 @@ Covering integ tests for the e2e waiver:
 - `validate_event_id_accepts_id_happy_path` / `validate_event_id_rejects_blank_sad`
 - `photon_product_workspace_members_happy_path`
 - `photon_routes_mount_happy_path` / `layout_auth_gate_and_nav_happy_path` / `ops_reads_require_photon_admin_happy_path`
+- `protected_photon_host_matches_uf_app_happy_path`
 
 ## Layer 3 — AWS campaigns + performance
 

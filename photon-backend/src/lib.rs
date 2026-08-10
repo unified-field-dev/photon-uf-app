@@ -41,7 +41,7 @@
 //! |-------|--------|
 //! | Highlight | Concern → API table above |
 //! | Mid | This crate's unit + integ suites (`docs/VERIFICATION.md`) |
-//! | Detailed | `examples/protected-photon-host` |
+//! | Detailed | `examples/protected-photon-host` (auth + dashboard KPIs; copy README) |
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used))]
 

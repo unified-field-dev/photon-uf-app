@@ -1,5 +1,10 @@
 //! Protected `/photon` host: session auth gate + in-memory dashboard happy path.
 //!
+//! Copy surfaces for product hosts: this package's `Cargo.toml` + `main.rs`,
+//! plus the product-mount dependency / Leptos sketches in the host README.
+//! Oneshot path `/photon` matches Orbital app id/path `photon` / `/photon`
+//! (see JSON `inventory`).
+//!
 //! Mirrors what a real host does before mounting [`photon_app::PhotonRoutes`]:
 //! deny anonymous traffic under `/photon`, then serve the dashboard KPI shape
 //! the UI's `get_dashboard_stats` server fn builds via `photon-backend`.
@@ -65,6 +70,12 @@ async fn photon_dashboard(Extension(session): Extension<DemoSession>) -> impl In
         "path": "/photon",
         "user": session.user_id,
         "stats": stats,
+        "inventory": {
+            "app_id": "photon",
+            "route_path": "/photon",
+            "auth_gate": "RequireAuthenticated",
+            "admin_permission": "PhotonAdmin",
+        },
     }))
 }
 
@@ -103,13 +114,22 @@ async fn main() {
         .await
         .expect("oneshot");
     assert_eq!(response.status(), StatusCode::OK);
-    let bytes = response.into_body().collect().await.expect("body").to_bytes();
+    let bytes = response
+        .into_body()
+        .collect()
+        .await
+        .expect("body")
+        .to_bytes();
     let body: serde_json::Value = serde_json::from_slice(&bytes).expect("json");
     assert_eq!(body["path"], "/photon");
     assert_eq!(body["user"], "demo-ops");
     assert_eq!(body["stats"]["topic_count"], 4);
     assert_eq!(body["stats"]["subscription_count"], 2);
     assert_eq!(body["stats"]["event_count_24h"], 17);
+    assert_eq!(body["inventory"]["app_id"], "photon");
+    assert_eq!(body["inventory"]["route_path"], "/photon");
+    assert_eq!(body["inventory"]["auth_gate"], "RequireAuthenticated");
+    assert_eq!(body["inventory"]["admin_permission"], "PhotonAdmin");
 
     println!("protected_photon_host: OK — /photon deny/allow + dashboard KPIs");
 }

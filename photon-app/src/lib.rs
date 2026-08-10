@@ -70,7 +70,7 @@
 //! |-------|--------|
 //! | Highlight | Getting started above |
 //! | Mid | `photon-backend` unit + integ suites (`docs/VERIFICATION.md`) |
-//! | Detailed | `examples/protected-photon-host` (deny/allow + dashboard KPIs) |
+//! | Detailed | `examples/protected-photon-host` (deny/allow + dashboard KPIs; inventory `photon` / `/photon`; copy README) |
 //!
 //! ## Where to look next
 //!
