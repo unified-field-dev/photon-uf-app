@@ -8,12 +8,13 @@
 //!
 //! | Task | Start here |
 //! |------|------------|
-//! | **Validate list/detail ids** | [`PhotonIdError`], [`validate_topic_name`], [`validate_subscription_id`], [`validate_event_id`] |
+//! | **Validate list/detail ids** | [`PhotonIdError`], [`validate_topic_name`], [`validate_subscription_id`], [`validate_event_id`], [`MAX_PHOTON_ID_CHARS`] |
 //! | **Topic list/detail mapping** | [`TopicSummary`], [`find_topic_by_name`], [`sort_topics_by_name`], [`topic_summary`] |
 //! | **Subscription list/detail mapping** | [`SubscriptionSummary`], [`find_subscription_by_id`], [`filter_subscriptions_by_topic`], [`subscription_summary_from_handler`] |
 //! | **Event list/detail + transport expiry** | [`EventSummary`], [`EventDetail`], [`event_summary_from_transport`], [`event_detail_from_transport`], [`event_detail_transport_expired`] |
 //! | **Dashboard KPIs** | [`DashboardStats`], [`dashboard_stats`], [`count_since`] |
 //! | **Event list limits** | [`clamp_event_list_limit`], [`MAX_EVENT_LIST_LIMIT`] |
+//! | **Ops path encoding** | [`encode_ops_path_segment`], [`photon_topic_path`], [`photon_subscription_path`], [`photon_event_path`] |
 //! | **UI pages / `#[server]` wrappers** | `photon-app` (not this crate) |
 //!
 //! ## Owns / does not own
@@ -28,7 +29,8 @@
 //!
 //! | Concern | API | Owner |
 //! |---------|-----|-------|
-//! | Id / name validation | [`PhotonIdError`], [`validate_topic_name`], [`validate_subscription_id`], [`validate_event_id`] | this crate |
+//! | Id / name validation | [`PhotonIdError`], [`validate_topic_name`], [`validate_subscription_id`], [`validate_event_id`], [`MAX_PHOTON_ID_CHARS`] | this crate |
+//! | Ops path encoding | [`encode_ops_path_segment`], [`photon_topic_path`], [`photon_subscription_path`], [`photon_event_path`] | this crate |
 //! | Topic summaries | [`TopicSummary`], [`find_topic_by_name`], [`sort_topics_by_name`] | this crate |
 //! | Subscription summaries | [`SubscriptionSummary`], [`find_subscription_by_id`], [`filter_subscriptions_by_topic`] | this crate |
 //! | Event summaries / detail | [`EventSummary`], [`EventDetail`], [`event_summary_from_transport`], [`event_detail_from_transport`] | this crate |
@@ -59,8 +61,9 @@ pub use types::{
     DashboardStats, EventDetail, EventSummary, PhotonIdError, SubscriptionSummary, TopicSummary,
 };
 pub use validate::{
-    clamp_event_list_limit, validate_event_id, validate_subscription_id, validate_topic_name,
-    MAX_EVENT_LIST_LIMIT,
+    clamp_event_list_limit, encode_ops_path_segment, photon_event_path, photon_subscription_path,
+    photon_topic_path, validate_event_id, validate_subscription_id, validate_topic_name,
+    MAX_EVENT_LIST_LIMIT, MAX_PHOTON_ID_CHARS,
 };
 
 #[cfg(test)]
@@ -160,6 +163,7 @@ mod tests {
     fn validate_topic_name_accepts_non_empty_happy_path() {
         validate_topic_name("orders").expect("non-empty");
         validate_topic_name("  payments  ").expect("trimmed non-empty");
+        validate_topic_name("orders.v1").expect("dot in name");
     }
 
     #[test]
@@ -178,10 +182,51 @@ mod tests {
     }
 
     #[test]
+    fn validate_topic_name_rejects_slash_control_dotdot_sad() {
+        assert_eq!(
+            validate_topic_name("a/b").expect_err("slash"),
+            PhotonIdError::UnsafeTopicName
+        );
+        assert_eq!(
+            validate_topic_name("a\\b").expect_err("backslash"),
+            PhotonIdError::UnsafeTopicName
+        );
+        assert_eq!(
+            validate_topic_name("a\tb").expect_err("control"),
+            PhotonIdError::UnsafeTopicName
+        );
+        assert_eq!(
+            validate_topic_name("..").expect_err("dotdot"),
+            PhotonIdError::UnsafeTopicName
+        );
+        assert_eq!(
+            validate_topic_name(".").expect_err("dot"),
+            PhotonIdError::UnsafeTopicName
+        );
+    }
+
+    #[test]
+    fn validate_topic_name_rejects_oversized_sad() {
+        let oversized: String = "t".repeat(MAX_PHOTON_ID_CHARS + 1);
+        assert_eq!(
+            validate_topic_name(&oversized).expect_err("too long"),
+            PhotonIdError::TopicNameTooLong
+        );
+    }
+
+    #[test]
     fn validate_subscription_id_rejects_blank_sad() {
         assert_eq!(
             validate_subscription_id("").expect_err("blank"),
             PhotonIdError::EmptySubscriptionId
+        );
+    }
+
+    #[test]
+    fn validate_subscription_id_rejects_slash_sad() {
+        assert_eq!(
+            validate_subscription_id("reg/key").expect_err("slash"),
+            PhotonIdError::UnsafeSubscriptionId
         );
     }
 
@@ -191,6 +236,32 @@ mod tests {
             validate_event_id("").expect_err("blank"),
             PhotonIdError::EmptyEventId
         );
+    }
+
+    #[test]
+    fn validate_event_id_rejects_control_sad() {
+        assert_eq!(
+            validate_event_id("ev\nid").expect_err("control"),
+            PhotonIdError::UnsafeEventId
+        );
+    }
+
+    #[test]
+    fn encode_ops_path_segment_encodes_slash_and_space_happy_path() {
+        assert_eq!(encode_ops_path_segment("orders"), "orders");
+        assert_eq!(encode_ops_path_segment("a/b"), "a%2Fb");
+        assert_eq!(encode_ops_path_segment("a b"), "a%20b");
+        assert_eq!(encode_ops_path_segment("a\\b"), "a%5Cb");
+    }
+
+    #[test]
+    fn photon_ops_paths_encode_segments_happy_path() {
+        assert_eq!(photon_topic_path("a/b"), "/photon/topics/a%2Fb");
+        assert_eq!(
+            photon_subscription_path("reg/key"),
+            "/photon/subscriptions/reg%2Fkey"
+        );
+        assert_eq!(photon_event_path("e 1"), "/photon/events/e%201");
     }
 
     #[test]

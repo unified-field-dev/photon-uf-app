@@ -11,6 +11,8 @@
 //!   `PhotonAdmin` (via `#[uf_product_macros::server(permission = "...")]`).
 //! - Catalog, subscription, and event reads come from Photon (`admin_snapshot`,
 //!   registry, `list_*`, `get_event`).
+//! - Path/query ids are rejected when blank, oversized, or containing `/` `\`,
+//!   controls, or `.` / `..` (`photon_backend::validate_*`).
 //!
 //! ## Errors
 //!

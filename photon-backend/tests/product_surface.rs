@@ -381,3 +381,47 @@ fn lazy_routes_wire_pages_happy_path() {
         );
     }
 }
+
+#[test]
+fn ops_path_helpers_encode_segments_happy_path() {
+    let events_table = read_app("components/events_table.rs");
+    let topic_card = read_app("components/topic_card.rs");
+    let sub_card = read_app("components/subscription_card.rs");
+    let topic_subs = read_app("components/topic_subscriptions_table.rs");
+    let active_subs = read_app("components/active_subscriptions_table.rs");
+    for (label, src) in [
+        ("events_table", events_table.as_str()),
+        ("topic_card", topic_card.as_str()),
+        ("subscription_card", sub_card.as_str()),
+        ("topic_subscriptions_table", topic_subs.as_str()),
+        ("active_subscriptions_table", active_subs.as_str()),
+    ] {
+        assert!(
+            src.contains("photon_backend::photon_")
+                || src.contains("photon_event_path")
+                || src.contains("photon_topic_path")
+                || src.contains("photon_subscription_path"),
+            "{label} must build detail hrefs via photon_backend path helpers"
+        );
+        assert!(
+            !src.contains("crate::paths::topic(")
+                && !src.contains("crate::paths::event(")
+                && !src.contains("crate::paths::subscription("),
+            "{label} must not interpolate raw ids into orbital paths::*"
+        );
+    }
+}
+
+#[test]
+fn ops_path_helpers_drop_encoding_sad_path() {
+    let topic_card = read_app("components/topic_card.rs");
+    assert!(
+        topic_card.contains("photon_backend::photon_topic_path"),
+        "dropping photon_topic_path reopens path-segment smuggling via topic names"
+    );
+    let events_table = read_app("components/events_table.rs");
+    assert!(
+        events_table.contains("photon_backend::photon_event_path"),
+        "dropping photon_event_path reopens path-segment smuggling via event ids"
+    );
+}

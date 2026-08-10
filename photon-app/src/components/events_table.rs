@@ -86,7 +86,7 @@ pub fn EventsTable(
                 >
                     {
                         let id = e.event_id.clone();
-                        let href = crate::paths::event(&id);
+                        let href = photon_backend::photon_event_path(&id);
                         let href2 = href.clone();
                         let topic = e.topic_name.clone();
                         let key = e.topic_key.clone().unwrap_or_default();

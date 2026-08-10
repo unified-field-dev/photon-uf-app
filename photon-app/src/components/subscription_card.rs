@@ -21,7 +21,7 @@ pub fn SubscriptionCard(
     let navigate = use_navigate();
     let nav_store = StoredValue::new(navigate);
 
-    let href = crate::paths::subscription(&sub.subscription_id);
+    let href = photon_backend::photon_subscription_path(&sub.subscription_id);
     let sub_name = sub.subscription_name.clone();
     let test_id = format!("sub-{sub_name}");
     let topic = sub.topic_name.clone();

@@ -42,7 +42,7 @@ pub fn TopicSubscriptionsTable(
                         let:s
                     >
                         <TableRow class=class_names.row>
-                            <TableCell><a href=crate::paths::subscription(&s.subscription_id) class=class_names.link>{s.subscription_name.clone()}</a></TableCell>
+                            <TableCell><a href=photon_backend::photon_subscription_path(&s.subscription_id) class=class_names.link>{s.subscription_name.clone()}</a></TableCell>
                             <TableCell>{if s.enabled { "Yes" } else { "No" }}</TableCell>
                         </TableRow>
                     </For>

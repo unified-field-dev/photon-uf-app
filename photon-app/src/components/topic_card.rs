@@ -46,7 +46,12 @@ pub fn TopicCard(
             <CardButtonArea on_click=Callback::new({
                 let nav = nav_store.with_value(|n: &_| n.clone());
                 let name_click = name_click.clone();
-                move |_: ev::MouseEvent| nav(&crate::paths::topic(&name_click), NavigateOptions::default())
+                move |_: ev::MouseEvent| {
+                    nav(
+                        &photon_backend::photon_topic_path(&name_click),
+                        NavigateOptions::default(),
+                    )
+                }
             })>
                 <CardContent>
                     <Flex vertical=true gap=FlexGap::Size(4)>
@@ -63,7 +68,10 @@ pub fn TopicCard(
                         let nav = nav_store.with_value(|n: &_| n.clone());
                         move |ev: ev::MouseEvent| {
                             ev.stop_propagation();
-                            nav(&crate::paths::topic(&name_btn), NavigateOptions::default());
+                            nav(
+                                &photon_backend::photon_topic_path(&name_btn),
+                                NavigateOptions::default(),
+                            );
                         }
                     })>"View"</Button>
                     <Button size=ButtonSize::Small appearance=ButtonAppearance::Subtle on_click=Callback::new({

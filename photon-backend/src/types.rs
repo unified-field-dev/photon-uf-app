@@ -93,7 +93,7 @@ pub struct EventDetail {
     pub transport_expired: bool,
 }
 
-/// Blank topic name, subscription id, or event id rejected before Photon lookups.
+/// Invalid topic name, subscription id, or event id rejected before Photon lookups.
 ///
 /// Callers map this into Leptos `ServerFnError` (or equivalent) at the `#[server]`
 /// boundary; the Display text stays stable for UI and contract tests.
@@ -106,6 +106,18 @@ pub enum PhotonIdError {
     EmptySubscriptionId,
     /// Event id was empty or whitespace-only.
     EmptyEventId,
+    /// Topic name exceeded [`crate::MAX_PHOTON_ID_CHARS`].
+    TopicNameTooLong,
+    /// Subscription id exceeded [`crate::MAX_PHOTON_ID_CHARS`].
+    SubscriptionIdTooLong,
+    /// Event id exceeded [`crate::MAX_PHOTON_ID_CHARS`].
+    EventIdTooLong,
+    /// Topic name contained `/`, `\`, controls, or was `.` / `..`.
+    UnsafeTopicName,
+    /// Subscription id contained `/`, `\`, controls, or was `.` / `..`.
+    UnsafeSubscriptionId,
+    /// Event id contained `/`, `\`, controls, or was `.` / `..`.
+    UnsafeEventId,
 }
 
 impl std::fmt::Display for PhotonIdError {
@@ -114,6 +126,18 @@ impl std::fmt::Display for PhotonIdError {
             Self::EmptyTopicName => write!(f, "Photon topic name is required"),
             Self::EmptySubscriptionId => write!(f, "Photon subscription id is required"),
             Self::EmptyEventId => write!(f, "Photon event id is required"),
+            Self::TopicNameTooLong => write!(f, "Photon topic name is too long"),
+            Self::SubscriptionIdTooLong => write!(f, "Photon subscription id is too long"),
+            Self::EventIdTooLong => write!(f, "Photon event id is too long"),
+            Self::UnsafeTopicName => {
+                write!(f, "Photon topic name contains unsafe path characters")
+            }
+            Self::UnsafeSubscriptionId => {
+                write!(f, "Photon subscription id contains unsafe path characters")
+            }
+            Self::UnsafeEventId => {
+                write!(f, "Photon event id contains unsafe path characters")
+            }
         }
     }
 }

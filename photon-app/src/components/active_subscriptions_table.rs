@@ -43,7 +43,7 @@ pub fn ActiveSubscriptionsTable(
                     let:s
                 >
                     <TableRow class=class_names.row>
-                        <TableCell><a href=crate::paths::subscription(&s.subscription_id) class=class_names.link>{s.subscription_name}</a></TableCell>
+                        <TableCell><a href=photon_backend::photon_subscription_path(&s.subscription_id) class=class_names.link>{s.subscription_name}</a></TableCell>
                         <TableCell>{s.topic_name}</TableCell>
                         <TableCell><SubscriptionStatusBadge enabled=s.enabled /></TableCell>
                         <TableCell>{s.checkpoint_lag}</TableCell>

@@ -126,6 +126,21 @@ fn validate_subscription_id_rejects_blank_sad() {
 }
 
 #[test]
+fn validate_topic_name_rejects_slash_and_oversized_sad() {
+    let err = validate_topic_name("a/b").expect_err("slash");
+    assert_eq!(err, photon_backend::PhotonIdError::UnsafeTopicName);
+    let oversized = "t".repeat(photon_backend::MAX_PHOTON_ID_CHARS + 1);
+    let err = validate_topic_name(&oversized).expect_err("too long");
+    assert_eq!(err, photon_backend::PhotonIdError::TopicNameTooLong);
+}
+
+#[test]
+fn validate_subscription_id_rejects_slash_sad() {
+    let err = validate_subscription_id("reg/key").expect_err("slash");
+    assert_eq!(err, photon_backend::PhotonIdError::UnsafeSubscriptionId);
+}
+
+#[test]
 fn validate_subscription_id_accepts_id_happy_path() {
     validate_subscription_id("sub-abc").expect("non-empty id");
 }
