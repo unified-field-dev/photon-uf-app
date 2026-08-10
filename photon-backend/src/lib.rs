@@ -8,7 +8,7 @@
 //!
 //! | Task | Start here |
 //! |------|------------|
-//! | **Validate list/detail ids** | [`validate_topic_name`], [`validate_subscription_id`], [`validate_event_id`] |
+//! | **Validate list/detail ids** | [`PhotonIdError`], [`validate_topic_name`], [`validate_subscription_id`], [`validate_event_id`] |
 //! | **Topic list/detail mapping** | [`TopicSummary`], [`find_topic_by_name`], [`sort_topics_by_name`], [`topic_summary`] |
 //! | **Subscription list/detail mapping** | [`SubscriptionSummary`], [`find_subscription_by_id`], [`filter_subscriptions_by_topic`], [`subscription_summary_from_handler`] |
 //! | **Event list/detail + transport expiry** | [`EventSummary`], [`EventDetail`], [`event_summary_from_transport`], [`event_detail_from_transport`], [`event_detail_transport_expired`] |
@@ -22,13 +22,13 @@
 //! ops UI server surface.
 //!
 //! **Does not own:** Leptos pages, Higgs `#[server]` wrappers, or route registration
-//! (`photon-app`); Photon transport, brokers, or IsolatedLab persistence (Photon core).
+//! (`photon-app`); Photon transport, brokers, or `IsolatedLab` persistence (Photon core).
 //!
 //! ## Concern → API
 //!
 //! | Concern | API | Owner |
 //! |---------|-----|-------|
-//! | Id / name validation | [`validate_topic_name`], [`validate_subscription_id`], [`validate_event_id`] | this crate |
+//! | Id / name validation | [`PhotonIdError`], [`validate_topic_name`], [`validate_subscription_id`], [`validate_event_id`] | this crate |
 //! | Topic summaries | [`TopicSummary`], [`find_topic_by_name`], [`sort_topics_by_name`] | this crate |
 //! | Subscription summaries | [`SubscriptionSummary`], [`find_subscription_by_id`], [`filter_subscriptions_by_topic`] | this crate |
 //! | Event summaries / detail | [`EventSummary`], [`EventDetail`], [`event_summary_from_transport`], [`event_detail_from_transport`] | this crate |
@@ -139,14 +139,41 @@ pub struct EventDetail {
     pub transport_expired: bool,
 }
 
+/// Blank topic name, subscription id, or event id rejected before Photon lookups.
+///
+/// Callers map this into Leptos `ServerFnError` (or equivalent) at the `#[server]`
+/// boundary; the Display text stays stable for UI and contract tests.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum PhotonIdError {
+    /// Topic name was empty or whitespace-only.
+    EmptyTopicName,
+    /// Subscription id was empty or whitespace-only.
+    EmptySubscriptionId,
+    /// Event id was empty or whitespace-only.
+    EmptyEventId,
+}
+
+impl std::fmt::Display for PhotonIdError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::EmptyTopicName => write!(f, "Photon topic name is required"),
+            Self::EmptySubscriptionId => write!(f, "Photon subscription id is required"),
+            Self::EmptyEventId => write!(f, "Photon event id is required"),
+        }
+    }
+}
+
+impl std::error::Error for PhotonIdError {}
+
 /// Rejects blank topic names before registry / detail lookups.
 ///
 /// # Errors
 ///
-/// Returns an error message when `topic_name` is empty or whitespace-only.
-pub fn validate_topic_name(topic_name: &str) -> Result<(), String> {
+/// Returns [`PhotonIdError::EmptyTopicName`] when `topic_name` is empty or whitespace-only.
+pub fn validate_topic_name(topic_name: &str) -> Result<(), PhotonIdError> {
     if topic_name.trim().is_empty() {
-        Err("Photon topic name is required".to_string())
+        Err(PhotonIdError::EmptyTopicName)
     } else {
         Ok(())
     }
@@ -156,10 +183,10 @@ pub fn validate_topic_name(topic_name: &str) -> Result<(), String> {
 ///
 /// # Errors
 ///
-/// Returns an error message when `id` is empty or whitespace-only.
-pub fn validate_subscription_id(id: &str) -> Result<(), String> {
+/// Returns [`PhotonIdError::EmptySubscriptionId`] when `id` is empty or whitespace-only.
+pub fn validate_subscription_id(id: &str) -> Result<(), PhotonIdError> {
     if id.trim().is_empty() {
-        Err("Photon subscription id is required".to_string())
+        Err(PhotonIdError::EmptySubscriptionId)
     } else {
         Ok(())
     }
@@ -169,10 +196,10 @@ pub fn validate_subscription_id(id: &str) -> Result<(), String> {
 ///
 /// # Errors
 ///
-/// Returns an error message when `id` is empty or whitespace-only.
-pub fn validate_event_id(id: &str) -> Result<(), String> {
+/// Returns [`PhotonIdError::EmptyEventId`] when `id` is empty or whitespace-only.
+pub fn validate_event_id(id: &str) -> Result<(), PhotonIdError> {
     if id.trim().is_empty() {
-        Err("Photon event id is required".to_string())
+        Err(PhotonIdError::EmptyEventId)
     } else {
         Ok(())
     }
@@ -324,7 +351,7 @@ pub fn event_detail_from_transport(
     }
 }
 
-/// Builds a [`SubscriptionSummary`] from Photon admin_snapshot handler + checkpoint fields.
+/// Builds a [`SubscriptionSummary`] from Photon `admin_snapshot` handler + checkpoint fields.
 #[must_use]
 pub fn subscription_summary_from_handler(
     registry_key: impl Into<String>,
@@ -335,9 +362,7 @@ pub fn subscription_summary_from_handler(
 ) -> SubscriptionSummary {
     let topic_name = topic_name.into();
     let registry_key = registry_key.into();
-    let display_name = subscription_name
-        .clone()
-        .unwrap_or_else(|| registry_key.clone());
+    let display_name = subscription_name.unwrap_or_else(|| registry_key.clone());
     SubscriptionSummary {
         subscription_id: registry_key,
         subscription_name: display_name,
@@ -467,7 +492,7 @@ mod tests {
     #[test]
     fn filter_subscriptions_by_topic_unknown_empty_sad() {
         let subs = vec![sample_sub("a", "orders")];
-        assert!(filter_subscriptions_by_topic(&subs, "missing").is_empty());
+        assert_eq!(filter_subscriptions_by_topic(&subs, "missing").len(), 0);
     }
 
     #[test]
@@ -489,22 +514,33 @@ mod tests {
 
     #[test]
     fn validate_topic_name_rejects_blank_sad() {
-        let err = validate_topic_name("").expect_err("blank");
-        assert!(err.contains("required"), "{err}");
-        let err = validate_topic_name("   ").expect_err("whitespace");
-        assert!(err.contains("required"), "{err}");
+        assert_eq!(
+            validate_topic_name("").expect_err("blank"),
+            PhotonIdError::EmptyTopicName
+        );
+        assert_eq!(
+            validate_topic_name("   ").expect_err("whitespace"),
+            PhotonIdError::EmptyTopicName
+        );
+        assert!(PhotonIdError::EmptyTopicName
+            .to_string()
+            .contains("required"));
     }
 
     #[test]
     fn validate_subscription_id_rejects_blank_sad() {
-        let err = validate_subscription_id("").expect_err("blank");
-        assert!(err.contains("required"), "{err}");
+        assert_eq!(
+            validate_subscription_id("").expect_err("blank"),
+            PhotonIdError::EmptySubscriptionId
+        );
     }
 
     #[test]
     fn validate_event_id_rejects_blank_sad() {
-        let err = validate_event_id("").expect_err("blank");
-        assert!(err.contains("required"), "{err}");
+        assert_eq!(
+            validate_event_id("").expect_err("blank"),
+            PhotonIdError::EmptyEventId
+        );
     }
 
     #[test]

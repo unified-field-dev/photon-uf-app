@@ -78,9 +78,10 @@ fn validate_event_id_accepts_id_happy_path() {
 #[test]
 fn validate_event_id_rejects_blank_sad() {
     let err = validate_event_id("").expect_err("blank");
-    assert!(err.contains("required"), "{err}");
+    assert_eq!(err, photon_backend::PhotonIdError::EmptyEventId);
+    assert!(err.to_string().contains("required"), "{err}");
     let err = validate_event_id(" \t ").expect_err("whitespace");
-    assert!(err.contains("required"), "{err}");
+    assert_eq!(err, photon_backend::PhotonIdError::EmptyEventId);
 }
 
 #[test]

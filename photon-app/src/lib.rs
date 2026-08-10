@@ -15,10 +15,10 @@
 //! | Task | Start here |
 //! |------|------------|
 //! | **Mount `/photon` routes** | [`PhotonRoutes`] |
-//! | **Dashboard KPIs / recent events** | [`PhotonDashboardPage`], [`mod@server`] |
-//! | **Browse topics** | [`PhotonTopicsIndexPage`], [`PhotonTopicDetailPage`] |
-//! | **Browse subscriptions** | [`PhotonSubscriptionsIndexPage`], [`PhotonSubscriptionDetailPage`] |
-//! | **Browse events** | [`PhotonEventsIndexPage`], [`PhotonEventDetailPage`] |
+//! | **Dashboard KPIs / recent events** | [`PhotonDashboardPage`], [`get_dashboard_stats`], [`get_recent_events`] |
+//! | **Browse topics** | [`PhotonTopicsIndexPage`], [`PhotonTopicDetailPage`], [`get_topics`], [`get_topic`] |
+//! | **Browse subscriptions** | [`PhotonSubscriptionsIndexPage`], [`PhotonSubscriptionDetailPage`], [`get_subscriptions`] |
+//! | **Browse events** | [`PhotonEventsIndexPage`], [`PhotonEventDetailPage`], [`get_events`], [`get_event`] |
 //! | **Pure DTO / mapping helpers** | `photon-backend` (not this crate) |
 //!
 //! ## Owns / does not own
@@ -27,8 +27,18 @@
 //! manifest, and `uf_app!` / [`PhotonRoutes`] registration.
 //!
 //! **Does not own:** Topic/subscription/event/dashboard mapping helpers
-//! (`photon-backend`); Photon transport, brokers, or IsolatedLab persistence (Photon
+//! (`photon-backend`); Photon transport, brokers, or `IsolatedLab` persistence (Photon
 //! core); full Leptos SSR host binaries (live outside this repository).
+//!
+//! ## Concern → API
+//!
+//! | Concern | API | Owner |
+//! |---------|-----|-------|
+//! | Mount `/photon` | [`PhotonRoutes`], [`PhotonLayout`] | this crate |
+//! | Ops pages | [`PhotonDashboardPage`], [`PhotonTopicsIndexPage`], [`PhotonTopicDetailPage`], [`PhotonSubscriptionsIndexPage`], [`PhotonSubscriptionDetailPage`], [`PhotonEventsIndexPage`], [`PhotonEventDetailPage`] | this crate |
+//! | Server fns / DTOs | [`get_dashboard_stats`], [`get_topics`], [`get_event`], [`DashboardStats`], [`EventDetail`], [`PHOTON_ADMIN_PERMISSION`] | this crate ([`mod@server`]) |
+//! | Id validation / pure mapping | `photon_backend::PhotonIdError`, `photon_backend::validate_*` | `photon-backend` |
+//! | Permission manifest | [`permissions::PhotonPermission`] | this crate |
 //!
 //! ## Routes (Concern → page → server fn)
 //!
@@ -36,13 +46,13 @@
 //!
 //! | Path | Page | Key server fn(s) |
 //! |---|---|---|
-//! | `/photon` | [`PhotonDashboardPage`] | `get_dashboard_stats`, `get_recent_events` |
-//! | `/photon/topics` | [`PhotonTopicsIndexPage`] | `get_topics` |
-//! | `/photon/topics/:topic_name` | [`PhotonTopicDetailPage`] | `get_topic`, `get_subscriptions`, `get_events` |
-//! | `/photon/subscriptions` | [`PhotonSubscriptionsIndexPage`] | `get_subscriptions` |
-//! | `/photon/subscriptions/:id` | [`PhotonSubscriptionDetailPage`] | `get_subscription`, `get_events` |
-//! | `/photon/events` | [`PhotonEventsIndexPage`] | `get_events` |
-//! | `/photon/events/:id` | [`PhotonEventDetailPage`] | `get_event` |
+//! | `/photon` | [`PhotonDashboardPage`] | [`get_dashboard_stats`], [`get_recent_events`] |
+//! | `/photon/topics` | [`PhotonTopicsIndexPage`] | [`get_topics`] |
+//! | `/photon/topics/:topic_name` | [`PhotonTopicDetailPage`] | [`get_topic`], [`get_subscriptions`], [`get_events`] |
+//! | `/photon/subscriptions` | [`PhotonSubscriptionsIndexPage`] | [`get_subscriptions`] |
+//! | `/photon/subscriptions/:id` | [`PhotonSubscriptionDetailPage`] | [`get_subscription`], [`get_events`] |
+//! | `/photon/events` | [`PhotonEventsIndexPage`] | [`get_events`] |
+//! | `/photon/events/:id` | [`PhotonEventDetailPage`] | [`get_event`] |
 //!
 //! ## Getting started
 //!
@@ -77,6 +87,7 @@
 //! - [`PhotonRoutes`] — the route entrypoint mounted by hosts.
 //! - [`PhotonLayout`] — the shared app bar / nav shell wrapping every route.
 //! - [`mod@server`] — server functions and DTOs backing the UI.
+//! - `photon_backend::PhotonIdError` — typed blank-id rejection before Photon IO.
 
 #![allow(missing_docs)]
 #![cfg_attr(
@@ -118,7 +129,11 @@ pub use pages::{
     PhotonSubscriptionDetailPage, PhotonSubscriptionsIndexPage, PhotonTopicDetailPage,
     PhotonTopicsIndexPage,
 };
-pub use server::{DashboardStats, EventSummary, SubscriptionSummary, TopicSummary};
+pub use server::{
+    get_dashboard_stats, get_event, get_events, get_recent_events, get_subscription,
+    get_subscriptions, get_topic, get_topics, DashboardStats, EventDetail, EventSummary,
+    SubscriptionSummary, TopicSummary, PHOTON_ADMIN_PERMISSION,
+};
 
 uf_app! {
     name: "Photon",

@@ -11,6 +11,13 @@
 //!   `PhotonAdmin` (via `#[uf_product_macros::server(permission = "...")]`).
 //! - Catalog, subscription, and event reads come from Photon (`admin_snapshot`,
 //!   registry, `list_*`, `get_event`).
+//!
+//! ## Errors
+//!
+//! Fallible ops return [`ServerFnError`] (Leptos boundary). Blank path/query ids
+//! are rejected by `photon_backend::validate_*` as [`photon_backend::PhotonIdError`]
+//! and mapped with operation context. Missing session, missing Photon context, and
+//! Photon IO failures are also `ServerFnError` strings at this boundary.
 
 use leptos::prelude::*;
 pub use photon_backend::{
@@ -183,7 +190,7 @@ pub async fn get_topic(
 ) -> Result<Option<TopicSummary>, ServerFnError> {
     let ctx = higgs::Higgs::from_request().await?;
     require_session(&ctx)?;
-    validate_topic_name(&topic_name).map_err(ServerFnError::new)?;
+    validate_topic_name(&topic_name).map_err(|e| ServerFnError::new(e.to_string()))?;
     let topics = get_topics().await?;
     Ok(find_topic_by_name(&topics, &topic_name).cloned())
 }
@@ -205,7 +212,7 @@ pub async fn get_subscription(
 ) -> Result<Option<SubscriptionSummary>, ServerFnError> {
     let ctx = higgs::Higgs::from_request().await?;
     require_session(&ctx)?;
-    validate_subscription_id(&id).map_err(ServerFnError::new)?;
+    validate_subscription_id(&id).map_err(|e| ServerFnError::new(e.to_string()))?;
     let subs = get_subscriptions().await?;
     Ok(find_subscription_by_id(&subs, &id).cloned())
 }
@@ -228,7 +235,7 @@ pub async fn get_events(
     let limit = clamp_event_list_limit(limit);
 
     let events = if let Some(topic) = &topic_name {
-        validate_topic_name(topic).map_err(ServerFnError::new)?;
+        validate_topic_name(topic).map_err(|e| ServerFnError::new(e.to_string()))?;
         photon
             .list_events_by_topic(topic, None, None, limit)
             .await
@@ -251,7 +258,7 @@ pub async fn get_event(
 ) -> Result<Option<EventDetail>, ServerFnError> {
     let ctx = higgs::Higgs::from_request().await?;
     require_session(&ctx)?;
-    validate_event_id(&id).map_err(ServerFnError::new)?;
+    validate_event_id(&id).map_err(|e| ServerFnError::new(e.to_string()))?;
     let photon = photon_from_context()?;
 
     let transport = photon

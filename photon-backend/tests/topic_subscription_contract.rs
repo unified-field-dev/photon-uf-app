@@ -44,8 +44,8 @@ fn get_topics_list_sorted_and_named_happy_path() {
     assert_eq!(topics[0].topic_name, "alpha.events");
     assert_eq!(topics[1].topic_name, "zeta.events");
     for t in &topics {
-        assert!(!t.topic_name.trim().is_empty());
-        assert!(!t.schema_json.is_empty());
+        assert_ne!(t.topic_name.trim(), "");
+        assert_ne!(t.schema_json, "");
     }
 }
 
@@ -98,7 +98,10 @@ fn topic_detail_filters_subscriptions_for_topic_happy_path() {
 #[test]
 fn topic_detail_filters_subscriptions_unknown_topic_empty_sad() {
     let subs = vec![sample_sub("a", "orders", true)];
-    assert!(filter_subscriptions_by_topic(&subs, "__missing_topic__").is_empty());
+    assert_eq!(
+        filter_subscriptions_by_topic(&subs, "__missing_topic__").len(),
+        0
+    );
 }
 
 #[test]
@@ -109,15 +112,17 @@ fn validate_topic_name_accepts_table_happy_path() {
 #[test]
 fn validate_topic_name_rejects_blank_sad() {
     let err = validate_topic_name("").expect_err("blank name");
-    assert!(err.contains("required"), "{err}");
+    assert_eq!(err, photon_backend::PhotonIdError::EmptyTopicName);
+    assert!(err.to_string().contains("required"), "{err}");
     let err = validate_topic_name("   ").expect_err("whitespace");
-    assert!(err.contains("required"), "{err}");
+    assert_eq!(err, photon_backend::PhotonIdError::EmptyTopicName);
 }
 
 #[test]
 fn validate_subscription_id_rejects_blank_sad() {
     let err = validate_subscription_id("").expect_err("blank id");
-    assert!(err.contains("required"), "{err}");
+    assert_eq!(err, photon_backend::PhotonIdError::EmptySubscriptionId);
+    assert!(err.to_string().contains("required"), "{err}");
 }
 
 #[test]
