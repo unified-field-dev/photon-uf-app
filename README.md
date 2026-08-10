@@ -1,5 +1,6 @@
 # Photon UF App
 
+[![CI](https://github.com/deathbreakfast/photon-uf-app/actions/workflows/ci.yml/badge.svg)](https://github.com/deathbreakfast/photon-uf-app/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 [GitHub](https://github.com/deathbreakfast/photon-uf-app) · `cargo doc -p photon-backend --open` · distributed via git (not crates.io)
@@ -87,19 +88,25 @@ public issue for security-sensitive reports.
 
 ## Verify
 
-Local gates (fmt/clippy/CI workflow not claimed here):
+GitHub Actions (`.github/workflows/ci.yml`) runs the Layer 1 subset from
+[`docs/VERIFICATION.md`](docs/VERIFICATION.md): fmt, clippy `-D warnings` on
+`photon-backend` (+ teaching host), contract tests, `protected-photon-host`
+check/run, and photon-backend rustdoc with broken-intra-doc-link deny.
 
 ```bash
 export CARGO_BUILD_JOBS=1
 export CARGO_TARGET_DIR=target-photon-uf-app
+cargo fmt -p photon-backend -p photon-app -p protected-photon-host -- --check
+cargo clippy -p photon-backend --all-targets -- -D warnings
+cargo clippy -p protected-photon-host --all-targets -- -D warnings
+cargo test -p photon-backend --test workspace_members --test product_surface
+cargo test -p photon-backend
 cargo check -p protected-photon-host
 cargo run -p protected-photon-host
-cargo clippy -p photon-backend --all-targets -- -D warnings
-cargo test -p photon-backend
 RUSTDOCFLAGS="-D rustdoc::broken-intra-doc-links" cargo doc -p photon-backend --no-deps
 ```
 
-Prefer `photon-backend` for contract CI. Teaching host success line:
+Teaching host success line:
 `protected_photon_host: OK — /photon deny/allow + dashboard KPIs`.
 `photon-app` compile/doc can fail when the path-patched Orbital / host graph is
 broken upstream — treat that as host-product debt, not a Photon mapping gap.

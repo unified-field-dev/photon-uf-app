@@ -32,6 +32,10 @@ Orbital / `uf-product` belong to a composite product host).
 
 ## Layer 1 — Unit + integration (CI)
 
+GitHub Actions (`.github/workflows/ci.yml`) covers this Layer 1 subset plus the
+teaching host and photon-backend rustdoc gate below. It does not build
+`photon-app` (Leptos UI / SSR).
+
 Sibling-source UI contracts (no Orbital / `photon-app` compile):
 
 ```bash
@@ -43,6 +47,7 @@ Backend contracts (preferred path; no UI graph):
 ```bash
 cargo fmt -p photon-backend -p photon-app -p protected-photon-host -- --check
 cargo clippy -p photon-backend --all-targets -- -D warnings
+cargo clippy -p protected-photon-host --all-targets -- -D warnings
 cargo test -p photon-backend
 ```
 

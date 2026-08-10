@@ -1,0 +1,196 @@
+# PR / merge gate aligned with docs/VERIFICATION.md (photon-backend + teaching
+# host). Path deps assume a Unified Field monorepo layout; CI checks this repo
+# out under that path and shallow-clones siblings.
+# photon-app / Orbital UI compile stays local (see VERIFICATION.md).
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_BUILD_JOBS: 1
+  CARGO_TARGET_DIR: target-photon-uf-app
+  RUST_BACKTRACE: 1
+  # Leptos workspace deps enable the `nightly` feature.
+  RUSTFLAGS: "-D warnings"
+  UF_ROOT: unified-field
+  APP_WD: unified-field/L4-composers/photon-uf-app
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout photon-uf-app into unified-field layout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          path: ${{ env.APP_WD }}
+      - name: Checkout path-dep / patch siblings
+        run: |
+          set -euo pipefail
+          clone() {
+            local repo="$1" dest="$2"
+            git clone --depth 1 "https://github.com/deathbreakfast/${repo}.git" "${dest}"
+          }
+          clone valence "${UF_ROOT}/L0-upstream-cores/valence"
+          clone orbital "${UF_ROOT}/L0-upstream-cores/orbital"
+          clone chronon "${UF_ROOT}/L0-upstream-cores/chronon"
+          clone photon "${UF_ROOT}/L0-upstream-cores/photon"
+          clone boson "${UF_ROOT}/L0-upstream-cores/boson"
+          clone higgs "${UF_ROOT}/L1-host-stack-kits/higgs"
+          clone lepton "${UF_ROOT}/L1-host-stack-kits/lepton"
+          clone chronon-coordinator-macros "${UF_ROOT}/L1-host-stack-kits/chronon-coordinator-macros"
+          clone chronon-valence-identity "${UF_ROOT}/L1-host-stack-kits/chronon-valence-identity"
+          clone boson-valence-identity "${UF_ROOT}/L1-host-stack-kits/boson-valence-identity"
+          clone photon-leptos "${UF_ROOT}/L1-host-stack-kits/photon-leptos"
+          clone unified-field-product "${UF_ROOT}/L2-product-platform/unified-field-product"
+          clone uf-notifications "${UF_ROOT}/L2-product-platform/uf-notifications"
+          # Workspace member photon-app path-depends on lepton-shell.
+          clone lepton-uf-app "${UF_ROOT}/L2-product-platform/lepton-uf-app"
+          # Workspace deps: gauge (ssr optional) + counter-app uf-ssr / uf-app-registry.
+          clone gauge "${UF_ROOT}/L3-zone-products/gauge"
+          clone counter-app "${UF_ROOT}/L3-zone-products/counter-app"
+          # uf-ssr path-depends on neutrino/uf-host.
+          clone neutrino "${UF_ROOT}/L3-zone-products/neutrino"
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+          components: rustfmt
+      - name: cargo fmt --check
+        working-directory: ${{ env.APP_WD }}
+        run: >
+          cargo fmt -p photon-backend -p photon-app -p protected-photon-host
+          -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout photon-uf-app into unified-field layout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          path: ${{ env.APP_WD }}
+      - name: Checkout path-dep / patch siblings
+        run: |
+          set -euo pipefail
+          clone() {
+            local repo="$1" dest="$2"
+            git clone --depth 1 "https://github.com/deathbreakfast/${repo}.git" "${dest}"
+          }
+          clone valence "${UF_ROOT}/L0-upstream-cores/valence"
+          clone orbital "${UF_ROOT}/L0-upstream-cores/orbital"
+          clone chronon "${UF_ROOT}/L0-upstream-cores/chronon"
+          clone photon "${UF_ROOT}/L0-upstream-cores/photon"
+          clone boson "${UF_ROOT}/L0-upstream-cores/boson"
+          clone higgs "${UF_ROOT}/L1-host-stack-kits/higgs"
+          clone lepton "${UF_ROOT}/L1-host-stack-kits/lepton"
+          clone chronon-coordinator-macros "${UF_ROOT}/L1-host-stack-kits/chronon-coordinator-macros"
+          clone chronon-valence-identity "${UF_ROOT}/L1-host-stack-kits/chronon-valence-identity"
+          clone boson-valence-identity "${UF_ROOT}/L1-host-stack-kits/boson-valence-identity"
+          clone photon-leptos "${UF_ROOT}/L1-host-stack-kits/photon-leptos"
+          clone unified-field-product "${UF_ROOT}/L2-product-platform/unified-field-product"
+          clone uf-notifications "${UF_ROOT}/L2-product-platform/uf-notifications"
+          clone lepton-uf-app "${UF_ROOT}/L2-product-platform/lepton-uf-app"
+          clone gauge "${UF_ROOT}/L3-zone-products/gauge"
+          clone counter-app "${UF_ROOT}/L3-zone-products/counter-app"
+          clone neutrino "${UF_ROOT}/L3-zone-products/neutrino"
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+          components: clippy
+      # Preferred path from VERIFICATION.md (Pass 4 green with -D warnings).
+      - name: cargo clippy (photon-backend + teaching host)
+        working-directory: ${{ env.APP_WD }}
+        run: |
+          cargo clippy -p photon-backend --all-targets -- -D warnings
+          cargo clippy -p protected-photon-host --all-targets -- -D warnings
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout photon-uf-app into unified-field layout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          path: ${{ env.APP_WD }}
+      - name: Checkout path-dep / patch siblings
+        run: |
+          set -euo pipefail
+          clone() {
+            local repo="$1" dest="$2"
+            git clone --depth 1 "https://github.com/deathbreakfast/${repo}.git" "${dest}"
+          }
+          clone valence "${UF_ROOT}/L0-upstream-cores/valence"
+          clone orbital "${UF_ROOT}/L0-upstream-cores/orbital"
+          clone chronon "${UF_ROOT}/L0-upstream-cores/chronon"
+          clone photon "${UF_ROOT}/L0-upstream-cores/photon"
+          clone boson "${UF_ROOT}/L0-upstream-cores/boson"
+          clone higgs "${UF_ROOT}/L1-host-stack-kits/higgs"
+          clone lepton "${UF_ROOT}/L1-host-stack-kits/lepton"
+          clone chronon-coordinator-macros "${UF_ROOT}/L1-host-stack-kits/chronon-coordinator-macros"
+          clone chronon-valence-identity "${UF_ROOT}/L1-host-stack-kits/chronon-valence-identity"
+          clone boson-valence-identity "${UF_ROOT}/L1-host-stack-kits/boson-valence-identity"
+          clone photon-leptos "${UF_ROOT}/L1-host-stack-kits/photon-leptos"
+          clone unified-field-product "${UF_ROOT}/L2-product-platform/unified-field-product"
+          clone uf-notifications "${UF_ROOT}/L2-product-platform/uf-notifications"
+          clone lepton-uf-app "${UF_ROOT}/L2-product-platform/lepton-uf-app"
+          clone gauge "${UF_ROOT}/L3-zone-products/gauge"
+          clone counter-app "${UF_ROOT}/L3-zone-products/counter-app"
+          clone neutrino "${UF_ROOT}/L3-zone-products/neutrino"
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+      - name: cargo test (sibling-source UI contracts)
+        working-directory: ${{ env.APP_WD }}
+        run: cargo test -p photon-backend --test workspace_members --test product_surface
+      - name: cargo test (photon-backend contracts)
+        working-directory: ${{ env.APP_WD }}
+        run: cargo test -p photon-backend
+      - name: cargo check + run (protected-photon-host)
+        working-directory: ${{ env.APP_WD }}
+        run: |
+          cargo check -p protected-photon-host
+          cargo run -p protected-photon-host
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout photon-uf-app into unified-field layout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          path: ${{ env.APP_WD }}
+      - name: Checkout path-dep / patch siblings
+        run: |
+          set -euo pipefail
+          clone() {
+            local repo="$1" dest="$2"
+            git clone --depth 1 "https://github.com/deathbreakfast/${repo}.git" "${dest}"
+          }
+          clone valence "${UF_ROOT}/L0-upstream-cores/valence"
+          clone orbital "${UF_ROOT}/L0-upstream-cores/orbital"
+          clone chronon "${UF_ROOT}/L0-upstream-cores/chronon"
+          clone photon "${UF_ROOT}/L0-upstream-cores/photon"
+          clone boson "${UF_ROOT}/L0-upstream-cores/boson"
+          clone higgs "${UF_ROOT}/L1-host-stack-kits/higgs"
+          clone lepton "${UF_ROOT}/L1-host-stack-kits/lepton"
+          clone chronon-coordinator-macros "${UF_ROOT}/L1-host-stack-kits/chronon-coordinator-macros"
+          clone chronon-valence-identity "${UF_ROOT}/L1-host-stack-kits/chronon-valence-identity"
+          clone boson-valence-identity "${UF_ROOT}/L1-host-stack-kits/boson-valence-identity"
+          clone photon-leptos "${UF_ROOT}/L1-host-stack-kits/photon-leptos"
+          clone unified-field-product "${UF_ROOT}/L2-product-platform/unified-field-product"
+          clone uf-notifications "${UF_ROOT}/L2-product-platform/uf-notifications"
+          clone lepton-uf-app "${UF_ROOT}/L2-product-platform/lepton-uf-app"
+          clone gauge "${UF_ROOT}/L3-zone-products/gauge"
+          clone counter-app "${UF_ROOT}/L3-zone-products/counter-app"
+          clone neutrino "${UF_ROOT}/L3-zone-products/neutrino"
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+      - name: cargo doc (photon-backend, deny broken intra-doc links)
+        working-directory: ${{ env.APP_WD }}
+        env:
+          RUSTDOCFLAGS: "-D rustdoc::broken-intra-doc-links"
+        run: cargo doc -p photon-backend --no-deps
