@@ -3250,7 +3250,6 @@ dependencies = [
  "leptos_router",
  "orbital-base-components 0.1.2 (git+https://github.com/deathbreakfast/orbital?branch=main)",
  "orbital-primitives 0.1.2 (git+https://github.com/deathbreakfast/orbital?branch=main)",
- "turf",
  "uf-product",
 ]
 
@@ -8056,7 +8055,6 @@ dependencies = [
 name = "uf-notifications-core"
 version = "0.3.0"
 dependencies = [
- "anyhow",
  "async-trait",
  "chrono",
  "futures",

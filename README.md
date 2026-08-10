@@ -60,10 +60,6 @@ cargo test -p photon-backend
 | [`photon-backend`](photon-backend/) | Pure DTO/mapping helpers for topic/sub/event/dashboard |
 | [`protected-photon-host`](examples/protected-photon-host/) | Teaching host: deny/allow + dashboard KPIs |
 
-Top-level `uf-*` directories in this checkout (if present) are unused leftovers.
-Real `uf-integrations` / `uf-product-macros` / `uf-ssr` / `uf-app-registry` pins
-live in workspace `[workspace.dependencies]` (see `Cargo.toml`).
-
 ## Examples
 
 | Host | When to use | Command | Success | Look next |
@@ -108,8 +104,8 @@ RUSTDOCFLAGS="-D rustdoc::broken-intra-doc-links" cargo doc -p photon-backend --
 
 Teaching host success line:
 `protected_photon_host: OK — /photon deny/allow + dashboard KPIs`.
-`photon-app` compile/doc can fail when the path-patched Orbital / host graph is
-broken upstream — treat that as host-product debt, not a Photon mapping gap.
+`photon-app` compile/doc can fail when the sibling Orbital / host graph does
+not compile — treat that as host-product debt, not a Photon mapping gap.
 Full command block: [`docs/VERIFICATION.md`](docs/VERIFICATION.md). Contribute:
 [`CONTRIBUTING.md`](CONTRIBUTING.md).
 

@@ -1,6 +1,6 @@
 # PR / merge gate aligned with docs/VERIFICATION.md (photon-backend + teaching
-# host). Path deps assume a Unified Field monorepo layout; CI checks this repo
-# out under that path and shallow-clones siblings.
+# host). Path deps assume a Unified Field sibling checkout layout; CI places
+# this repo under that path and shallow-clones siblings.
 # photon-app / Orbital UI compile stays local (see VERIFICATION.md).
 name: CI
 
@@ -102,7 +102,7 @@ jobs:
         with:
           toolchain: nightly
           components: clippy
-      # Preferred path from VERIFICATION.md (Pass 4 green with -D warnings).
+      # Preferred path from VERIFICATION.md (clippy -D warnings).
       - name: cargo clippy (photon-backend + teaching host)
         working-directory: ${{ env.APP_WD }}
         run: |

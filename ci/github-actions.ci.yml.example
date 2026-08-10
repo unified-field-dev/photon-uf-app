@@ -1,6 +1,0 @@
-# Historical sketch. Live CI is `.github/workflows/ci.yml`.
-#
-# That workflow runs the Layer 1 gates from `docs/VERIFICATION.md`:
-# fmt, clippy `-D warnings` on `photon-backend` + teaching host, contract
-# tests, protected-photon-host check/run, and photon-backend rustdoc with
-# broken-intra-doc-link deny. It does not build `photon-app` SSR/UI.
