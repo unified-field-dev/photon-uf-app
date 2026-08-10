@@ -4,7 +4,7 @@ Leptos operations UI for Photon: topics, subscriptions, and event streams under 
 
 ```toml
 # Pin tag or rev — do not use branch = "main".
-photon-app = { git = "https://github.com/deathbreakfast/photon-uf-app", package = "photon-app", rev = "REPLACE_WITH_PIN", default-features = false }
+photon-app = { git = "https://github.com/unified-field-dev/photon-uf-app", package = "photon-app", rev = "REPLACE_WITH_PIN", default-features = false }
 ```
 
 ```rust,ignore

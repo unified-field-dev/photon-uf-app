@@ -31,8 +31,8 @@ matches the Orbital app id/path (`photon` / `/photon`).
 
 ```toml
 [dependencies]
-photon-app = { git = "https://github.com/deathbreakfast/photon-uf-app", package = "photon-app", rev = "REPLACE_WITH_PIN", default-features = false }
-photon-backend = { git = "https://github.com/deathbreakfast/photon-uf-app", package = "photon-backend", rev = "REPLACE_WITH_PIN" }
+photon-app = { git = "https://github.com/unified-field-dev/photon-uf-app", package = "photon-app", rev = "REPLACE_WITH_PIN", default-features = false }
+photon-backend = { git = "https://github.com/unified-field-dev/photon-uf-app", package = "photon-backend", rev = "REPLACE_WITH_PIN" }
 uf-product = { /* your pin */, default-features = false }
 uf-integrations = { /* your pin */, default-features = false }
 
@@ -76,7 +76,7 @@ ops `#[server]` fns carry `PhotonAdmin` (manifest
 host bootstrap before mounting the routes.
 
 For shell chrome (layout, fonts, Axum + Leptos boot), copy
-[`shell-chrome-host`](https://github.com/deathbreakfast/unified-field-product/tree/main/examples/shell-chrome-host)
+[`shell-chrome-host`](https://github.com/unified-field-dev/unified-field-product/tree/main/examples/shell-chrome-host)
 from unified-field-product, then mount `PhotonRoutes`.
 
 ## Run (documented gate)

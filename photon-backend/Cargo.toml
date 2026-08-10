@@ -2,7 +2,11 @@
 name = "photon-backend"
 version = "0.1.0"
 edition = "2021"
-license = "MIT"
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
 description = "Pure topic/subscription/event contracts backing photon-app server functions"
 readme = "README.md"
 
