@@ -2,9 +2,11 @@ use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
 use leptos_router::NavigateOptions;
 use orbital::components::{Card, ContentContainer, SpacingSize, Subtitle2, Title3};
-use orbital::primitives::{Button, ButtonAppearance, Flex, MessageBar, MessageBarIntent};
+use orbital::primitives::{Button, ButtonAppearance, Flex, MessageBar, MessageBarIntent, Space};
 
-use crate::components::{ActiveSubscriptionsTable, EventsTable, PhotonStatsGrid};
+use crate::components::{
+    ActiveSubscriptionsTable, EventsTable, EventsTableColumns, PhotonStatsGrid,
+};
 use crate::server::{get_dashboard_stats, get_recent_events, get_subscriptions};
 
 /// Photon dashboard: aggregate stats, recent events, and active subscriptions at a glance.
@@ -13,21 +15,11 @@ pub fn PhotonDashboardPage() -> impl IntoView {
     let navigate = use_navigate();
     let nav_events = navigate.clone();
     let nav_subs = navigate.clone();
-    let stats_res = Resource::new(|| (), |()| async move { get_dashboard_stats().await });
-    let events_res = Resource::new(|| (), |()| async move { get_recent_events(10).await });
-    let subs_res = Resource::new(|| (), |()| async move { get_subscriptions().await });
-
-    let (style_sheet, class_names) = turf::inline_style_sheet_values! {
-        .SectionHeader {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-    };
+    let stats_res = Resource::new(|| (), |_| async move { get_dashboard_stats().await });
+    let events_res = Resource::new(|| (), |_| async move { get_recent_events(10).await });
+    let subs_res = Resource::new(|| (), |_| async move { get_subscriptions().await });
 
     view! {
-        <style>{style_sheet}</style>
         <ContentContainer data_testid="photon-dashboard">
             <Flex vertical=true gap=SpacingSize::Size240.flex_gap()>
                 <Title3>"Photon Dashboard"</Title3>
@@ -44,8 +36,8 @@ pub fn PhotonDashboardPage() -> impl IntoView {
                     }}
                 </Suspense>
 
-                <div>
-                    <div class=class_names.section_header>
+                <Flex vertical=true gap=SpacingSize::Size160.flex_gap()>
+                    <Space>
                         <Subtitle2>"Recent Events"</Subtitle2>
                         <Button
                             appearance=ButtonAppearance::Subtle
@@ -53,18 +45,20 @@ pub fn PhotonDashboardPage() -> impl IntoView {
                         >
                             "View All \u{2192}"
                         </Button>
-                    </div>
+                    </Space>
                     <Suspense fallback=move || view! { <Card>"Loading..."</Card> }>
                         {move || match events_res.get() {
                             Some(Ok(events)) => view! {
                                 <Card>
                                     <EventsTable
                                         events=events
-                                        show_event_id=false
-                                        show_key=true
-                                        show_topic=true
-                                        show_seq=true
-                                        show_created=true
+                                        columns=EventsTableColumns {
+                                            show_event_id: false,
+                                            show_key: true,
+                                            show_topic: true,
+                                            show_seq: true,
+                                            show_created: true,
+                                        }
                                     />
                                 </Card>
                             }.into_any(),
@@ -72,10 +66,10 @@ pub fn PhotonDashboardPage() -> impl IntoView {
                             None => view! { <Card>"Loading..."</Card> }.into_any(),
                         }}
                     </Suspense>
-                </div>
+                </Flex>
 
-                <div>
-                    <div class=class_names.section_header>
+                <Flex vertical=true gap=SpacingSize::Size160.flex_gap()>
+                    <Space>
                         <Subtitle2>"Active Subscriptions"</Subtitle2>
                         <Button
                             appearance=ButtonAppearance::Subtle
@@ -83,7 +77,7 @@ pub fn PhotonDashboardPage() -> impl IntoView {
                         >
                             "View All \u{2192}"
                         </Button>
-                    </div>
+                    </Space>
                     <Suspense fallback=move || view! { <Card>"Loading..."</Card> }>
                         {move || match subs_res.get() {
                             Some(Ok(subs)) => view! {
@@ -95,7 +89,7 @@ pub fn PhotonDashboardPage() -> impl IntoView {
                             None => view! { <Card>"Loading..."</Card> }.into_any(),
                         }}
                     </Suspense>
-                </div>
+                </Flex>
             </Flex>
         </ContentContainer>
     }

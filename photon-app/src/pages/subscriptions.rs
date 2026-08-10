@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
-use orbital::components::{Body1, Card, ContentContainer, EmptyState, Title3};
-use orbital::primitives::{MessageBar, MessageBarIntent};
+use orbital::components::{Body1, Card, ContentContainer, EmptyState, SpacingSize, Title3};
+use orbital::primitives::{Flex, FlexGap, MessageBar, MessageBarIntent};
 
 use crate::components::{SubscriptionCard, SubscriptionFilterToolbar};
 use crate::server::{get_subscriptions, SubscriptionSummary};
@@ -13,7 +13,7 @@ pub fn PhotonSubscriptionsIndexPage() -> impl IntoView {
     let search_query = RwSignal::new(String::new());
     let status_str = RwSignal::new(String::new());
 
-    let subs_res = Resource::new(|| (), |()| async move { get_subscriptions().await });
+    let subs_res = Resource::new(|| (), |_| async move { get_subscriptions().await });
 
     let filtered = Memo::new(move |_| {
         let subs: Vec<SubscriptionSummary> = match subs_res.get() {
@@ -41,63 +41,64 @@ pub fn PhotonSubscriptionsIndexPage() -> impl IntoView {
             .collect::<Vec<_>>()
     });
 
+    // Muted meta line; Orbital Body1 has no muted intent prop.
     let (style_sheet, class_names) = turf::inline_style_sheet_values! {
-        .Header { margin-bottom: 24px; }
-        .CardGrid { display: flex; flex-direction: column; gap: 16px; }
-        .Meta { color: var(--colorNeutralForeground3); margin-bottom: 4px; }
+        .Meta { color: var(--colorNeutralForeground3); }
     };
 
     view! {
         <style>{style_sheet}</style>
         <ContentContainer data_testid="photon-subscriptions">
-            <div class=class_names.header>
+            <Flex vertical=true gap=SpacingSize::Size240.flex_gap()>
                 <Title3>"Subscriptions"</Title3>
-            </div>
 
-            <SubscriptionFilterToolbar search_query=search_query status_str=status_str />
+                <SubscriptionFilterToolbar search_query=search_query status_str=status_str />
 
-            <Suspense fallback=move || view! { <Card>"Loading..."</Card> }>
-                {move || {
-                    match subs_res.get() {
-                    Some(Ok(_)) => {
-                        let f = filtered.get();
-                        let total = f.len();
-                        let all_count = subs_res.get().map_or(0, |r| r.as_ref().ok().map_or(0, Vec::len));
-                        view! {
-                            <Card>
-                                {if f.is_empty() {
-                                    let msg: &'static str = if search_query.get_untracked().trim().is_empty() {
-                                        "No subscriptions"
-                                    } else {
-                                        "No subscriptions match your filters"
-                                    };
-                                    view! {
-                                        <EmptyState message=msg />
-                                    }.into_any()
-                                } else {
-                                    view! {
-                                        <div class=class_names.card_grid>
-                                            <For
-                                                each=move || filtered.get()
-                                                key=|s| s.subscription_id.clone()
-                                                let:s
-                                            >
-                                                <SubscriptionCard sub=s />
-                                            </For>
-                                        </div>
-                                    }.into_any()
-                                }}
-                            </Card>
-                            <Body1 block=true class=class_names.meta style="margin-top: 16px;">
-                                "Showing " {total} " of " {all_count} " subscriptions"
-                            </Body1>
-                        }.into_any()
-                    }
-                    Some(Err(e)) => view! { <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar> }.into_any(),
-                    None => view! { <Card>"Loading..."</Card> }.into_any(),
-                    }
-                }}
-            </Suspense>
+                <Suspense fallback=move || view! { <Card>"Loading..."</Card> }>
+                    {move || {
+                        match subs_res.get() {
+                        Some(Ok(_)) => {
+                            let f = filtered.get();
+                            let total = f.len();
+                            let all_count = subs_res.get().map_or(0, |r| r.as_ref().ok().map_or(0, Vec::len));
+                            view! {
+                                <Flex vertical=true gap=SpacingSize::Size160.flex_gap()>
+                                    <Card>
+                                        {if f.is_empty() {
+                                            let msg: &'static str = if search_query.get_untracked().trim().is_empty() {
+                                                "No subscriptions"
+                                            } else {
+                                                "No subscriptions match your filters"
+                                            };
+                                            view! {
+                                                <EmptyState message=msg />
+                                            }.into_any()
+                                        } else {
+                                            view! {
+                                                <Flex vertical=true gap=FlexGap::Medium>
+                                                    <For
+                                                        each=move || filtered.get()
+                                                        key=|s| s.subscription_id.clone()
+                                                        let:s
+                                                    >
+                                                        <SubscriptionCard sub=s />
+                                                    </For>
+                                                </Flex>
+                                            }.into_any()
+                                        }}
+                                    </Card>
+                                    <Body1 block=true class=class_names.meta>
+                                        "Showing " {total} " of " {all_count} " subscriptions"
+                                    </Body1>
+                                </Flex>
+                            }.into_any()
+                        }
+                        Some(Err(e)) => view! { <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar> }.into_any(),
+                        None => view! { <Card>"Loading..."</Card> }.into_any(),
+                        }
+                    }}
+                </Suspense>
+            </Flex>
         </ContentContainer>
     }
 }

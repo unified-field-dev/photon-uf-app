@@ -92,13 +92,7 @@
 #![allow(missing_docs)]
 #![cfg_attr(
     feature = "ssr",
-    allow(
-        dead_code,
-        unused_imports,
-        unused_variables,
-        unknown_lints,
-        clippy::all,
-    )
+    allow(dead_code, unused_imports, unused_variables, unknown_lints)
 )]
 
 use leptos::prelude::*;

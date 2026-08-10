@@ -16,7 +16,7 @@ mod topic_subscriptions_table;
 pub use active_subscriptions_table::ActiveSubscriptionsTable;
 pub use event_filter_toolbar::EventFilterToolbar;
 pub use event_meta_card::EventMetaCard;
-pub use events_table::EventsTable;
+pub use events_table::{EventsTable, EventsTableColumns};
 pub use photon_stats_grid::PhotonStatsGrid;
 pub use subscription_card::SubscriptionCard;
 pub use subscription_filter_toolbar::SubscriptionFilterToolbar;

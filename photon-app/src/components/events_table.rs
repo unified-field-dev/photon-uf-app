@@ -1,40 +1,60 @@
 //! Reusable events table with configurable columns.
 //!
 //! Used across the events index, topic detail, subscription detail, and
-//! dashboard pages. Boolean props control which columns are rendered.
+//! dashboard pages. Column visibility is controlled via [`EventsTableColumns`].
 
 use leptos::prelude::*;
 
 use crate::server::EventSummary;
 use orbital::primitives::{Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow};
 
+/// Which columns [`EventsTable`] renders.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct EventsTableColumns {
+    /// Show the Event ID column (linked to detail page).
+    pub show_event_id: bool,
+    /// Show the Topic column.
+    pub show_topic: bool,
+    /// Show the Key column.
+    pub show_key: bool,
+    /// Show the Seq column.
+    pub show_seq: bool,
+    /// Show the Created column.
+    pub show_created: bool,
+}
+
+impl Default for EventsTableColumns {
+    fn default() -> Self {
+        Self {
+            show_event_id: true,
+            show_topic: true,
+            show_key: true,
+            show_seq: true,
+            show_created: true,
+        }
+    }
+}
+
 /// Reusable events table.
 ///
-/// Renders a `Table` of events with an optional Event ID link column. Toggle
-/// individual columns via boolean props (all default to `true`).
+/// Renders a `Table` of events with an optional Event ID link column.
 #[component]
-#[allow(clippy::fn_params_excessive_bools)]
 pub fn EventsTable(
     /// Event rows to display.
     events: Vec<EventSummary>,
-    /// Show the Event ID column (linked to detail page). Default `true`.
-    #[prop(default = true)]
-    show_event_id: bool,
-    /// Show the Topic column. Default `true`.
-    #[prop(default = true)]
-    show_topic: bool,
-    /// Show the Key column. Default `true`.
-    #[prop(default = true)]
-    show_key: bool,
-    /// Show the Seq column. Default `true`.
-    #[prop(default = true)]
-    show_seq: bool,
-    /// Show the Created column. Default `true`.
-    #[prop(default = true)]
-    show_created: bool,
+    /// Column visibility. Defaults to all columns shown.
+    #[prop(optional)]
+    columns: Option<EventsTableColumns>,
 ) -> impl IntoView {
+    let columns = columns.unwrap_or_default();
     let events = StoredValue::new(events);
+    let show_event_id = columns.show_event_id;
+    let show_topic = columns.show_topic;
+    let show_key = columns.show_key;
+    let show_seq = columns.show_seq;
+    let show_created = columns.show_created;
 
+    // Row hover + brand link color; Orbital Table has no row-hover / cell-link props yet.
     let (style_sheet, class_names) = turf::inline_style_sheet_values! {
         .Table { width: 100%; }
         .Row { cursor: pointer; }
