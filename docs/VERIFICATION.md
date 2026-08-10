@@ -3,10 +3,11 @@
 Re-run after code or doc changes. This workspace is the Photon operations app
 (`photon-app` Leptos UI + `photon-backend` pure server contracts). Layer 1 unit +
 integration tests cover topic/subscription/event/dashboard helpers backing the
-`#[server]` surface. No Leptos UI e2e, `*-e2e` crate, or AWS campaign is required
-for this workspace. Photon core IsolatedLab / storage contracts own transport
-persistence; this repo verifies the UF app mapping layer over Photon
-(`admin_snapshot`, `list_recent_events`, `list_events_by_topic`, `get_event`).
+`#[server]` surface, plus sibling-source UI surface contracts for `photon-app`.
+No Leptos UI e2e, `*-e2e` crate, or AWS campaign is required for this workspace.
+Photon core IsolatedLab / storage contracts own transport persistence; this repo
+verifies the UF app mapping layer over Photon (`admin_snapshot`,
+`list_recent_events`, `list_events_by_topic`, `get_event`).
 
 ## Environment
 
@@ -16,6 +17,12 @@ export CARGO_TARGET_DIR=target-photon-uf-app
 ```
 
 ## Layer 1 — Unit + integration (CI)
+
+Sibling-source UI contracts (no Orbital / `photon-app` compile):
+
+```bash
+cargo test -p photon-backend --test workspace_members --test product_surface
+```
 
 Backend contracts (preferred path; no UI graph):
 
@@ -27,7 +34,9 @@ cargo test -p photon-backend
 
 Full workspace (includes `photon-app` UI). May fail when the path-patched
 `uf-product` / `uf-integrations` UI graph is broken upstream — that is a
-pre-existing host-product UI compile issue, not a Photon backend contract gap:
+pre-existing host-product UI compile issue, not a Photon backend contract gap.
+Surface needles for routes, nav testids, `RequireAuthenticated`, and
+`PhotonAdmin` live in `product_surface`.
 
 ```bash
 cargo clippy --workspace --all-targets -- -D warnings
@@ -35,30 +44,6 @@ cargo test --workspace
 # Host-aligned SSR surface (when UI graph compiles):
 cargo test -p photon-app --features ssr
 ```
-
-### TEST_MAP
-
-| Behavior | Level | Happy | Sad | Notes |
-|----------|-------|-------|-----|-------|
-| `validate_topic_name` | unit+integ | non-empty / trimmed name | blank / whitespace → `"required"` | gate for topic detail |
-| `validate_subscription_id` | unit+integ | non-empty id | blank → `"required"` | gate for subscription detail |
-| `validate_event_id` | unit+integ | non-empty id | blank → `"required"` | gate for event detail |
-| `find_topic_by_name` (`get_topic`) | unit+integ | exact name → summary | unknown → `None` | list/detail contract |
-| `find_subscription_by_id` (`get_subscription`) | unit+integ | exact id → summary | unknown → `None` | list/detail contract |
-| `filter_subscriptions_by_topic` | unit+integ | topic-scoped subset | unknown topic → `[]` | topic detail page |
-| `sort_topics_by_name` (`get_topics`) | unit+integ | lexicographic order | — | stable list |
-| `dashboard_stats` / `count_since` | unit+integ | KPI shape / 24h window | all older → `0` | dashboard |
-| `event_summary_from_meta` / preview | unit+integ | `[status]` preview | — | recent/events list |
-| `event_summary_from_transport` / `event_detail_from_transport` | unit | `[stored]` preview / live detail | — | Photon list/get path |
-| `subscription_summary_from_handler` / `find_checkpoint_seq` | unit | registry_key id + checkpoint match | missing sub → `None` | admin_snapshot mapping |
-| `event_detail_transport_expired` | unit+integ | null payload + flag | — | transport gone |
-| `stub_checkpoint_lag` | unit | always `0` | — | lag UI stub (known gap) |
-| `clamp_event_list_limit` | unit+integ | caps at `MAX_EVENT_LIST_LIMIT` | oversized → 100 | PH-03 scope |
-| Higgs `#[server]` fns + PhotonAdmin session | — | — | — | deferred — needs host SSR (PH-01..04) |
-| Leptos UI / Playwright / `cargo leptos` e2e | e2e | — | — | **waived** — covering integ named below |
-| IsolatedLab topic/subscription e2e | e2e | — | — | **waived** — covered by photon core + Layer 1 integ |
-| AWS / soak | AWS | — | — | **waived** — no cloud resources |
-| Micro-benchmarks | bench | — | — | **waived** — no hot-path campaign |
 
 ## Layer 2 — E2E
 
@@ -78,6 +63,8 @@ Covering integ tests for the e2e waiver:
 - `dashboard_stats_aggregates_counts_happy_path` / `count_since_24h_window_happy_path` / `count_since_all_older_is_zero_sad`
 - `event_summary_list_row_preview_happy_path` / `event_detail_transport_expired_shape_happy_path`
 - `validate_event_id_accepts_id_happy_path` / `validate_event_id_rejects_blank_sad`
+- `photon_product_workspace_members_happy_path`
+- `photon_routes_mount_happy_path` / `layout_auth_gate_and_nav_happy_path` / `ops_reads_require_photon_admin_happy_path`
 
 ## Layer 3 — AWS campaigns + performance
 
@@ -108,4 +95,5 @@ rustdoc with deny flags is pin-dependent on Orbital / host graphs.
 - Sad-path assertions check message content or `None` / empty — (stronger than `is_err()` alone).
 - Happy-path tests are named `*_happy_path` so audits detect them.
 - `PhotonRoutes` data loaders call the `#[server]` fns; those fns are thin Higgs
-  wrappers over the helpers listed in the TEST_MAP.
+  wrappers over the helpers covered by `topic_subscription_contract` and
+  `event_dashboard_contract`.
