@@ -78,11 +78,8 @@ async fn subscriptions_from_photon(
 
     let mut list = Vec::with_capacity(snap.handlers.len());
     for h in snap.handlers {
-        let last_seq = find_checkpoint_seq(
-            &checkpoints,
-            h.subscription_name.as_deref(),
-            &h.topic_name,
-        );
+        let last_seq =
+            find_checkpoint_seq(&checkpoints, h.subscription_name.as_deref(), &h.topic_name);
         list.push(subscription_summary_from_handler(
             h.registry_key,
             h.subscription_name.or(h.consumer_group),
@@ -155,10 +152,7 @@ pub async fn get_topics() -> Result<Vec<TopicSummary>, ServerFnError> {
     let mut topics = Vec::new();
     for desc in registry.iter() {
         let topic_name = desc.topic_name.to_string();
-        let subscription_count = subs
-            .iter()
-            .filter(|s| s.topic_name == topic_name)
-            .count() as u32;
+        let subscription_count = subs.iter().filter(|s| s.topic_name == topic_name).count() as u32;
 
         let events = photon
             .list_events_by_topic(&topic_name, None, None, clamp_event_list_limit(1000))

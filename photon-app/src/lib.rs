@@ -10,23 +10,29 @@
 //! associated items, so this crate allows `missing_docs` at the crate root while keeping
 //! hand-written modules and items documented.
 //!
-//! ## Features
+//! ## Organized by task
 //!
-//! - **Dashboard** — [`PhotonDashboardPage`] shows aggregate topic/subscription/event
-//!   activity at a glance.
-//! - **Topics** — [`PhotonTopicsIndexPage`] / [`PhotonTopicDetailPage`] for browsing topic
-//!   schemas, keying, and traffic.
-//! - **Subscriptions** — [`PhotonSubscriptionsIndexPage`] / [`PhotonSubscriptionDetailPage`]
-//!   for subscription configuration and checkpoint/read-state visibility.
-//! - **Events** — [`PhotonEventsIndexPage`] / [`PhotonEventDetailPage`] for inspecting
-//!   individual events, including payload previews and actor context.
-//! - **Read API** — [`mod@server`] exposes the SSR-only server functions and DTOs
-//!   ([`DashboardStats`], [`TopicSummary`], [`SubscriptionSummary`], [`EventSummary`]) backing
-//!   the pages above.
+//! | Task | Start here |
+//! |------|------------|
+//! | **Mount `/photon` routes** | [`PhotonRoutes`] |
+//! | **Dashboard KPIs / recent events** | [`PhotonDashboardPage`], [`mod@server`] |
+//! | **Browse topics** | [`PhotonTopicsIndexPage`], [`PhotonTopicDetailPage`] |
+//! | **Browse subscriptions** | [`PhotonSubscriptionsIndexPage`], [`PhotonSubscriptionDetailPage`] |
+//! | **Browse events** | [`PhotonEventsIndexPage`], [`PhotonEventDetailPage`] |
+//! | **Pure DTO / mapping helpers** | `photon-backend` (not this crate) |
 //!
-//! ## Routes
+//! ## Owns / does not own
 //!
-//! Mounted under `/photon` by [`PhotonRoutes`]. Concern → page → key server fn(s):
+//! **Owns:** Leptos pages, Higgs `#[server]` wrappers, layout/nav shell, permission
+//! manifest, and `uf_app!` / [`PhotonRoutes`] registration.
+//!
+//! **Does not own:** Topic/subscription/event/dashboard mapping helpers
+//! (`photon-backend`); Photon transport, brokers, or IsolatedLab persistence (Photon
+//! core); full Leptos SSR host binaries (live outside this repository).
+//!
+//! ## Routes (Concern → page → server fn)
+//!
+//! Mounted under `/photon` by [`PhotonRoutes`]. All routes are read-only today.
 //!
 //! | Path | Page | Key server fn(s) |
 //! |---|---|---|
@@ -37,8 +43,6 @@
 //! | `/photon/subscriptions/:id` | [`PhotonSubscriptionDetailPage`] | `get_subscription`, `get_events` |
 //! | `/photon/events` | [`PhotonEventsIndexPage`] | `get_events` |
 //! | `/photon/events/:id` | [`PhotonEventDetailPage`] | `get_event` |
-//!
-//! All routes are read-only today; there are no create/edit flows in this UI.
 //!
 //! ## Getting started
 //!
@@ -59,6 +63,14 @@
 //!     }
 //! }
 //! ```
+//!
+//! ## Examples ladder
+//!
+//! | Level | Where |
+//! |-------|--------|
+//! | Highlight | Getting started above |
+//! | Mid | `photon-backend` unit + integ suites (`docs/VERIFICATION.md`) |
+//! | Detailed | `examples/protected-photon-host` (deny/allow + dashboard KPIs) |
 //!
 //! ## Where to look next
 //!

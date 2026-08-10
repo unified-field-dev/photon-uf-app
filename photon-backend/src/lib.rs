@@ -3,6 +3,45 @@
 //! Leptos `#[server]` entrypoints in `photon-app` resolve Higgs / Photon request
 //! context, then call these helpers so topic, subscription, event, and dashboard
 //! shapes stay unit- and integration-testable without a full host or UI graph.
+//!
+//! ## Organized by task
+//!
+//! | Task | Start here |
+//! |------|------------|
+//! | **Validate list/detail ids** | [`validate_topic_name`], [`validate_subscription_id`], [`validate_event_id`] |
+//! | **Topic list/detail mapping** | [`TopicSummary`], [`find_topic_by_name`], [`sort_topics_by_name`], [`topic_summary`] |
+//! | **Subscription list/detail mapping** | [`SubscriptionSummary`], [`find_subscription_by_id`], [`filter_subscriptions_by_topic`], [`subscription_summary_from_handler`] |
+//! | **Event list/detail + transport expiry** | [`EventSummary`], [`EventDetail`], [`event_summary_from_transport`], [`event_detail_from_transport`], [`event_detail_transport_expired`] |
+//! | **Dashboard KPIs** | [`DashboardStats`], [`dashboard_stats`], [`count_since`] |
+//! | **Event list limits** | [`clamp_event_list_limit`], [`MAX_EVENT_LIST_LIMIT`] |
+//! | **UI pages / `#[server]` wrappers** | `photon-app` (not this crate) |
+//!
+//! ## Owns / does not own
+//!
+//! **Owns:** DTO shapes and pure mapping/validation helpers used by the Photon
+//! ops UI server surface.
+//!
+//! **Does not own:** Leptos pages, Higgs `#[server]` wrappers, or route registration
+//! (`photon-app`); Photon transport, brokers, or IsolatedLab persistence (Photon core).
+//!
+//! ## Concern → API
+//!
+//! | Concern | API | Owner |
+//! |---------|-----|-------|
+//! | Id / name validation | [`validate_topic_name`], [`validate_subscription_id`], [`validate_event_id`] | this crate |
+//! | Topic summaries | [`TopicSummary`], [`find_topic_by_name`], [`sort_topics_by_name`] | this crate |
+//! | Subscription summaries | [`SubscriptionSummary`], [`find_subscription_by_id`], [`filter_subscriptions_by_topic`] | this crate |
+//! | Event summaries / detail | [`EventSummary`], [`EventDetail`], [`event_summary_from_transport`], [`event_detail_from_transport`] | this crate |
+//! | Dashboard aggregates | [`DashboardStats`], [`dashboard_stats`], [`count_since`] | this crate |
+//! | Pages, routes, server fns | `photon-app` (`PhotonRoutes`) | `photon-app` |
+//!
+//! ## Examples ladder
+//!
+//! | Level | Where |
+//! |-------|--------|
+//! | Highlight | Concern → API table above |
+//! | Mid | This crate's unit + integ suites (`docs/VERIFICATION.md`) |
+//! | Detailed | `examples/protected-photon-host` |
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used))]
 
@@ -235,14 +274,7 @@ pub fn event_summary_from_transport(
     seq: i64,
     created_at: impl Into<String>,
 ) -> EventSummary {
-    event_summary_from_meta(
-        event_id,
-        topic_name,
-        topic_key,
-        seq,
-        created_at,
-        "stored",
-    )
+    event_summary_from_meta(event_id, topic_name, topic_key, seq, created_at, "stored")
 }
 
 /// Builds [`EventDetail`] when Valence metadata exists but transport payload is gone.
@@ -541,10 +573,7 @@ mod tests {
             ("sub-a".into(), "orders".into(), None, Some(9)),
             ("sub-b".into(), "orders".into(), None, Some(3)),
         ];
-        assert_eq!(
-            find_checkpoint_seq(&cps, Some("sub-a"), "orders"),
-            Some(9)
-        );
+        assert_eq!(find_checkpoint_seq(&cps, Some("sub-a"), "orders"), Some(9));
         assert_eq!(find_checkpoint_seq(&cps, None, "orders"), None);
         assert_eq!(find_checkpoint_seq(&cps, Some("missing"), "orders"), None);
     }
@@ -557,8 +586,14 @@ mod tests {
 
     #[test]
     fn clamp_event_list_limit_caps_oversized_sad() {
-        assert_eq!(clamp_event_list_limit(10_000), MAX_EVENT_LIST_LIMIT as usize);
-        assert_eq!(clamp_event_list_limit(MAX_EVENT_LIST_LIMIT), MAX_EVENT_LIST_LIMIT as usize);
+        assert_eq!(
+            clamp_event_list_limit(10_000),
+            MAX_EVENT_LIST_LIMIT as usize
+        );
+        assert_eq!(
+            clamp_event_list_limit(MAX_EVENT_LIST_LIMIT),
+            MAX_EVENT_LIST_LIMIT as usize
+        );
     }
 
     #[test]

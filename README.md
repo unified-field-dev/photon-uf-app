@@ -2,14 +2,35 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Leptos admin UI for Photon topics, subscriptions, and events — mounted under `/photon`.
+[GitHub](https://github.com/deathbreakfast/photon-uf-app) · `cargo doc -p photon-backend --open` · distributed via git (not crates.io)
+
+## About
+
+Photon UF App is the Unified Field **operations UI** for Photon topics,
+subscriptions, and events under `/photon`. Photon itself has no built-in UI;
+hosts mount this crate so operators can inspect runtime activity.
+
+- **UI (`photon-app`)** — pages, Higgs `#[server]` wrappers, `PhotonRoutes`,
+  `uf_app!` registration
+- **Backend (`photon-backend`)** — pure topic/subscription/event/dashboard
+  helpers (no Leptos); preferred Layer 1 CI path
+
+Reads Photon's runtime directly (`admin_snapshot`, list/get event APIs). Hosts
+supply a Photon runtime and auth guard context. Enable `ssr` / hydrate to match
+your host. Crate-root rustdoc owns Concern → route → server fn tables; prefer
+`cargo doc -p photon-backend --open` for the mapping contract. UI rustdoc is
+pin-dependent on Orbital / host graphs.
+
+## Getting started
 
 ```toml
 [dependencies]
-photon-app = { git = "https://github.com/deathbreakfast/photon-uf-app", package = "photon-app", branch = "main" }
+# Pin tag or rev — do not use branch = "main".
+photon-app = { git = "https://github.com/deathbreakfast/photon-uf-app", package = "photon-app", rev = "REPLACE_WITH_PIN", default-features = false }
+photon-backend = { git = "https://github.com/deathbreakfast/photon-uf-app", package = "photon-backend", rev = "REPLACE_WITH_PIN" }
 ```
 
-```rust
+```rust,ignore
 use photon_app::PhotonRoutes;
 use leptos_router::components::Routes;
 
@@ -20,13 +41,27 @@ view! {
 }
 ```
 
-## About
+Wire Photon runtime + session extractors in host bootstrap, then mount the
+routes above. Full Leptos SSR hosts live outside this repository; use the local
+teaching host for the auth + dashboard contract.
 
-- Dashboard for topic/subscription/event activity
-- Topic and subscription detail (schemas, checkpoints)
-- Event browse with payload and actor context
+```bash
+export CARGO_BUILD_JOBS=1
+export CARGO_TARGET_DIR=target-photon-uf-app
+cargo test -p photon-backend
+```
 
-Reads Photon's runtime directly (`admin_snapshot`, list/get event APIs) — same pattern as Chronon/Boson ops UIs. Host must supply a Photon runtime and auth guard context. Enable `ssr` / hydrate features to match your host. See the `photon-app` crate rustdocs for the full Concern → route → server fn table.
+## Workspace
+
+| Crate | Role |
+|-------|------|
+| [`photon-app`](photon-app/) | Leptos ops UI + `PhotonRoutes` + app registration |
+| [`photon-backend`](photon-backend/) | Pure DTO/mapping helpers for topic/sub/event/dashboard |
+| [`protected-photon-host`](examples/protected-photon-host/) | Teaching host: deny/allow + dashboard KPIs |
+
+Top-level `uf-*` directories in this checkout (if present) are unused leftovers.
+Real `uf-integrations` / `uf-product-macros` / `uf-ssr` / `uf-app-registry` pins
+live in workspace `[workspace.dependencies]` (see `Cargo.toml`).
 
 ## Examples
 
@@ -36,24 +71,53 @@ Reads Photon's runtime directly (`admin_snapshot`, list/get event APIs) — same
 
 Full ladder: [`examples/README.md`](examples/README.md).
 
-## Workspace
+| Level | Where |
+|-------|--------|
+| Highlight | Mount snippet above; crate-root Getting started |
+| Mid | `photon-backend` unit + integ suites (see `docs/VERIFICATION.md`) |
+| Detailed | `protected-photon-host` (session gate + dashboard KPIs) |
 
-| Crate | Role |
-|-------|------|
-| `photon-app` | Photon admin UI |
-| `photon-backend` | Pure topic/subscription/event contracts (no Leptos) |
-| `uf-*` (top-level `uf-app-registry`, `uf-integrations`, `uf-product-macros`, `uf-ssr`) | Local top-level `uf-*` trees are unused leftovers. Real pins live in workspace `[workspace.dependencies]` (see `Cargo.toml`). |
+## Security
+
+Auth-gated `/photon` routes and private vulnerability reporting:
+[`SECURITY.md`](SECURITY.md). Report vulnerabilities privately — do not open a
+public issue for security-sensitive reports.
 
 ## Verify
 
-See [`docs/VERIFICATION.md`](docs/VERIFICATION.md). Preferred backend CI:
+Local gates (fmt/clippy/CI workflow not claimed here):
 
 ```bash
 export CARGO_BUILD_JOBS=1
+export CARGO_TARGET_DIR=target-photon-uf-app
 cargo clippy -p photon-backend --all-targets -- -D warnings
 cargo test -p photon-backend
+RUSTDOCFLAGS="-D rustdoc::broken-intra-doc-links" cargo doc -p photon-backend --no-deps
 ```
+
+Prefer `photon-backend` for contract CI. `photon-app` compile/doc can fail when
+the path-patched Orbital / host graph is broken upstream — treat that as
+host-product debt, not a Photon mapping gap. Full command block:
+[`docs/VERIFICATION.md`](docs/VERIFICATION.md). Contribute:
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+## FAQ
+
+**Is this a standalone Photon server?** No. `photon-app` mounts under a host
+`<Routes>` tree. Photon transport and persistence live in the Photon core crates.
+
+**Why is there a separate `photon-backend` crate?** So topic/subscription/event
+and dashboard helpers stay unit-testable without the Leptos/UI dependency graph.
+`photon-app` `#[server]` fns are thin wrappers over those helpers.
+
+**Do routes mutate Photon state?** No. The UI is read-only today (list/detail +
+dashboard). Create/edit flows are out of scope for this surface.
+
+**Where does Photon core fit?** Event pipeline, brokers, and IsolatedLab
+contracts live in [photon](https://github.com/unified-field-dev/photon). This
+repo maps runtime admin/list/get APIs into UF ops pages.
 
 ## License
 
-MIT. See [LICENSE](LICENSE), [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+MIT. See [LICENSE](LICENSE), [CONTRIBUTING.md](CONTRIBUTING.md),
+[SECURITY.md](SECURITY.md), and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
