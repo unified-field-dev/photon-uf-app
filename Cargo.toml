@@ -64,7 +64,7 @@ turf = "0.10"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std", "wasmbind", "serde"] }
 
 photon = { package = "uf-photon", path = "../../L0-upstream-cores/photon/photon", default-features = false }
-valence = { package = "uf-valence", version = "0.1.4", default-features = false, features = ["mem", "sqlite"] }
+valence = { package = "uf-valence", version = "0.1.5", default-features = false, features = ["mem", "sqlite"] }
 higgs = { path = "../../L1-host-stack-kits/higgs/higgs", default-features = false }
 higgs-host = { path = "../../L1-host-stack-kits/higgs/higgs-host", default-features = false }
 higgs-identity = { path = "../../L1-host-stack-kits/higgs/higgs-identity" }
@@ -107,12 +107,66 @@ uf-notifications-api = { path = "../../L2-product-platform/uf-notifications/uf-n
 
 # Kits may still git-pin older Valence; force one crates.io graph.
 [patch."https://github.com/unified-field-dev/valence"]
-uf-valence = { version = "0.1.4" }
-uf-valence-core = { version = "0.1.4" }
-uf-valence-codegen = { version = "0.1.4" }
-uf-valence-macros = { version = "0.1.4" }
-uf-valence-telemetry = { version = "0.1.4" }
-uf-valence-backend-mem = { version = "0.1.4" }
-uf-valence-backend-sqlite = { version = "0.1.4" }
-uf-valence-backend-sql = { version = "0.1.4" }
-uf-valence-schema-dsl = { version = "0.1.4" }
+uf-valence = { version = "0.1.5" }
+uf-valence-core = { version = "0.1.5" }
+uf-valence-codegen = { version = "0.1.5" }
+uf-valence-macros = { version = "0.1.5" }
+uf-valence-telemetry = { version = "0.1.5" }
+uf-valence-backend-mem = { version = "0.1.5" }
+uf-valence-backend-sqlite = { version = "0.1.5" }
+uf-valence-backend-sql = { version = "0.1.5" }
+uf-valence-schema-dsl = { version = "0.1.5" }
+
+# Unify git Chronon pulls (gauge ssr) onto monorepo path crates.
+[patch."https://github.com/unified-field-dev/chronon-coordinator"]
+chronon-coordinator = { path = "../../L1-host-stack-kits/chronon-coordinator" }
+
+[patch."https://github.com/unified-field-dev/chronon"]
+chronon-core = { path = "../../L0-upstream-cores/chronon/chronon-core" }
+chronon-executor = { path = "../../L0-upstream-cores/chronon/chronon-executor" }
+chronon-scheduler = { path = "../../L0-upstream-cores/chronon/chronon-scheduler" }
+chronon-telemetry = { path = "../../L0-upstream-cores/chronon/chronon-telemetry" }
+uf-chronon = { path = "../../L0-upstream-cores/chronon/chronon" }
+
+[patch."https://github.com/deathbreakfast/chronon"]
+chronon-core = { path = "../../L0-upstream-cores/chronon/chronon-core" }
+chronon-executor = { path = "../../L0-upstream-cores/chronon/chronon-executor" }
+chronon-scheduler = { path = "../../L0-upstream-cores/chronon/chronon-scheduler" }
+chronon-telemetry = { path = "../../L0-upstream-cores/chronon/chronon-telemetry" }
+uf-chronon = { path = "../../L0-upstream-cores/chronon/chronon" }
+
+[patch."https://github.com/deathbreakfast/orbital"]
+orbital-zone-a = { package = "orbital-ui", path = "../../L0-upstream-cores/orbital/orbital", default-features = false }
+orbital-macros = { path = "../../L0-upstream-cores/orbital/orbital-macros" }
+orbital-shell = { path = "../../L0-upstream-cores/orbital/orbital-shell", default-features = false }
+orbital-core-components = { path = "../../L0-upstream-cores/orbital/orbital-core-components" }
+orbital-base-components = { path = "../../L0-upstream-cores/orbital/orbital-base-components" }
+orbital-primitives = { path = "../../L0-upstream-cores/orbital/orbital-primitives", default-features = false }
+orbital-theme = { path = "../../L0-upstream-cores/orbital/orbital-theme", default-features = false }
+orbital-paging = { path = "../../L0-upstream-cores/orbital/orbital-paging", default-features = false }
+orbital-datatable = { path = "../../L0-upstream-cores/orbital/orbital-datatable", default-features = false }
+orbital-date-pickers = { path = "../../L0-upstream-cores/orbital/orbital-date-pickers", default-features = false }
+orbital-charts = { path = "../../L0-upstream-cores/orbital/orbital-charts", default-features = false }
+orbital-tree = { path = "../../L0-upstream-cores/orbital/orbital-tree", default-features = false }
+orbital-scheduler = { path = "../../L0-upstream-cores/orbital/orbital-scheduler", default-features = false }
+orbital-motion = { path = "../../L0-upstream-cores/orbital/orbital-motion", default-features = false }
+orbital-style = { path = "../../L0-upstream-cores/orbital/orbital-style", default-features = false }
+orbital-data = { path = "../../L0-upstream-cores/orbital/orbital-data" }
+
+[patch."https://github.com/unified-field-dev/orbital"]
+orbital-zone-a = { package = "orbital-ui", path = "../../L0-upstream-cores/orbital/orbital", default-features = false }
+orbital-macros = { path = "../../L0-upstream-cores/orbital/orbital-macros" }
+orbital-shell = { path = "../../L0-upstream-cores/orbital/orbital-shell", default-features = false }
+orbital-core-components = { path = "../../L0-upstream-cores/orbital/orbital-core-components" }
+orbital-base-components = { path = "../../L0-upstream-cores/orbital/orbital-base-components" }
+orbital-primitives = { path = "../../L0-upstream-cores/orbital/orbital-primitives", default-features = false }
+orbital-theme = { path = "../../L0-upstream-cores/orbital/orbital-theme", default-features = false }
+orbital-paging = { path = "../../L0-upstream-cores/orbital/orbital-paging", default-features = false }
+orbital-datatable = { path = "../../L0-upstream-cores/orbital/orbital-datatable", default-features = false }
+orbital-date-pickers = { path = "../../L0-upstream-cores/orbital/orbital-date-pickers", default-features = false }
+orbital-charts = { path = "../../L0-upstream-cores/orbital/orbital-charts", default-features = false }
+orbital-tree = { path = "../../L0-upstream-cores/orbital/orbital-tree", default-features = false }
+orbital-scheduler = { path = "../../L0-upstream-cores/orbital/orbital-scheduler", default-features = false }
+orbital-motion = { path = "../../L0-upstream-cores/orbital/orbital-motion", default-features = false }
+orbital-style = { path = "../../L0-upstream-cores/orbital/orbital-style", default-features = false }
+orbital-data = { path = "../../L0-upstream-cores/orbital/orbital-data" }

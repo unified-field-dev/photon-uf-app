@@ -1,49 +1,128 @@
-//! Pure backend contracts for the Photon UF app server surface.
+//! Pure backend contracts for the Photon ops UI server surface.
 //!
-//! Leptos `#[server]` entrypoints in `photon-app` resolve Higgs / Photon request
-//! context, then call these helpers so topic, subscription, event, and dashboard
-//! shapes stay unit- and integration-testable without a full host or UI graph.
+//! DTO shapes and pure mapping/validation helpers that `photon-app` `#[server]` functions
+//! call after resolving Higgs and Photon request context. Keeps topic, subscription, event,
+//! and dashboard contracts unit-testable without a Leptos host or UI graph.
 //!
-//! ## Organized by task
+//! ## Features
 //!
-//! | Task | Start here |
-//! |------|------------|
-//! | **Validate list/detail ids** | [`PhotonIdError`], [`validate_topic_name`], [`validate_subscription_id`], [`validate_event_id`], [`MAX_PHOTON_ID_CHARS`] |
-//! | **Topic list/detail mapping** | [`TopicSummary`], [`find_topic_by_name`], [`sort_topics_by_name`], [`topic_summary`] |
-//! | **Subscription list/detail mapping** | [`SubscriptionSummary`], [`find_subscription_by_id`], [`filter_subscriptions_by_topic`], [`subscription_summary_from_handler`] |
-//! | **Event list/detail + transport expiry** | [`EventSummary`], [`EventDetail`], [`event_summary_from_transport`], [`event_detail_from_transport`], [`event_detail_transport_expired`] |
-//! | **Dashboard KPIs** | [`DashboardStats`], [`dashboard_stats`], [`count_since`] |
-//! | **Event list limits** | [`clamp_event_list_limit`], [`MAX_EVENT_LIST_LIMIT`] |
-//! | **Ops path encoding** | [`encode_ops_path_segment`], [`photon_topic_path`], [`photon_subscription_path`], [`photon_event_path`] |
-//! | **UI pages / `#[server]` wrappers** | `photon-app` (not this crate) |
+//! - **Id validation** — Reject blank, oversized, or path-unsafe topic names, subscription
+//!   ids, and event ids before registry or store lookups.
+//!   [Get started](#validate-ids)
+//! - **Topic/subscription/event mapping** — Pure helpers that build UI DTOs from registry
+//!   rows, admin snapshot handlers, and transport events.
+//!   [Get started](#map-topic-subscription-event)
+//! - **Dashboard aggregates** — KPI counters and 24-hour event windows via [`dashboard_stats`]
+//!   and [`count_since`]. [Get started](#dashboard-kpis)
+//! - **Ops path encoding** — Percent-encode path segments for `/photon` hrefs via
+//!   [`encode_ops_path_segment`], [`photon_topic_path`], [`photon_subscription_path`], and
+//!   [`photon_event_path`].
+//! - **Event list limits** — Cap `get_events` / `get_recent_events` list size with
+//!   [`clamp_event_list_limit`] and [`MAX_EVENT_LIST_LIMIT`].
 //!
-//! ## Owns / does not own
+//! ## Validate ids
 //!
-//! **Owns:** DTO shapes and pure mapping/validation helpers used by the Photon
-//! ops UI server surface.
+//! Ops UI detail lookups reject ids that would break routing or leak path segments into
+//! Photon IO. [`validate_topic_name`], [`validate_subscription_id`], and [`validate_event_id`]
+//! run before `photon-app` server functions call registry or store APIs — call them in
+//! custom wrappers when you add new read paths that accept path or query parameters.
 //!
-//! **Does not own:** Leptos pages, Higgs `#[server]` wrappers, or route registration
-//! (`photon-app`); Photon transport, brokers, or `IsolatedLab` persistence (Photon core).
+//! **Prerequisites:** None beyond importing this crate; validators are synchronous and infallible
+//! except for returning [`PhotonIdError`].
 //!
-//! ## Concern → API
+//! ```rust,ignore
+//! use photon_backend::{
+//!     validate_topic_name, validate_subscription_id, validate_event_id, PhotonIdError,
+//! };
 //!
-//! | Concern | API | Owner |
-//! |---------|-----|-------|
-//! | Id / name validation | [`PhotonIdError`], [`validate_topic_name`], [`validate_subscription_id`], [`validate_event_id`], [`MAX_PHOTON_ID_CHARS`] | this crate |
-//! | Ops path encoding | [`encode_ops_path_segment`], [`photon_topic_path`], [`photon_subscription_path`], [`photon_event_path`] | this crate |
-//! | Topic summaries | [`TopicSummary`], [`find_topic_by_name`], [`sort_topics_by_name`] | this crate |
-//! | Subscription summaries | [`SubscriptionSummary`], [`find_subscription_by_id`], [`filter_subscriptions_by_topic`] | this crate |
-//! | Event summaries / detail | [`EventSummary`], [`EventDetail`], [`event_summary_from_transport`], [`event_detail_from_transport`] | this crate |
-//! | Dashboard aggregates | [`DashboardStats`], [`dashboard_stats`], [`count_since`] | this crate |
-//! | Pages, routes, server fns | `photon-app` (`PhotonRoutes`) | `photon-app` |
+//! validate_topic_name("orders").expect("valid topic");
+//! assert_eq!(
+//!     validate_topic_name("").unwrap_err(),
+//!     PhotonIdError::EmptyTopicName
+//! );
+//! validate_subscription_id("reg.key").expect("valid subscription");
+//! validate_event_id("ev-1").expect("valid event");
+//! ```
+//!
+//! On success validators return `Ok(())` and the trimmed id is safe for lookup. Blank,
+//! oversized, control-character, slash, backslash, or `.` / `..` names map to typed
+//! [`PhotonIdError`] variants with operator-facing messages.
+//!
+//! ## Map topic subscription event
+//!
+//! Mapping helpers turn Photon registry rows and transport events into serde-friendly
+//! DTOs the UI can render without touching Photon internals. [`topic_summary`] and
+//! [`find_topic_by_name`] back topic list/detail pages; [`subscription_summary_from_handler`]
+//! and [`filter_subscriptions_by_topic`] shape subscription tables; [`event_summary_from_transport`]
+//! builds list-row previews with `[stored]` / delivery-status chips.
+//!
+//! **Prerequisites:** Caller already loaded registry topics, admin snapshot handlers, or
+//! transport events from Photon — these functions do not perform IO.
+//!
+//! ```rust,ignore
+//! use photon_backend::{
+//!     topic_summary, subscription_summary_from_handler, event_summary_from_transport,
+//!     find_topic_by_name, TopicSummary,
+//! };
+//!
+//! let topic = topic_summary("orders", None, "{}", 5, 2);
+//! assert_eq!(topic.topic_name, "orders");
+//!
+//! let sub = subscription_summary_from_handler(
+//!     "reg.key",
+//!     Some("orders.sub".into()),
+//!     "orders",
+//!     "durable",
+//!     Some(42),
+//! );
+//! assert_eq!(sub.subscription_id, "reg.key");
+//!
+//! let row = event_summary_from_transport("e1", "orders", None, 1, "2026-01-01T00:00:00Z");
+//! assert_eq!(row.payload_preview, "[stored]");
+//!
+//! let topics = vec![topic];
+//! assert_eq!(find_topic_by_name(&topics, "orders").map(|t| t.topic_name.as_str()), Some("orders"));
+//! ```
+//!
+//! On success helpers return populated [`TopicSummary`], [`SubscriptionSummary`], or
+//! [`EventSummary`] rows ready for JSON serialization. Lookup helpers return `None` when
+//! the id or name is absent from the caller-provided slice.
+//!
+//! ## Dashboard KPIs
+//!
+//! Dashboard KPI aggregates provide registry size and recent event volume counters
+//! without UI-specific formatting. [`dashboard_stats`] packages topic, subscription,
+//! and 24-hour event counts into [`DashboardStats`]; [`count_since`] filters timestamp
+//! slices for per-topic 24h windows after the caller loads event timestamps from Photon.
+//!
+//! **Prerequisites:** Caller supplies counts from registry and event store queries — these
+//! helpers do not call Photon.
+//!
+//! ```rust,ignore
+//! use photon_backend::{dashboard_stats, count_since, DashboardStats};
+//! use chrono::{DateTime, Utc};
+//!
+//! let stats: DashboardStats = dashboard_stats(3, 5, 12);
+//! assert_eq!(stats.topic_count, 3);
+//! assert_eq!(stats.subscription_count, 5);
+//! assert_eq!(stats.event_count_24h, 12);
+//!
+//! let since = DateTime::parse_from_rfc3339("2026-01-01T00:00:00Z")
+//!     .unwrap()
+//!     .with_timezone(&Utc);
+//! assert_eq!(count_since(&[since], since), 1);
+//! ```
+//!
+//! On success `stats` carries the three KPI fields consumed by `photon-app` dashboard
+//! server functions and `count_since` returns how many timestamps fall on or after the cutoff.
 //!
 //! ## Examples ladder
 //!
 //! | Level | Where |
 //! |-------|--------|
-//! | Highlight | Concern → API table above |
+//! | Highlight | [Validate ids](#validate-ids) |
 //! | Mid | This crate's unit + integ suites (`docs/VERIFICATION.md`) |
-//! | Detailed | `examples/protected-photon-host` (auth + dashboard KPIs; copy README) |
+//! | Detailed | `examples/protected-photon-host` (auth + dashboard KPIs) |
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used))]
 

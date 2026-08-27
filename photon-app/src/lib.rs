@@ -1,46 +1,159 @@
 #![recursion_limit = "256"]
-//! Photon operations app: routes and UI composition for inspecting Photon topics,
-//! subscriptions, and event streams under `/photon`.
+//! Photon operations app — inspect Photon topics, subscriptions, and event streams.
 //!
-//! Photon itself is an event-pipeline crate with no built-in UI; this crate is the
-//! `#[uf_product_macros::uf_app]`-registered operations surface a host mounts to give
-//! operators visibility into what Photon is doing at runtime.
+//! Leptos UI mounted under `/photon` so operators can see what Photon is doing at
+//! runtime without building custom pages. Registers alongside other product apps via
+//! `uf_app!` and requires an authenticated session with `PhotonAdmin` before server
+//! functions load registry or event data.
 //!
-//! Orbital inventory macros (`uf_app!`, `orbital_routes_extract`) emit undocumented
-//! associated items, so this crate allows `missing_docs` at the crate root while keeping
-//! hand-written modules and items documented.
+//! ## Features
 //!
-//! ## Organized by task
+//! - **Photon admin routes** — Nested `/photon` route tree behind auth for dashboard,
+//!   topics, subscriptions, and events. Mount once when the host router starts.
+//!   [Get started](#mount-photon-routes)
+//! - **Dashboard KPIs** — [`PhotonDashboardPage`] with topic, subscription, and 24-hour
+//!   event counters via [`get_dashboard_stats`] plus a recent-events preview table from
+//!   [`get_recent_events`]. [Get started](#dashboard-kpis)
+//! - **Topics browser** — Index and detail pages for registry topics via [`get_topics`] and
+//!   [`get_topic`]. [Get started](#browse-topics)
+//! - **Subscriptions browser** — Index and detail pages for delivery handlers via
+//!   [`get_subscriptions`] and [`get_subscription`].
+//!   [Get started](#browse-subscriptions)
+//! - **Events browser** — Index and detail pages for stored transport events via
+//!   [`get_events`] and [`get_event`]. [Get started](#browse-events)
+//! - **Server function wrappers** — [`mod@server`] Higgs `#[server]` fns and DTO re-exports
+//!   backed by [`photon_backend`] pure mapping helpers.
 //!
-//! | Task | Start here |
-//! |------|------------|
-//! | **Mount `/photon` routes** | [`PhotonRoutes`] |
-//! | **Dashboard KPIs / recent events** | [`PhotonDashboardPage`], [`get_dashboard_stats`], [`get_recent_events`] |
-//! | **Browse topics** | [`PhotonTopicsIndexPage`], [`PhotonTopicDetailPage`], [`get_topics`], [`get_topic`] |
-//! | **Browse subscriptions** | [`PhotonSubscriptionsIndexPage`], [`PhotonSubscriptionDetailPage`], [`get_subscriptions`] |
-//! | **Browse events** | [`PhotonEventsIndexPage`], [`PhotonEventDetailPage`], [`get_events`], [`get_event`] |
-//! | **Pure DTO / mapping helpers** | `photon-backend` (not this crate) |
+//! ## Mount Photon routes
 //!
-//! ## Owns / does not own
+//! [`PhotonRoutes`] nests the full `/photon` subtree inside a host Leptos `<Routes>` tree.
+//! Operators get read-only visibility into Photon registry topics, delivery subscriptions,
+//! and stored events. Mount during host router setup at startup, alongside other `uf_app!`
+//! product routes — the macro registers launcher metadata and the `/photon` inventory entry.
 //!
-//! **Owns:** Leptos pages, Higgs `#[server]` wrappers, layout/nav shell, permission
-//! manifest, and `uf_app!` / [`PhotonRoutes`] registration.
+//! **Prerequisites:** `ssr` on this crate; authenticated session; `PhotonAdmin` permission
+//! ([`PHOTON_ADMIN_PERMISSION`]); `Arc<photon::Photon>` in Leptos request context for IO.
 //!
-//! **Does not own:** Topic/subscription/event/dashboard mapping helpers
-//! (`photon-backend`); Photon transport, brokers, or `IsolatedLab` persistence (Photon
-//! core); full Leptos SSR host binaries (live outside this repository).
+//! ```rust,ignore
+//! use leptos::prelude::*;
+//! use leptos_router::components::Routes;
+//! use photon_app::PhotonRoutes;
 //!
-//! ## Concern → API
+//! view! {
+//!     <Routes fallback=|| "not found">
+//!         <PhotonRoutes />
+//!     </Routes>
+//! }
+//! ```
 //!
-//! | Concern | API | Owner |
-//! |---------|-----|-------|
-//! | Mount `/photon` | [`PhotonRoutes`], [`PhotonLayout`] | this crate |
-//! | Ops pages | [`PhotonDashboardPage`], [`PhotonTopicsIndexPage`], [`PhotonTopicDetailPage`], [`PhotonSubscriptionsIndexPage`], [`PhotonSubscriptionDetailPage`], [`PhotonEventsIndexPage`], [`PhotonEventDetailPage`] | this crate |
-//! | Server fns / DTOs | [`get_dashboard_stats`], [`get_topics`], [`get_event`], [`DashboardStats`], [`EventDetail`], [`PHOTON_ADMIN_PERMISSION`] | this crate ([`mod@server`]) |
-//! | Id validation / pure mapping | `photon_backend::PhotonIdError`, `photon_backend::validate_*` | `photon-backend` |
-//! | Permission manifest | [`permissions::PhotonPermission`] | this crate |
+//! On success `/photon` resolves to the dashboard, `/photon/topics` lists registry topics,
+//! and nested detail routes load topic, subscription, and event pages. Unauthenticated
+//! sessions are rejected by server functions — see root `SECURITY.md`.
 //!
-//! ## Routes (Concern → page → server fn)
+//! ## Dashboard KPIs
+//!
+//! The dashboard answers how large the Photon footprint is right now: topic count,
+//! subscription count, and 24-hour event volume. [`PhotonDashboardPage`] calls
+//! [`get_dashboard_stats`] on each SSR render and [`get_recent_events`] for the preview
+//! table — use this landing page after mounting routes when operators need a quick health
+//! snapshot.
+//!
+//! **Prerequisites:** [`PhotonRoutes`] mounted; `ssr` feature; `PhotonAdmin` permission;
+//! Photon request context wired.
+//!
+//! ```rust,ignore
+//! use photon_app::{get_dashboard_stats, get_recent_events, DashboardStats};
+//!
+//! let stats: DashboardStats = get_dashboard_stats().await?;
+//! assert_eq!(stats.topic_count, 3);
+//! assert_eq!(stats.event_count_24h, 12);
+//!
+//! let recent = get_recent_events(20).await?;
+//! assert!(recent.len() <= 20);
+//! ```
+//!
+//! On success `stats` carries `topic_count`, `subscription_count`, and `event_count_24h`;
+//! `recent` holds preview rows for the dashboard table. Blank or unsafe path ids are
+//! rejected by `photon_backend::validate_*` before Photon IO.
+//!
+//! ## Browse topics
+//!
+//! Topic pages list registry schemas and per-topic subscription counts. [`PhotonTopicsIndexPage`]
+//! loads [`get_topics`] for the index; [`PhotonTopicDetailPage`] calls [`get_topic`] and
+//! filtered subscriptions and events for one topic name. Open these routes when operators
+//! need schema JSON or a single-topic drill-down.
+//!
+//! **Prerequisites:** Routes mounted; topic names must pass `photon_backend::validate_topic_name`.
+//!
+//! ```rust,ignore
+//! use photon_app::{get_topics, get_topic, TopicSummary};
+//!
+//! let topics: Vec<TopicSummary> = get_topics().await?;
+//! assert_eq!(topics.first().map(|t| t.topic_name.as_str()), Some("orders"));
+//!
+//! let detail = get_topic("orders".into()).await?;
+//! assert_eq!(detail.topic_name, "orders");
+//! ```
+//!
+//! On success the index returns sorted [`TopicSummary`] rows and detail resolves one topic
+//! or maps a missing name to a server error. Oversized or path-unsafe names fail validation
+//! before registry lookup.
+//!
+//! ## Browse subscriptions
+//!
+//! Subscription pages show delivery handlers, checkpoint lag, and topic attachment.
+//! [`PhotonSubscriptionsIndexPage`] loads [`get_subscriptions`]; [`PhotonSubscriptionDetailPage`]
+//! calls [`get_subscription`] plus filtered events for one handler id. Use these routes
+//! when operators trace which consumers are attached to a topic or inspect lag.
+//!
+//! **Prerequisites:** Routes mounted; subscription ids must pass
+//! `photon_backend::validate_subscription_id`.
+//!
+//! ```rust,ignore
+//! use photon_app::{get_subscriptions, get_subscription};
+//!
+//! let subs = get_subscriptions().await?;
+//! assert_eq!(subs.first().map(|s| s.subscription_id.as_str()), Some("reg.key"));
+//!
+//! let detail = get_subscription("reg.key".into()).await?;
+//! assert_eq!(detail.subscription_id, "reg.key");
+//! ```
+//!
+//! On success the index lists [`SubscriptionSummary`] rows from the admin snapshot and detail
+//! resolves one handler or errors when the id is unknown. Blank or slash-containing ids are
+//! rejected before lookup.
+//!
+//! ## Browse events
+//!
+//! Event pages list stored transport rows and full payload JSON on detail. [`PhotonEventsIndexPage`]
+//! loads [`get_events`] with a capped limit; [`PhotonEventDetailPage`] calls [`get_event`] for
+//! one id. Open these routes when operators audit delivery status or inspect payload bodies.
+//!
+//! **Prerequisites:** Routes mounted; event ids must pass `photon_backend::validate_event_id`;
+//! list limits are capped by `photon_backend::clamp_event_list_limit`.
+//!
+//! ```rust,ignore
+//! use photon_app::{get_events, get_event, EventDetail};
+//!
+//! let rows = get_events(50).await?;
+//! assert!(rows.len() <= 50);
+//!
+//! let detail: EventDetail = get_event("ev-1".into()).await?;
+//! assert_eq!(detail.event_id, "ev-1");
+//! ```
+//!
+//! On success the index returns [`EventSummary`] preview rows and detail returns full
+//! [`EventDetail`] including payload JSON when transport retention allows. Expired transport
+//! payloads surface `transport_expired` on detail without failing the page shell.
+//!
+//! ## Feature flags
+//!
+//! | Flag | Effect |
+//! |------|--------|
+//! | `ssr` | Server-side Leptos split; required for `#[server]` fns and Photon IO. |
+//! | `hydrate` | Client-side hydration for routed pages and Orbital shell components. |
+//!
+//! ## Routes
 //!
 //! Mounted under `/photon` by [`PhotonRoutes`]. All routes are read-only today.
 //!
@@ -54,40 +167,20 @@
 //! | `/photon/events` | [`PhotonEventsIndexPage`] | [`get_events`] |
 //! | `/photon/events/:id` | [`PhotonEventDetailPage`] | [`get_event`] |
 //!
-//! ## Getting started
-//!
-//! Mount [`PhotonRoutes`] inside your host's `<Routes>`; it registers the `/photon` subtree
-//! (auth-gated) and, via `uf_app!`, its launcher metadata:
-//!
-//! ```rust,ignore
-//! use leptos::prelude::*;
-//! use leptos_router::components::Routes;
-//! use photon_app::PhotonRoutes;
-//!
-//! #[component]
-//! fn App() -> impl IntoView {
-//!     view! {
-//!         <Routes fallback=|| "not found">
-//!             <PhotonRoutes />
-//!         </Routes>
-//!     }
-//! }
-//! ```
-//!
 //! ## Examples ladder
 //!
 //! | Level | Where |
 //! |-------|--------|
-//! | Highlight | Getting started above |
+//! | Highlight | [Mount Photon routes](#mount-photon-routes) |
 //! | Mid | `photon-backend` unit + integ suites (`docs/VERIFICATION.md`) |
-//! | Detailed | `examples/protected-photon-host` (deny/allow + dashboard KPIs; inventory `photon` / `/photon`; copy README) |
+//! | Detailed | `examples/protected-photon-host` (auth + dashboard KPIs; inventory `photon` / `/photon`) |
 //!
 //! ## Where to look next
 //!
-//! - [`PhotonRoutes`] — the route entrypoint mounted by hosts.
-//! - [`PhotonLayout`] — the shared app bar / nav shell wrapping every route.
+//! - [`PhotonLayout`] — shared app bar / nav shell wrapping every route.
 //! - [`mod@server`] — server functions and DTOs backing the UI.
-//! - `photon_backend::PhotonIdError` — typed blank-id rejection before Photon IO.
+//! - [`permissions::PhotonPermission`] — permission manifest for `PhotonAdmin`.
+//! - `photon_backend` — id validation and pure mapping helpers used by these server fns.
 
 #![allow(missing_docs)]
 #![cfg_attr(
