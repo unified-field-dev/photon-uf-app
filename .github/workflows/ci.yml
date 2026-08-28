@@ -52,11 +52,8 @@ jobs:
           clone uf-notifications "${UF_ROOT}/L2-product-platform/uf-notifications"
           # Workspace member photon-app path-depends on lepton-shell.
           clone lepton-uf-app "${UF_ROOT}/L2-product-platform/lepton-uf-app"
-          # Workspace deps: gauge (ssr optional) + counter-app uf-ssr / uf-app-registry.
-          clone gauge "${UF_ROOT}/L3-zone-products/gauge"
-          clone counter-app "${UF_ROOT}/L3-zone-products/counter-app"
-          # uf-ssr path-depends on neutrino/uf-host.
-          clone neutrino "${UF_ROOT}/L3-zone-products/neutrino"
+          # Workspace deps: gauge (ssr optional) + Higgs (path deps).
+          clone gauge "${UF_ROOT}/L2-product-platform/gauge"
       - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
         with:
           toolchain: nightly
@@ -95,9 +92,7 @@ jobs:
           clone unified-field-product "${UF_ROOT}/L2-product-platform/unified-field-product"
           clone uf-notifications "${UF_ROOT}/L2-product-platform/uf-notifications"
           clone lepton-uf-app "${UF_ROOT}/L2-product-platform/lepton-uf-app"
-          clone gauge "${UF_ROOT}/L3-zone-products/gauge"
-          clone counter-app "${UF_ROOT}/L3-zone-products/counter-app"
-          clone neutrino "${UF_ROOT}/L3-zone-products/neutrino"
+          clone gauge "${UF_ROOT}/L2-product-platform/gauge"
       - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
         with:
           toolchain: nightly
@@ -137,9 +132,7 @@ jobs:
           clone unified-field-product "${UF_ROOT}/L2-product-platform/unified-field-product"
           clone uf-notifications "${UF_ROOT}/L2-product-platform/uf-notifications"
           clone lepton-uf-app "${UF_ROOT}/L2-product-platform/lepton-uf-app"
-          clone gauge "${UF_ROOT}/L3-zone-products/gauge"
-          clone counter-app "${UF_ROOT}/L3-zone-products/counter-app"
-          clone neutrino "${UF_ROOT}/L3-zone-products/neutrino"
+          clone gauge "${UF_ROOT}/L2-product-platform/gauge"
       - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
         with:
           toolchain: nightly
@@ -183,9 +176,7 @@ jobs:
           clone unified-field-product "${UF_ROOT}/L2-product-platform/unified-field-product"
           clone uf-notifications "${UF_ROOT}/L2-product-platform/uf-notifications"
           clone lepton-uf-app "${UF_ROOT}/L2-product-platform/lepton-uf-app"
-          clone gauge "${UF_ROOT}/L3-zone-products/gauge"
-          clone counter-app "${UF_ROOT}/L3-zone-products/counter-app"
-          clone neutrino "${UF_ROOT}/L3-zone-products/neutrino"
+          clone gauge "${UF_ROOT}/L2-product-platform/gauge"
       - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
         with:
           toolchain: nightly
