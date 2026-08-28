@@ -94,5 +94,4 @@ cargo run -p protected-photon-host
 
 Out of gate for this host. Full ops UI needs a product binary with
 `cargo-leptos`, `wasm32`, session chrome, Photon runtime, and a working Orbital /
-`uf-product` graph. Prefer the oneshot above for local gates; treat `photon-app`
-compile failures from broken sibling pins as host-product debt.
+`uf-product` graph. Prefer the oneshot above.

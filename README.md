@@ -3,7 +3,7 @@
 [![CI](https://github.com/unified-field-dev/photon-uf-app/actions/workflows/ci.yml/badge.svg)](https://github.com/unified-field-dev/photon-uf-app/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-[GitHub](https://github.com/unified-field-dev/photon-uf-app) · `cargo doc -p photon-backend --open` · distributed via git (not crates.io)
+[GitHub](https://github.com/unified-field-dev/photon-uf-app) · `cargo doc -p photon-backend --open`
 
 ## About
 
@@ -14,7 +14,7 @@ hosts mount this crate so operators can inspect runtime activity.
 - **UI (`photon-app`)** — pages, Higgs `#[server]` wrappers, `PhotonRoutes`,
   `uf_app!` registration
 - **Backend (`photon-backend`)** — pure topic/subscription/event/dashboard
-  helpers (no Leptos); preferred Layer 1 CI path
+  helpers (no Leptos); primary CI surface
 
 Reads Photon's runtime directly (`admin_snapshot`, list/get event APIs). Hosts
 supply a Photon runtime and auth guard context. Enable `ssr` / hydrate to match
@@ -84,7 +84,7 @@ public issue for security-sensitive reports.
 
 ## Verify
 
-GitHub Actions (`.github/workflows/ci.yml`) runs the Layer 1 subset from
+GitHub Actions (`.github/workflows/ci.yml`) runs the CI subset from
 [`docs/VERIFICATION.md`](docs/VERIFICATION.md): fmt, clippy `-D warnings` on
 `photon-backend` (+ teaching host), contract tests, `protected-photon-host`
 check/run, and photon-backend rustdoc with broken-intra-doc-link deny.
@@ -104,8 +104,6 @@ RUSTDOCFLAGS="-D rustdoc::broken-intra-doc-links" cargo doc -p photon-backend --
 
 Teaching host success line:
 `protected_photon_host: OK — /photon deny/allow + dashboard KPIs`.
-`photon-app` compile/doc can fail when the sibling Orbital / host graph does
-not compile — treat that as host-product debt, not a Photon mapping gap.
 Full command block: [`docs/VERIFICATION.md`](docs/VERIFICATION.md). Contribute:
 [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
