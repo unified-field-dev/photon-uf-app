@@ -68,13 +68,7 @@ cargo test -p photon-backend
 
 Copy table + product mount `Cargo.toml`:
 [`examples/protected-photon-host/README.md`](examples/protected-photon-host/README.md).
-Full ladder: [`examples/README.md`](examples/README.md).
-
-| Level | Where |
-|-------|--------|
-| Highlight | Mount snippet above; crate-root Getting started |
-| Mid | `photon-backend` unit + integ suites (see `docs/VERIFICATION.md`) |
-| Detailed | `protected-photon-host` (session gate + dashboard KPIs; inventory `photon` / `/photon`) |
+More examples: [`examples/README.md`](examples/README.md).
 
 ## Security
 

@@ -167,13 +167,11 @@
 //! | `/photon/events` | [`PhotonEventsIndexPage`] | [`get_events`] |
 //! | `/photon/events/:id` | [`PhotonEventDetailPage`] | [`get_event`] |
 //!
-//! ## Examples ladder
+//! ## Examples
 //!
-//! | Level | Where |
-//! |-------|--------|
-//! | Highlight | [Mount Photon routes](#mount-photon-routes) |
-//! | Mid | `photon-backend` unit + integ suites (`docs/VERIFICATION.md`) |
-//! | Detailed | `examples/protected-photon-host` (auth + dashboard KPIs; inventory `photon` / `/photon`) |
+//! Start with [Mount Photon routes](#mount-photon-routes). The `photon-backend` unit and integ
+//! suites in `docs/VERIFICATION.md` cover server-fn contracts. Runnable host:
+//! `examples/protected-photon-host` (auth + dashboard KPIs; inventory `photon` / `/photon`).
 //!
 //! ## Where to look next
 //!

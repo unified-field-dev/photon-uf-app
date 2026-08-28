@@ -19,7 +19,7 @@ view! {
 ```
 
 Crate-root rustdoc owns Organized-by-task, Owns / does not own, the route table,
-and the Examples ladder. Mapping helpers live in `photon-backend`.
+and the Examples. Mapping helpers live in `photon-backend`.
 
 Compose into a host that supplies a Photon runtime and the auth/context
 extractors the app expects. Enable `ssr` / hydrate to match your host.

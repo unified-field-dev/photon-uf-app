@@ -116,13 +116,10 @@
 //! On success `stats` carries the three KPI fields consumed by `photon-app` dashboard
 //! server functions and `count_since` returns how many timestamps fall on or after the cutoff.
 //!
-//! ## Examples ladder
+//! ## Examples
 //!
-//! | Level | Where |
-//! |-------|--------|
-//! | Highlight | [Validate ids](#validate-ids) |
-//! | Mid | This crate's unit + integ suites (`docs/VERIFICATION.md`) |
-//! | Detailed | `examples/protected-photon-host` (auth + dashboard KPIs) |
+//! Start with [Validate ids](#validate-ids). This crate's unit and integ suites are listed in
+//! `docs/VERIFICATION.md`. Runnable host: `examples/protected-photon-host` (auth + dashboard KPIs).
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used))]
 
