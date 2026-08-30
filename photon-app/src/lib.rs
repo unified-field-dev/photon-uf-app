@@ -6,23 +6,27 @@
 //! `uf_app!` and requires an authenticated session with `PhotonAdmin` before server
 //! functions load registry or event data.
 //!
+//! Orbital inventory macros (`uf_app!`, `orbital_routes_extract`) emit undocumented
+//! associated items, so this crate allows `missing_docs` at the crate root while keeping
+//! hand-written modules and items documented.
+//!
 //! ## Features
 //!
-//! - **Photon admin routes** — Nested `/photon` route tree behind auth for dashboard,
-//!   topics, subscriptions, and events. Mount once when the host router starts.
+//! - **Photon admin routes** — Provides the nested `/photon` route tree behind auth for
+//!   dashboard, topics, subscriptions, and events. Mount once when the host router starts.
 //!   [Get started](#mount-photon-routes)
-//! - **Dashboard KPIs** — [`PhotonDashboardPage`] with topic, subscription, and 24-hour
-//!   event counters via [`get_dashboard_stats`] plus a recent-events preview table from
-//!   [`get_recent_events`]. [Get started](#dashboard-kpis)
-//! - **Topics browser** — Index and detail pages for registry topics via [`get_topics`] and
-//!   [`get_topic`]. [Get started](#browse-topics)
-//! - **Subscriptions browser** — Index and detail pages for delivery handlers via
+//! - **Dashboard KPIs** — Shows topic, subscription, and 24-hour event counters on
+//!   [`PhotonDashboardPage`] via [`get_dashboard_stats`] plus a recent-events preview
+//!   table from [`get_recent_events`]. [Get started](#dashboard-kpis)
+//! - **Topics browser** — Lists registry topics and opens detail pages via [`get_topics`]
+//!   and [`get_topic`]. [Get started](#browse-topics)
+//! - **Subscriptions browser** — Lists delivery handlers and opens detail pages via
 //!   [`get_subscriptions`] and [`get_subscription`].
 //!   [Get started](#browse-subscriptions)
-//! - **Events browser** — Index and detail pages for stored transport events via
+//! - **Events browser** — Lists stored transport events and opens detail pages via
 //!   [`get_events`] and [`get_event`]. [Get started](#browse-events)
-//! - **Server function wrappers** — [`mod@server`] Higgs `#[server]` fns and DTO re-exports
-//!   backed by [`photon_backend`] pure mapping helpers.
+//! - **Server function wrappers** — Exposes [`mod@server`] Higgs `#[server]` fns and DTO
+//!   re-exports backed by [`photon_backend`] pure mapping helpers.
 //!
 //! ## Mount Photon routes
 //!
@@ -62,8 +66,11 @@
 //! Photon request context wired.
 //!
 //! ```rust,ignore
-//! use photon_app::{get_dashboard_stats, get_recent_events, DashboardStats};
+//! use photon_app::{
+//!     PhotonDashboardPage, get_dashboard_stats, get_recent_events, DashboardStats,
+//! };
 //!
+//! // PhotonDashboardPage calls these on each SSR render:
 //! let stats: DashboardStats = get_dashboard_stats().await?;
 //! assert_eq!(stats.topic_count, 3);
 //! assert_eq!(stats.event_count_24h, 12);
@@ -86,8 +93,11 @@
 //! **Prerequisites:** Routes mounted; topic names must pass `photon_backend::validate_topic_name`.
 //!
 //! ```rust,ignore
-//! use photon_app::{get_topics, get_topic, TopicSummary};
+//! use photon_app::{
+//!     PhotonTopicsIndexPage, get_topics, get_topic, TopicSummary,
+//! };
 //!
+//! // PhotonTopicsIndexPage loads get_topics for the index:
 //! let topics: Vec<TopicSummary> = get_topics().await?;
 //! assert_eq!(topics.first().map(|t| t.topic_name.as_str()), Some("orders"));
 //!
@@ -110,9 +120,13 @@
 //! `photon_backend::validate_subscription_id`.
 //!
 //! ```rust,ignore
-//! use photon_app::{get_subscriptions, get_subscription};
+//! use photon_app::{
+//!     PhotonSubscriptionsIndexPage, get_subscriptions, get_subscription,
+//!     SubscriptionSummary,
+//! };
 //!
-//! let subs = get_subscriptions().await?;
+//! // PhotonSubscriptionsIndexPage loads get_subscriptions:
+//! let subs: Vec<SubscriptionSummary> = get_subscriptions().await?;
 //! assert_eq!(subs.first().map(|s| s.subscription_id.as_str()), Some("reg.key"));
 //!
 //! let detail = get_subscription("reg.key".into()).await?;
@@ -133,8 +147,11 @@
 //! list limits are capped by `photon_backend::clamp_event_list_limit`.
 //!
 //! ```rust,ignore
-//! use photon_app::{get_events, get_event, EventDetail};
+//! use photon_app::{
+//!     PhotonEventsIndexPage, get_events, get_event, EventDetail,
+//! };
 //!
+//! // PhotonEventsIndexPage loads get_events with a capped limit:
 //! let rows = get_events(50).await?;
 //! assert!(rows.len() <= 50);
 //!
