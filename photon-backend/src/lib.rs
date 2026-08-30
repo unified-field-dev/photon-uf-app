@@ -6,29 +6,30 @@
 //!
 //! ## Features
 //!
-//! - **Id validation** — Reject blank, oversized, or path-unsafe topic names, subscription
-//!   ids, and event ids before registry or store lookups.
+//! - **Id validation** — Validates topic names, subscription ids, and event ids so blank,
+//!   oversized, or path-unsafe values fail closed before registry or store lookups.
 //!   [Get started](#validate-ids)
-//! - **Topic/subscription/event mapping** — Pure helpers that build UI DTOs from registry
-//!   rows, admin snapshot handlers, and transport events.
+//! - **Topic/subscription/event mapping** — Builds UI DTOs from registry rows, admin snapshot
+//!   handlers, and transport events without performing Photon IO.
 //!   [Get started](#map-topic-subscription-event)
-//! - **Dashboard aggregates** — KPI counters and 24-hour event windows via [`dashboard_stats`]
-//!   and [`count_since`]. [Get started](#dashboard-kpis)
-//! - **Ops path encoding** — Percent-encode path segments for `/photon` hrefs via
+//! - **Dashboard aggregates** — Provides KPI counters for topics, subscriptions, and 24-hour
+//!   event windows via [`dashboard_stats`] and [`count_since`]. [Get started](#dashboard-kpis)
+//! - **Ops path encoding** — Builds percent-encoded path segments for `/photon` hrefs via
 //!   [`encode_ops_path_segment`], [`photon_topic_path`], [`photon_subscription_path`], and
 //!   [`photon_event_path`].
-//! - **Event list limits** — Cap `get_events` / `get_recent_events` list size with
+//! - **Event list limits** — Caps `get_events` / `get_recent_events` list size with
 //!   [`clamp_event_list_limit`] and [`MAX_EVENT_LIST_LIMIT`].
 //!
 //! ## Validate ids
 //!
-//! Ops UI detail lookups reject ids that would break routing or leak path segments into
-//! Photon IO. [`validate_topic_name`], [`validate_subscription_id`], and [`validate_event_id`]
-//! run before `photon-app` server functions call registry or store APIs — call them in
-//! custom wrappers when you add new read paths that accept path or query parameters.
+//! Id validation checks path and query parameters before they reach Photon IO, so blank or
+//! path-unsafe values fail closed instead of breaking routing. [`validate_topic_name`],
+//! [`validate_subscription_id`], and [`validate_event_id`] run in `photon-app` server
+//! functions ahead of registry or store lookups — call them in custom wrappers when you add
+//! new read paths that accept path or query parameters.
 //!
-//! **Prerequisites:** None beyond importing this crate; validators are synchronous and infallible
-//! except for returning [`PhotonIdError`].
+//! **Prerequisites:** None beyond importing this crate; validators are synchronous and
+//! return [`Result<(), PhotonIdError>`].
 //!
 //! ```rust,ignore
 //! use photon_backend::{
@@ -50,11 +51,14 @@
 //!
 //! ## Map topic subscription event
 //!
-//! Mapping helpers turn Photon registry rows and transport events into serde-friendly
-//! DTOs the UI can render without touching Photon internals. [`topic_summary`] and
-//! [`find_topic_by_name`] back topic list/detail pages; [`subscription_summary_from_handler`]
-//! and [`filter_subscriptions_by_topic`] shape subscription tables; [`event_summary_from_transport`]
-//! builds list-row previews with `[stored]` / delivery-status chips.
+//! Topic/subscription/event mapping turns Photon registry rows and transport events into
+//! serde-friendly DTOs the UI can render without touching Photon internals.
+//! [`topic_summary`] and [`find_topic_by_name`] back topic list/detail pages;
+//! [`subscription_summary_from_handler`] and [`filter_subscriptions_by_topic`] shape
+//! subscription tables; [`event_summary_from_transport`] builds list-row previews with
+//! `[stored]` / delivery-status chips. Call these after you already hold registry or
+//! transport rows in memory — typically inside `photon-app` `#[server]` handlers that
+//! assemble list or detail responses.
 //!
 //! **Prerequisites:** Caller already loaded registry topics, admin snapshot handlers, or
 //! transport events from Photon — these functions do not perform IO.
@@ -90,10 +94,12 @@
 //!
 //! ## Dashboard KPIs
 //!
-//! Dashboard KPI aggregates provide registry size and recent event volume counters
-//! without UI-specific formatting. [`dashboard_stats`] packages topic, subscription,
-//! and 24-hour event counts into [`DashboardStats`]; [`count_since`] filters timestamp
-//! slices for per-topic 24h windows after the caller loads event timestamps from Photon.
+//! Dashboard aggregates package registry size and recent event volume into a single
+//! [`DashboardStats`] value for the ops landing page, without UI-specific formatting.
+//! [`dashboard_stats`] takes topic, subscription, and 24-hour event counts;
+//! [`count_since`] filters timestamp slices for per-topic 24h windows after the caller
+//! loads event timestamps from Photon. Call this when a dashboard server function has
+//! already counted those slices from Photon.
 //!
 //! **Prerequisites:** Caller supplies counts from registry and event store queries — these
 //! helpers do not call Photon.
