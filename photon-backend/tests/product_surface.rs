@@ -164,7 +164,7 @@ fn server_require_session_happy_path() {
     let server = read_app("server.rs");
     assert!(
         server.contains("fn require_session")
-            && server.contains("Authentication required")
+            && server.contains("require_session_user")
             && server.contains("session_user_id()"),
         "server must fail closed without a session"
     );

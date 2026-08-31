@@ -1,2 +1,6 @@
 /target
 /target-*
+/photon-uf-app-e2e/end2end/node_modules
+/photon-uf-app-e2e/end2end/test-results
+/photon-uf-app-e2e/site/pkg
+/photon-uf-app-e2e/site/*.css

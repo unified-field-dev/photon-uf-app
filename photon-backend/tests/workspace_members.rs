@@ -16,6 +16,7 @@ fn photon_product_workspace_members_happy_path() {
     for member in [
         "photon-app",
         "photon-backend",
+        "photon-uf-app-e2e",
         "examples/protected-photon-host",
     ] {
         assert!(

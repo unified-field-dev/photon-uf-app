@@ -17,3 +17,18 @@ workspace = true
 chrono = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+photon = { workspace = true, optional = true }
+
+[features]
+default = []
+# Photon IO helpers for ops UI server fns and SSR/IsolatedLab integ tests.
+ops = ["dep:photon", "photon/runtime", "photon/mem"]
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+futures = "0.3"
+photon-core = { workspace = true }
+
+[[test]]
+name = "ops_photon_contract"
+required-features = ["ops"]

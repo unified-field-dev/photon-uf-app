@@ -64,6 +64,7 @@ ssr = [
     "dep:photon",
     "photon/runtime",
     "photon/mem",
+    "photon-backend/ops",
     "dep:chrono",
     "dep:higgs",
     "higgs/ssr",

@@ -19,6 +19,8 @@
 //!   [`photon_event_path`].
 //! - **Event list limits** — Caps `get_events` / `get_recent_events` list size with
 //!   [`clamp_event_list_limit`] and [`MAX_EVENT_LIST_LIMIT`].
+//! - **Ops Photon IO** (`ops` feature) — Loads dashboard / topic / subscription / event
+//!   DTOs from a live [`photon::Photon`] handle via [`ops`].
 //!
 //! ## Validate ids
 //!
@@ -130,6 +132,8 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used))]
 
 mod mapping;
+#[cfg(feature = "ops")]
+pub mod ops;
 mod types;
 mod validate;
 
