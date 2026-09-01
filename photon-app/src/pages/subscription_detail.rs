@@ -12,7 +12,7 @@ pub fn PhotonSubscriptionDetailPage() -> impl IntoView {
     let params = use_params_map();
     let id = move || params.get().get("id").unwrap_or_default();
 
-    let sub_res = Resource::new(id.clone(), |sid| async move { get_subscription(sid).await });
+    let sub_res = Resource::new(id, |sid| async move { get_subscription(sid).await });
     let topic_for_events = move || {
         sub_res
             .get()

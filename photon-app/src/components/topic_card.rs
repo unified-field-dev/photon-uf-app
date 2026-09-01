@@ -24,7 +24,7 @@ pub fn TopicCard(
 
     let name = topic.topic_name.clone();
     let keyed = topic.keyed_by.is_some();
-    let test_id = format!("topic-{}", &name);
+    let test_id = format!("topic-{name}");
     let name_click = name.clone();
     let name_btn = name.clone();
     let keyed_by_view = topic.keyed_by.clone().map(|k| {
@@ -50,7 +50,7 @@ pub fn TopicCard(
                     nav(
                         &photon_backend::photon_topic_path(&name_click),
                         NavigateOptions::default(),
-                    )
+                    );
                 }
             })>
                 <CardContent>

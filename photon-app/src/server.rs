@@ -19,8 +19,10 @@
 //!
 //! Fallible ops return [`ServerFnError`] (Leptos boundary). Blank path/query ids
 //! are rejected by `photon_backend::validate_*` as [`photon_backend::PhotonIdError`]
-//! and mapped with operation context. Missing session, missing Photon context, and
-//! Photon IO failures are also `ServerFnError` strings at this boundary.
+//! and mapped with operation context. Missing session and missing Photon context
+//! use [`photon_backend::ops::require_session_user`] and
+//! [`photon_backend::ops::require_photon`]. Photon IO failures are also
+//! `ServerFnError` strings at this boundary.
 
 use leptos::prelude::*;
 pub use photon_backend::{
@@ -32,20 +34,22 @@ pub use photon_backend::{
 pub const PHOTON_ADMIN_PERMISSION: &str = "PhotonAdmin";
 
 #[cfg(feature = "ssr")]
-fn map_ops_err(e: photon_backend::ops::OpsError) -> ServerFnError {
+fn map_ops_err(e: &photon_backend::ops::OpsError) -> ServerFnError {
     ServerFnError::new(e.to_string())
 }
 
 #[cfg(feature = "ssr")]
 fn photon_from_context() -> Result<std::sync::Arc<photon::Photon>, ServerFnError> {
-    leptos::context::use_context::<std::sync::Arc<photon::Photon>>()
-        .ok_or_else(|| ServerFnError::new("Photon not in request context"))
+    photon_backend::ops::require_photon(leptos::context::use_context::<
+        std::sync::Arc<photon::Photon>,
+    >())
+    .map_err(|e| map_ops_err(&e))
 }
 
 #[cfg(feature = "ssr")]
 fn require_session(ctx: &higgs::Higgs) -> Result<(), ServerFnError> {
     photon_backend::ops::require_session_user(ctx.session_user_id().map(String::as_str))
-        .map_err(map_ops_err)
+        .map_err(|e| map_ops_err(&e))
 }
 
 // ============================================================================
@@ -60,7 +64,7 @@ pub async fn get_dashboard_stats() -> Result<DashboardStats, ServerFnError> {
     let photon = photon_from_context()?;
     photon_backend::ops::load_dashboard_stats(&photon)
         .await
-        .map_err(map_ops_err)
+        .map_err(|e| map_ops_err(&e))
 }
 
 /// Get recent events for dashboard.
@@ -74,7 +78,7 @@ pub async fn get_recent_events(
     let photon = photon_from_context()?;
     photon_backend::ops::load_recent_events(&photon, limit)
         .await
-        .map_err(map_ops_err)
+        .map_err(|e| map_ops_err(&e))
 }
 
 /// Get all topics (from registry + Photon list counts).
@@ -85,7 +89,7 @@ pub async fn get_topics() -> Result<Vec<TopicSummary>, ServerFnError> {
     let photon = photon_from_context()?;
     photon_backend::ops::load_topics(&photon)
         .await
-        .map_err(map_ops_err)
+        .map_err(|e| map_ops_err(&e))
 }
 
 /// Get a single topic by name.
@@ -99,7 +103,7 @@ pub async fn get_topic(
     let photon = photon_from_context()?;
     photon_backend::ops::load_topic(&photon, &topic_name)
         .await
-        .map_err(map_ops_err)
+        .map_err(|e| map_ops_err(&e))
 }
 
 /// Get all subscriptions (handler inventory + checkpoints via `admin_snapshot`).
@@ -110,7 +114,7 @@ pub async fn get_subscriptions() -> Result<Vec<SubscriptionSummary>, ServerFnErr
     let photon = photon_from_context()?;
     photon_backend::ops::list_subscriptions(&photon)
         .await
-        .map_err(map_ops_err)
+        .map_err(|e| map_ops_err(&e))
 }
 
 /// Get a single subscription by ID.
@@ -124,7 +128,7 @@ pub async fn get_subscription(
     let photon = photon_from_context()?;
     photon_backend::ops::load_subscription(&photon, &id)
         .await
-        .map_err(map_ops_err)
+        .map_err(|e| map_ops_err(&e))
 }
 
 /// Get events (recent across all topics, or optionally filter by topic).
@@ -144,7 +148,7 @@ pub async fn get_events(
     let photon = photon_from_context()?;
     photon_backend::ops::load_events(&photon, topic_name.as_deref(), limit)
         .await
-        .map_err(map_ops_err)
+        .map_err(|e| map_ops_err(&e))
 }
 
 /// Get a single event by ID.
@@ -158,5 +162,5 @@ pub async fn get_event(
     let photon = photon_from_context()?;
     photon_backend::ops::load_event(&photon, &id)
         .await
-        .map_err(map_ops_err)
+        .map_err(|e| map_ops_err(&e))
 }

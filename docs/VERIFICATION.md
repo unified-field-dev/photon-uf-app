@@ -53,6 +53,7 @@ Backend contracts (preferred path; no UI graph):
 cargo fmt -p photon-backend -p photon-app -p protected-photon-host -p photon-uf-app-e2e -- --check
 cargo clippy -p photon-backend@0.1.0 --all-targets -- -D warnings
 cargo clippy -p protected-photon-host --all-targets -- -D warnings
+cargo clippy -p photon-app --features ssr --all-targets -- -D warnings
 cargo test -p photon-backend@0.1.0
 ```
 

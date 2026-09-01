@@ -12,14 +12,11 @@ pub fn PhotonTopicDetailPage() -> impl IntoView {
     let params = use_params_map();
     let topic_name = move || params.get().get("topic_name").unwrap_or_default();
 
-    let topic_res = Resource::new(
-        topic_name.clone(),
-        |name| async move { get_topic(name).await },
-    );
-    let events_res = Resource::new(topic_name.clone(), |name| async move {
+    let topic_res = Resource::new(topic_name, |name| async move { get_topic(name).await });
+    let events_res = Resource::new(topic_name, |name| async move {
         get_events(Some(name), 20).await
     });
-    let subs_res = Resource::new(|| (), |_| async move { get_subscriptions().await });
+    let subs_res = Resource::new(|| (), |()| async move { get_subscriptions().await });
 
     view! {
         <ContentContainer data_testid="photon-topic-detail">

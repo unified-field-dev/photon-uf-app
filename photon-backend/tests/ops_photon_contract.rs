@@ -32,7 +32,9 @@ pub struct OpsContractEvent {
 }
 
 #[subscribe(topic = "test.photon.ops.contract", durable = "ops-contract-handler")]
-async fn on_ops_contract(_actor: Box<dyn Actor>, event: OpsContractEvent) -> photon::Result<()> {
+#[allow(clippy::unused_async)]
+async fn on_ops_contract(actor: Box<dyn Actor>, event: OpsContractEvent) -> photon::Result<()> {
+    let _ = actor;
     assert_eq!(event.value, 42);
     HANDLER_HITS.fetch_add(1, Ordering::SeqCst);
     Ok(())
@@ -175,7 +177,7 @@ async fn integ_subs_list_and_unknown_sad() {
 async fn integ_events_list_detail_and_unknown_sad() {
     let photon = shared_photon().await;
     let recent = load_recent_events(&photon, 50).await.expect("recent");
-    assert!(!recent.is_empty());
+    assert_ne!(recent.len(), 0);
     let event_id = recent[0].event_id.clone();
 
     let by_topic = load_events(&photon, Some(TOPIC), 50)

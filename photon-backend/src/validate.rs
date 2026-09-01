@@ -10,7 +10,7 @@ pub const MAX_EVENT_LIST_LIMIT: u32 = 100;
 /// accepted by ops detail lookups.
 pub const MAX_PHOTON_ID_CHARS: usize = 256;
 
-fn is_unsafe_ops_id_char(c: char) -> bool {
+const fn is_unsafe_ops_id_char(c: char) -> bool {
     c.is_control() || c == '/' || c == '\\'
 }
 

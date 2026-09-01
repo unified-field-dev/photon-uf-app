@@ -1,7 +1,7 @@
 //! Photon IO + mapping for ops UI reads (feature `ops`).
 //!
 //! Server functions in `photon-app` resolve session / Photon context, then call
-//! these helpers so SSR and IsolatedLab tests can exercise the same path without
+//! these helpers so SSR and `IsolatedLab` tests can exercise the same path without
 //! Leptos request plumbing.
 
 use std::sync::Arc;
@@ -27,8 +27,13 @@ pub enum OpsError {
     PermissionDenied,
     /// Path/query id failed validation.
     InvalidId(PhotonIdError),
-    /// Photon IO or snapshot failure.
-    Photon(String),
+    /// Photon IO or snapshot failure with operation context.
+    PhotonIo {
+        /// Stable operation name for logs and operator messages.
+        operation: &'static str,
+        /// Photon runtime error detail.
+        detail: String,
+    },
 }
 
 impl std::fmt::Display for OpsError {
@@ -38,9 +43,23 @@ impl std::fmt::Display for OpsError {
             Self::PhotonNotInContext => write!(f, "Photon not in request context"),
             Self::PermissionDenied => write!(f, "Permission denied"),
             Self::InvalidId(e) => write!(f, "{e}"),
-            Self::Photon(msg) => write!(f, "{msg}"),
+            Self::PhotonIo { operation, detail } => write!(f, "Failed to {operation}: {detail}"),
         }
     }
+}
+
+fn photon_io_err(operation: &'static str, source: impl std::fmt::Display) -> OpsError {
+    OpsError::PhotonIo {
+        operation,
+        detail: source.to_string(),
+    }
+}
+
+fn len_as_u32(len: usize) -> Result<u32, OpsError> {
+    u32::try_from(len).map_err(|_| OpsError::PhotonIo {
+        operation: "convert count",
+        detail: "count exceeds u32::MAX".into(),
+    })
 }
 
 impl std::error::Error for OpsError {}
@@ -52,7 +71,7 @@ impl From<PhotonIdError> for OpsError {
 }
 
 /// Reject anonymous callers (session user id absent).
-pub fn require_session_user(user_id: Option<&str>) -> Result<(), OpsError> {
+pub const fn require_session_user(user_id: Option<&str>) -> Result<(), OpsError> {
     if user_id.is_some() {
         Ok(())
     } else {
@@ -61,7 +80,7 @@ pub fn require_session_user(user_id: Option<&str>) -> Result<(), OpsError> {
 }
 
 /// Reject callers without `PhotonAdmin` (lab / integ seam; server macro also gates).
-pub fn require_photon_admin(has_admin: bool) -> Result<(), OpsError> {
+pub const fn require_photon_admin(has_admin: bool) -> Result<(), OpsError> {
     if has_admin {
         Ok(())
     } else {
@@ -89,7 +108,7 @@ pub async fn list_subscriptions(photon: &Photon) -> Result<Vec<SubscriptionSumma
     let snap = photon
         .admin_snapshot()
         .await
-        .map_err(|e| OpsError::Photon(format!("Failed to load admin snapshot: {e}")))?;
+        .map_err(|e| photon_io_err("load admin snapshot", e))?;
     let checkpoints: Vec<(String, String, Option<String>, Option<i64>)> = snap
         .checkpoints
         .iter()
@@ -120,13 +139,13 @@ pub async fn list_subscriptions(photon: &Photon) -> Result<Vec<SubscriptionSumma
 
 /// Dashboard KPIs from registry size, subscription count, and 24h events.
 pub async fn load_dashboard_stats(photon: &Photon) -> Result<DashboardStats, OpsError> {
-    let topic_count = photon.registry().len() as u32;
-    let subscription_count = list_subscriptions(photon).await?.len() as u32;
+    let topic_count = len_as_u32(photon.registry().len())?;
+    let subscription_count = len_as_u32(list_subscriptions(photon).await?.len())?;
 
     let events = photon
         .list_recent_events(clamp_event_list_limit(1000))
         .await
-        .map_err(|e| OpsError::Photon(format!("Failed to list recent events: {e}")))?;
+        .map_err(|e| photon_io_err("list recent events", e))?;
     let now = chrono::Utc::now();
     let day_ago = now - chrono::Duration::hours(24);
     let stamps: Vec<_> = events.iter().map(|e| e.created_at).collect();
@@ -148,7 +167,7 @@ pub async fn load_recent_events(
     let events = photon
         .list_recent_events(limit)
         .await
-        .map_err(|e| OpsError::Photon(format!("Failed to list recent events: {e}")))?;
+        .map_err(|e| photon_io_err("list recent events", e))?;
     Ok(events.iter().map(map_transport_event).collect())
 }
 
@@ -159,12 +178,13 @@ pub async fn load_topics(photon: &Photon) -> Result<Vec<TopicSummary>, OpsError>
     let mut topics = Vec::new();
     for desc in registry.iter() {
         let topic_name = desc.topic_name.to_string();
-        let subscription_count = subs.iter().filter(|s| s.topic_name == topic_name).count() as u32;
+        let subscription_count =
+            len_as_u32(subs.iter().filter(|s| s.topic_name == topic_name).count())?;
 
         let events = photon
             .list_events_by_topic(&topic_name, None, None, clamp_event_list_limit(1000))
             .await
-            .map_err(|e| OpsError::Photon(format!("Failed to list events: {e}")))?;
+            .map_err(|e| photon_io_err("list events", e))?;
         let now = chrono::Utc::now();
         let day_ago = now - chrono::Duration::hours(24);
         let stamps: Vec<_> = events.iter().map(|e| e.created_at).collect();
@@ -172,7 +192,7 @@ pub async fn load_topics(photon: &Photon) -> Result<Vec<TopicSummary>, OpsError>
 
         topics.push(topic_summary(
             topic_name,
-            desc.keyed_by.map(|s| s.to_string()),
+            desc.keyed_by.map(std::string::ToString::to_string),
             desc.schema_json.to_string(),
             event_count_24h,
             subscription_count,
@@ -214,12 +234,12 @@ pub async fn load_events(
         photon
             .list_events_by_topic(topic, None, None, limit)
             .await
-            .map_err(|e| OpsError::Photon(format!("Failed to list events: {e}")))?
+            .map_err(|e| photon_io_err("list events", e))?
     } else {
         photon
             .list_recent_events(limit)
             .await
-            .map_err(|e| OpsError::Photon(format!("Failed to list recent events: {e}")))?
+            .map_err(|e| photon_io_err("list recent events", e))?
     };
     Ok(events.iter().map(map_transport_event).collect())
 }
@@ -230,7 +250,7 @@ pub async fn load_event(photon: &Photon, id: &str) -> Result<Option<EventDetail>
     let transport = photon
         .get_event(id)
         .await
-        .map_err(|e| OpsError::Photon(format!("Failed to get transport event: {e}")))?;
+        .map_err(|e| photon_io_err("get transport event", e))?;
 
     Ok(transport.map(|t| {
         event_detail_from_transport(

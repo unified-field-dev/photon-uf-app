@@ -20,7 +20,7 @@
 //! - **Event list limits** — Caps `get_events` / `get_recent_events` list size with
 //!   [`clamp_event_list_limit`] and [`MAX_EVENT_LIST_LIMIT`].
 //! - **Ops Photon IO** (`ops` feature) — Loads dashboard / topic / subscription / event
-//!   DTOs from a live [`photon::Photon`] handle via [`ops`].
+//!   DTOs from a live `photon::Photon` handle via the `ops` module.
 //!
 //! ## Validate ids
 //!

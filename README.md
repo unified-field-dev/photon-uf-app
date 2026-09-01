@@ -58,6 +58,7 @@ cargo test -p photon-backend
 |-------|------|
 | [`photon-app`](photon-app/) | Leptos ops UI + `PhotonRoutes` + app registration |
 | [`photon-backend`](photon-backend/) | Pure DTO/mapping helpers for topic/sub/event/dashboard |
+| [`photon-uf-app-e2e`](photon-uf-app-e2e/) | Lab Leptos host + Playwright (Layer 2 CI gate) |
 | [`protected-photon-host`](examples/protected-photon-host/) | Teaching host: deny/allow + dashboard KPIs |
 
 ## Examples
@@ -80,20 +81,29 @@ public issue for security-sensitive reports.
 
 GitHub Actions (`.github/workflows/ci.yml`) runs the CI subset from
 [`docs/VERIFICATION.md`](docs/VERIFICATION.md): fmt, clippy `-D warnings` on
-`photon-backend` (+ teaching host), contract tests, `protected-photon-host`
-check/run, and photon-backend rustdoc with broken-intra-doc-link deny.
+`photon-backend` (+ teaching host + **`photon-app` SSR**), contract tests,
+`photon-uf-app-e2e` boundary integ, **`cargo leptos end-to-end` Playwright**
+(required on PRs and `main`), `protected-photon-host` check/run, and
+photon-backend rustdoc with broken-intra-doc-link deny.
 
 ```bash
 export CARGO_BUILD_JOBS=1
 export CARGO_TARGET_DIR=target-photon-uf-app
-cargo fmt -p photon-backend -p photon-app -p protected-photon-host -- --check
-cargo clippy -p photon-backend --all-targets -- -D warnings
+export PHOTON_ALLOW_DEV_TRANSPORT_KEY=1
+export PHOTON_TRANSPORT_KEY='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+cargo fmt -p photon-backend -p photon-app -p protected-photon-host -p photon-uf-app-e2e -- --check
+cargo clippy -p photon-backend@0.1.0 --all-targets -- -D warnings
 cargo clippy -p protected-photon-host --all-targets -- -D warnings
-cargo test -p photon-backend --test workspace_members --test product_surface
-cargo test -p photon-backend
+cargo clippy -p photon-app --features ssr --all-targets -- -D warnings
+cargo test -p photon-backend@0.1.0 --test workspace_members --test product_surface
+cargo test -p photon-backend@0.1.0
+cargo test -p photon-backend@0.1.0 --features ops --test ops_photon_contract
+cargo test -p photon-uf-app-e2e --features ssr --test boundary_contract
+cargo check -p photon-app --features ssr
 cargo check -p protected-photon-host
 cargo run -p protected-photon-host
-RUSTDOCFLAGS="-D rustdoc::broken-intra-doc-links" cargo doc -p photon-backend --no-deps
+RUSTDOCFLAGS="-D rustdoc::broken-intra-doc-links" cargo doc -p photon-backend@0.1.0 --no-deps
+cargo leptos end-to-end --project photon-uf-app-e2e
 ```
 
 Teaching host success line:

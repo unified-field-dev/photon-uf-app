@@ -103,6 +103,11 @@ jobs:
           cargo clippy -p photon-backend@0.1.0 --all-targets -- -D warnings
           cargo clippy -p photon-backend@0.1.0 --features ops --all-targets -- -D warnings
           cargo clippy -p protected-photon-host --all-targets -- -D warnings
+      - name: cargo clippy (photon-app SSR)
+        working-directory: ${{ env.APP_WD }}
+        run: |
+          # photon-uf-app-e2e is a lab harness (expect-heavy); skip clippy there (boson pattern).
+          cargo clippy -p photon-app --features ssr --all-targets -- -D warnings
 
   test:
     runs-on: ubuntu-latest

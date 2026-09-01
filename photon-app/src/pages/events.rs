@@ -19,7 +19,7 @@ pub fn PhotonEventsIndexPage() -> impl IntoView {
         topic_filter.set(if val.is_empty() { None } else { Some(val) });
     });
 
-    let topics_res = Resource::new(|| (), |_| async move { get_topics().await });
+    let topics_res = Resource::new(|| (), |()| async move { get_topics().await });
     let events_res = Resource::new(
         move || topic_filter.get(),
         |topic_opt| async move { get_events(topic_opt, 100).await },

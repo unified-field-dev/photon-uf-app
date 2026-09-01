@@ -10,6 +10,7 @@ use orbital::primitives::{Table, TableBody, TableCell, TableHeader, TableHeaderC
 
 /// Which columns [`EventsTable`] renders.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(clippy::struct_excessive_bools)] // column visibility flags; clearer than bitflags for Leptos props
 pub struct EventsTableColumns {
     /// Show the Event ID column (linked to detail page).
     pub show_event_id: bool,

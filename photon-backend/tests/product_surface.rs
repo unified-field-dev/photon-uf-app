@@ -169,8 +169,9 @@ fn server_require_session_happy_path() {
         "server must fail closed without a session"
     );
     assert!(
-        server.contains("Photon not in request context"),
-        "missing Photon context must surface a typed ServerFnError message"
+        server.contains("require_photon")
+            && server.contains("photon_from_context"),
+        "missing Photon context must delegate to photon_backend::ops::require_photon"
     );
     for call_site in ["get_dashboard_stats", "get_topics", "get_event"] {
         assert!(server.contains(call_site), "server missing `{call_site}`");

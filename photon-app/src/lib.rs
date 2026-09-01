@@ -198,10 +198,9 @@
 //! - `photon_backend` — id validation and pure mapping helpers used by these server fns.
 
 #![allow(missing_docs)]
-#![cfg_attr(
-    feature = "ssr",
-    allow(dead_code, unused_imports, unused_variables, unknown_lints)
-)]
+// Orbital / Leptos macros leave cfg-gated items that look unused under `ssr` alone;
+// keep the allow narrow to unknown_lints (workspace also allows unknown_lints).
+#![cfg_attr(feature = "ssr", allow(unknown_lints))]
 
 use leptos::prelude::*;
 use leptos_router::{

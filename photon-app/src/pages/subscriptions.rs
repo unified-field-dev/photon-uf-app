@@ -13,7 +13,7 @@ pub fn PhotonSubscriptionsIndexPage() -> impl IntoView {
     let search_query = RwSignal::new(String::new());
     let status_str = RwSignal::new(String::new());
 
-    let subs_res = Resource::new(|| (), |_| async move { get_subscriptions().await });
+    let subs_res = Resource::new(|| (), |()| async move { get_subscriptions().await });
 
     let filtered = Memo::new(move |_| {
         let subs: Vec<SubscriptionSummary> = match subs_res.get() {

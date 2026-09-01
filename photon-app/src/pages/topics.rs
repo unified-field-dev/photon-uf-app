@@ -11,7 +11,7 @@ use crate::server::{get_topics, TopicSummary};
 pub fn PhotonTopicsIndexPage() -> impl IntoView {
     let _navigate = use_navigate();
     let search_query = RwSignal::new(String::new());
-    let topics_res = Resource::new(|| (), |_| async move { get_topics().await });
+    let topics_res = Resource::new(|| (), |()| async move { get_topics().await });
 
     let filtered = Memo::new(move |_| {
         let topics: Vec<TopicSummary> = match topics_res.get() {

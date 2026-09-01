@@ -1,4 +1,8 @@
 //! Lazy-loaded route views for WASM code-splitting (`cargo leptos --split`).
+//!
+//! `LazyRoute::view` takes `Self` by value; leaf pages ignore it (trait shape).
+
+#![allow(clippy::used_underscore_binding)]
 
 use leptos::prelude::*;
 use leptos_router::{lazy_route, LazyRoute};

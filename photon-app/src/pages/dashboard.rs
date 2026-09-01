@@ -15,9 +15,9 @@ pub fn PhotonDashboardPage() -> impl IntoView {
     let navigate = use_navigate();
     let nav_events = navigate.clone();
     let nav_subs = navigate.clone();
-    let stats_res = Resource::new(|| (), |_| async move { get_dashboard_stats().await });
-    let events_res = Resource::new(|| (), |_| async move { get_recent_events(10).await });
-    let subs_res = Resource::new(|| (), |_| async move { get_subscriptions().await });
+    let stats_res = Resource::new(|| (), |()| async move { get_dashboard_stats().await });
+    let events_res = Resource::new(|| (), |()| async move { get_recent_events(10).await });
+    let subs_res = Resource::new(|| (), |()| async move { get_subscriptions().await });
 
     view! {
         <ContentContainer data_testid="photon-dashboard">

@@ -12,7 +12,7 @@ pub fn PhotonEventDetailPage() -> impl IntoView {
     let params = use_params_map();
     let id = move || params.get().get("id").unwrap_or_default();
 
-    let event_res = Resource::new(id.clone(), |eid| async move { get_event(eid).await });
+    let event_res = Resource::new(id, |eid| async move { get_event(eid).await });
 
     view! {
         <ContentContainer data_testid="photon-event-detail">
