@@ -93,7 +93,7 @@ valence = { package = "uf-valence", git = "https://github.com/unified-field-dev/
 higgs = { git = "https://github.com/unified-field-dev/higgs", branch = "main", default-features = false }
 higgs-host = { git = "https://github.com/unified-field-dev/higgs", branch = "main", default-features = false }
 higgs-identity = { git = "https://github.com/unified-field-dev/higgs", branch = "main" }
-gauge = { git = "https://github.com/deathbreakfast/gauge", branch = "main", default-features = false }
+gauge = { git = "https://github.com/unified-field-dev/gauge", branch = "main", default-features = false }
 
 orbital = { package = "orbital-ui", git = "https://github.com/unified-field-dev/orbital", branch = "main", default-features = false }
 orbital-macros = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
@@ -118,21 +118,6 @@ opt-level = "z"
 lto = "thin"
 codegen-units = 1
 debug = false
-
-# Latest deathbreakfast/gauge main uses monorepo-relative path deps that do not
-# resolve when consumed as a git crate. Prefer the L2 checkout.
-[patch."https://github.com/deathbreakfast/gauge"]
-gauge = { path = "../../L2-product-platform/gauge/gauge" }
-
-# Prefer monorepo Photon while developing against sibling checkouts.
-[patch."https://github.com/unified-field-dev/photon"]
-uf-photon = { path = "../../L0-upstream-cores/photon/photon" }
-uf-photon-core = { path = "../../L0-upstream-cores/photon/photon-core" }
-photon-runtime = { path = "../../L0-upstream-cores/photon/photon-runtime" }
-photon-backend = { path = "../../L0-upstream-cores/photon/photon-backend" }
-photon-macros = { path = "../../L0-upstream-cores/photon/photon-macros" }
-photon-telemetry = { path = "../../L0-upstream-cores/photon/photon-telemetry" }
-photon-backend-sqlite = { path = "../../L0-upstream-cores/photon/photon-backend-sqlite" }
 
 # Unify crates.io uf-valence / chronon / orbital onto the git tree (avoids duplicate types).
 [patch.crates-io]

@@ -83,11 +83,12 @@ cargo check -p photon-app --features ssr
 cargo check -p photon-uf-app-e2e --features ssr
 ```
 
-### leptos-lints (local; hydrate UI)
+### leptos-lints (CI job `leptos-lints`)
 
 Needs `cargo-dylint` / `dylint-link` 6.0.1 and toolchain `nightly-2025-05-14`
 (see `leptos-lints@v0.1.2`). Workspace `[workspace.metadata.dylint]` pins the
 library; rustc deny names are declared under `[workspace.lints.rust]`.
+GitHub Actions runs the same command.
 
 ```bash
 # cargo install cargo-dylint --locked --version 6.0.1
