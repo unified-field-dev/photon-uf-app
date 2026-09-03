@@ -10,8 +10,10 @@ pub const MAX_EVENT_LIST_LIMIT: u32 = 100;
 /// accepted by ops detail lookups.
 pub const MAX_PHOTON_ID_CHARS: usize = 256;
 
+/// ASCII controls (C0 + DEL) plus path separators. Avoids `char::is_control`,
+/// which is not `const` on the leptos-lints pinned nightly.
 const fn is_unsafe_ops_id_char(c: char) -> bool {
-    c.is_control() || c == '/' || c == '\\'
+    c <= '\u{1f}' || c == '\u{7f}' || c == '/' || c == '\\'
 }
 
 fn check_ops_id(raw: &str) -> Result<&str, PhotonIdErrorKind> {
