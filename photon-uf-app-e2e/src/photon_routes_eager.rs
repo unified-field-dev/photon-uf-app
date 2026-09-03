@@ -19,7 +19,6 @@ use photon_app::{
 /// Same paths as [`photon_app::PhotonRoutes`], without Lazy route views.
 #[component(transparent)]
 pub fn PhotonRoutesEager() -> impl leptos_router::MatchNestedRoutes + Clone {
-    photon_app::ensure_help_steps_linked();
     view! {
         <ParentRoute path=path!("photon") view=PhotonLayout>
             <Route path=path!("") view=PhotonDashboardPage />

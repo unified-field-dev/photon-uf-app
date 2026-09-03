@@ -35,5 +35,3 @@ cargo test -p photon-uf-app-e2e --features ssr --test boundary_contract
 | `e2e.topics.*` | Index→detail; unknown topic |
 | `e2e.subs.*` | Index→detail; unknown subscription |
 | `e2e.events.*` | Index→detail; unknown event |
-| `e2e.help.spotlight_skip` | Seeded `uf.help.tour_steps`; no tour overlay |
-| `e2e.help.spotlight_green` | `help_tour: true`; Next→Finish on all seven `/photon` routes |

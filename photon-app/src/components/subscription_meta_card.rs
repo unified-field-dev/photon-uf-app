@@ -20,19 +20,17 @@ pub fn SubscriptionMetaCard(
 
     view! {
         <style>{style_sheet}</style>
-        <div id="photon-sub-meta">
-            <Card>
-                <Body1 block=true class=class_names.meta>
-                    "Name: " {sub.subscription_name.clone()}
-                    " "
-                    <SubscriptionStatusBadge enabled=sub.enabled />
-                </Body1>
-                <Body1 block=true class=class_names.meta>"Topic: " {sub.topic_name.clone()}</Body1>
-                <Body1 block=true class=class_names.meta>"Mode: " {sub.mode.clone()}</Body1>
-                <Body1 block=true class=class_names.meta>"Key filter: " {sub.topic_key_filter.clone().unwrap_or_else(|| "(all)".to_string())}</Body1>
-                <Body1 block=true class=class_names.meta>"Checkpoint lag: " {sub.checkpoint_lag}</Body1>
-                {sub.last_seq.map(|seq| view! { <Body1 block=true class=class_names.meta>"Last seq: " {seq}</Body1> })}
-            </Card>
-        </div>
+        <Card>
+            <Body1 block=true class=class_names.meta>
+                "Name: " {sub.subscription_name.clone()}
+                " "
+                <SubscriptionStatusBadge enabled=sub.enabled />
+            </Body1>
+            <Body1 block=true class=class_names.meta>"Topic: " {sub.topic_name.clone()}</Body1>
+            <Body1 block=true class=class_names.meta>"Mode: " {sub.mode.clone()}</Body1>
+            <Body1 block=true class=class_names.meta>"Key filter: " {sub.topic_key_filter.clone().unwrap_or_else(|| "(all)".to_string())}</Body1>
+            <Body1 block=true class=class_names.meta>"Checkpoint lag: " {sub.checkpoint_lag}</Body1>
+            {sub.last_seq.map(|seq| view! { <Body1 block=true class=class_names.meta>"Last seq: " {seq}</Body1> })}
+        </Card>
     }
 }

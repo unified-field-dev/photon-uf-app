@@ -27,29 +27,27 @@ pub fn TopicSubscriptionsTable(
 
     view! {
         <style>{style_sheet}</style>
-        <div id="photon-topic-subs">
-            <Card>
-                <Table class=class_names.table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHeaderCell>"Name"</TableHeaderCell>
-                            <TableHeaderCell>"Enabled"</TableHeaderCell>
+        <Card>
+            <Table class=class_names.table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHeaderCell>"Name"</TableHeaderCell>
+                        <TableHeaderCell>"Enabled"</TableHeaderCell>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    <For
+                        each=move || subs.get_value()
+                        key=|s| s.subscription_id.clone()
+                        let:s
+                    >
+                        <TableRow class=class_names.row>
+                            <TableCell><a href=photon_backend::photon_subscription_path(&s.subscription_id) class=class_names.link>{s.subscription_name.clone()}</a></TableCell>
+                            <TableCell>{if s.enabled { "Yes" } else { "No" }}</TableCell>
                         </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        <For
-                            each=move || subs.get_value()
-                            key=|s| s.subscription_id.clone()
-                            let:s
-                        >
-                            <TableRow class=class_names.row>
-                                <TableCell><a href=photon_backend::photon_subscription_path(&s.subscription_id) class=class_names.link>{s.subscription_name.clone()}</a></TableCell>
-                                <TableCell>{if s.enabled { "Yes" } else { "No" }}</TableCell>
-                            </TableRow>
-                        </For>
-                    </TableBody>
-                </Table>
-            </Card>
-        </div>
+                    </For>
+                </TableBody>
+            </Table>
+        </Card>
     }
 }

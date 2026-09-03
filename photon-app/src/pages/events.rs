@@ -51,9 +51,7 @@ pub fn PhotonEventsIndexPage() -> impl IntoView {
                                             }.into_any()
                                         } else {
                                             view! {
-                                                <div id="photon-events-table">
-                                                    <EventsTable events=events />
-                                                </div>
+                                                <EventsTable events=events />
                                             }.into_any()
                                         }}
                                     </Card>

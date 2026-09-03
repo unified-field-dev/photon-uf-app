@@ -7,6 +7,7 @@ on:
   push:
     branches: [main, master]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,6 +16,8 @@ env:
   CARGO_TERM_COLOR: always
   CARGO_BUILD_JOBS: 1
   CARGO_TARGET_DIR: target-photon-uf-app
+  CARGO_INCREMENTAL: 0
+  CARGO_PROFILE_DEV_DEBUG: "0"
   RUST_BACKTRACE: 1
   # Leptos workspace deps enable the `nightly` feature.
   RUSTFLAGS: "-D warnings"
@@ -53,7 +56,7 @@ jobs:
           # photon-uf-app-e2e is a lab harness (expect-heavy); skip clippy there (boson pattern).
           cargo clippy -p photon-app --features ssr --all-targets -- -D warnings
 
-  test:
+  test-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -66,12 +69,26 @@ jobs:
         run: cargo test -p photon-backend@0.1.0
       - name: cargo test (photon ops IO)
         run: cargo test -p photon-backend@0.1.0 --features ops --test ops_photon_contract
+
+  test-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Free disk space
+        run: bash scripts/ci-free-disk.sh
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
       - name: cargo test (photon ops boundary)
         run: cargo test -p photon-uf-app-e2e --features ssr --test boundary_contract
-      - name: cargo check (photon-app + e2e host SSR)
-        run: |
-          cargo check -p photon-app --features ssr
-          cargo check -p photon-uf-app-e2e --features ssr
+
+  test-host:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
       - name: cargo check + run (protected-photon-host)
         run: |
           cargo check -p protected-photon-host
@@ -79,13 +96,26 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    # Cold leptos e2e (~setup + compile + suite); cap hung WASM boots.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Free disk space
+        run: bash scripts/ci-free-disk.sh
       - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
         with:
           toolchain: nightly
           targets: wasm32-unknown-unknown
+      - uses: actions/cache@v4
+        id: cargo-leptos-cache
+        with:
+          path: |
+            ~/.cargo/bin/cargo-leptos
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+          key: cargo-leptos-0.3.6-${{ runner.os }}
       - name: Install cargo-leptos
+        if: steps.cargo-leptos-cache.outputs.cache-hit != 'true'
         run: cargo install cargo-leptos --locked --version 0.3.6
       - uses: actions/setup-node@v4
         with:
@@ -112,12 +142,20 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         working-directory: photon-uf-app-e2e/end2end
         run: npx playwright install-deps chromium
+      - name: cargo leptos build (server then frontend)
+        env:
+          CI: true
+        run: |
+          # Serialize SSR + WASM so the runner does not compile two Orbital graphs at once
+          # (parallel compile OOM/kill → exit 143).
+          cargo leptos build --project photon-uf-app-e2e --server-only
+          cargo leptos build --project photon-uf-app-e2e --frontend-only
       - name: cargo leptos end-to-end
         env:
           CI: true
         run: cargo leptos end-to-end --project photon-uf-app-e2e
       - name: Upload Playwright artifacts on failure
-        if: failure()
+        if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-artifacts-photon-uf-app-${{ github.run_id }}
@@ -142,6 +180,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Free disk space
+        run: bash scripts/ci-free-disk.sh
       - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
         with:
           toolchain: nightly

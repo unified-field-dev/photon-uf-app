@@ -28,7 +28,7 @@ pub fn EventMetaCard(
 
     view! {
         <style>{style_sheet}</style>
-        <div class=class_names.section id="photon-event-meta">
+        <div class=class_names.section>
             <Card>
                 <Body1 block=true class=class_names.muted>"Topic: " {event.topic_name.clone()}</Body1>
                 <Body1 block=true class=class_names.muted>"Key: " {event.topic_key.clone().unwrap_or_else(|| "\u{2014}".to_string())}</Body1>
@@ -42,13 +42,13 @@ pub fn EventMetaCard(
                 "Transport payload expired (retention). Metadata only."
             </MessageBar>
         })}
-        <div class=class_names.section id="photon-event-payload">
+        <div class=class_names.section>
             <Subtitle2>"Payload"</Subtitle2>
             <Text tag=TextTag::Pre font=TextFont::Monospace size=TextSize::S200 block=true class=class_names.code_block>
                 {serde_json::to_string_pretty(&event.payload_json).unwrap_or_default()}
             </Text>
         </div>
-        <div class=class_names.section id="photon-event-actor">
+        <div class=class_names.section>
             <Subtitle2>"Actor"</Subtitle2>
             <Text tag=TextTag::Pre font=TextFont::Monospace size=TextSize::S200 block=true class=class_names.code_block>
                 {serde_json::to_string_pretty(&event.actor_json).unwrap_or_default()}

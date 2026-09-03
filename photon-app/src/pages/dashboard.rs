@@ -39,32 +39,28 @@ pub fn PhotonDashboardPage() -> impl IntoView {
                 <Flex vertical=true gap=SpacingSize::Size160.flex_gap()>
                     <Space>
                         <Subtitle2>"Recent Events"</Subtitle2>
-                        <div id="photon-dashboard-view-events">
-                            <Button
-                                appearance=ButtonAppearance::Subtle
-                                on_click=Callback::new(move |_| nav_events(crate::paths::EVENTS, NavigateOptions::default()))
-                            >
-                                "View All \u{2192}"
-                            </Button>
-                        </div>
+                        <Button
+                            appearance=ButtonAppearance::Subtle
+                            on_click=Callback::new(move |_| nav_events(crate::paths::EVENTS, NavigateOptions::default()))
+                        >
+                            "View All \u{2192}"
+                        </Button>
                     </Space>
                     <Suspense fallback=move || view! { <Card>"Loading..."</Card> }>
                         {move || match events_res.get() {
                             Some(Ok(events)) => view! {
-                                <div id="photon-dashboard-recent-events">
-                                    <Card>
-                                        <EventsTable
-                                            events=events
-                                            columns=EventsTableColumns {
-                                                show_event_id: false,
-                                                show_key: true,
-                                                show_topic: true,
-                                                show_seq: true,
-                                                show_created: true,
-                                            }
-                                        />
-                                    </Card>
-                                </div>
+                                <Card>
+                                    <EventsTable
+                                        events=events
+                                        columns=EventsTableColumns {
+                                            show_event_id: false,
+                                            show_key: true,
+                                            show_topic: true,
+                                            show_seq: true,
+                                            show_created: true,
+                                        }
+                                    />
+                                </Card>
                             }.into_any(),
                             Some(Err(e)) => view! { <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar> }.into_any(),
                             None => view! { <Card>"Loading..."</Card> }.into_any(),
@@ -75,23 +71,19 @@ pub fn PhotonDashboardPage() -> impl IntoView {
                 <Flex vertical=true gap=SpacingSize::Size160.flex_gap()>
                     <Space>
                         <Subtitle2>"Active Subscriptions"</Subtitle2>
-                        <div id="photon-dashboard-view-subs">
-                            <Button
-                                appearance=ButtonAppearance::Subtle
-                                on_click=Callback::new(move |_| nav_subs(crate::paths::SUBSCRIPTIONS, NavigateOptions::default()))
-                            >
-                                "View All \u{2192}"
-                            </Button>
-                        </div>
+                        <Button
+                            appearance=ButtonAppearance::Subtle
+                            on_click=Callback::new(move |_| nav_subs(crate::paths::SUBSCRIPTIONS, NavigateOptions::default()))
+                        >
+                            "View All \u{2192}"
+                        </Button>
                     </Space>
                     <Suspense fallback=move || view! { <Card>"Loading..."</Card> }>
                         {move || match subs_res.get() {
                             Some(Ok(subs)) => view! {
-                                <div id="photon-dashboard-active-subs">
-                                    <Card>
-                                        <ActiveSubscriptionsTable subs=subs />
-                                    </Card>
-                                </div>
+                                <Card>
+                                    <ActiveSubscriptionsTable subs=subs />
+                                </Card>
                             }.into_any(),
                             Some(Err(e)) => view! { <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar> }.into_any(),
                             None => view! { <Card>"Loading..."</Card> }.into_any(),

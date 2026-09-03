@@ -2,12 +2,9 @@ use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
 use orbital::components::{Body1, Card, ContentContainer, EmptyState, SpacingSize, Title3};
 use orbital::primitives::{Flex, FlexGap, Input, InputAppearance, MessageBar, MessageBarIntent};
-use std::sync::OnceLock;
 
 use crate::components::TopicCard;
 use crate::server::{get_topics, TopicSummary};
-
-static TOPICS_SPOTLIGHT_CARD: OnceLock<String> = OnceLock::new();
 
 /// Topic index: searchable list of all registered topics with traffic summaries.
 #[component]
@@ -57,7 +54,7 @@ pub fn PhotonTopicsIndexPage() -> impl IntoView {
                             let all_count = topics_res.get().map_or(0, |r| r.as_ref().ok().map_or(0, Vec::len));
                             view! {
                                 <Flex vertical=true gap=SpacingSize::Size160.flex_gap()>
-                                    <div class=class_names.search_box id="photon-topics-search">
+                                    <div class=class_names.search_box>
                                         <Input bind=search_query appearance=InputAppearance::with_placeholder("Search topics...") />
                                     </div>
                                     <Card>
@@ -85,14 +82,7 @@ pub fn PhotonTopicsIndexPage() -> impl IntoView {
                                                         key=|t| t.topic_name.clone()
                                                         let:t
                                                     >
-                                                        {
-                                                            let spotlight_ids = TOPICS_SPOTLIGHT_CARD
-                                                                .set(t.topic_name.clone())
-                                                                .is_ok();
-                                                            view! {
-                                                                <TopicCard topic=t spotlight_ids=spotlight_ids />
-                                                            }
-                                                        }
+                                                        <TopicCard topic=t />
                                                     </For>
                                                 </Flex>
                                             }.into_any()

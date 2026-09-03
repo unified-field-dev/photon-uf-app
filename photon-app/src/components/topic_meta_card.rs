@@ -18,12 +18,10 @@ pub fn TopicMetaCard(
 
     view! {
         <style>{style_sheet}</style>
-        <div id="photon-topic-meta">
-            <Card>
-                <Body1 block=true class=class_names.meta>"Keyed by: " {topic.keyed_by.clone().unwrap_or_else(|| "-".to_string())}</Body1>
-                <Body1 block=true class=class_names.meta>"Schema: " {topic.schema_json.clone()}</Body1>
-                <Body1 block=true class=class_names.meta>"Events (24h): " {topic.event_count_24h} " | Subscriptions: " {topic.subscription_count}</Body1>
-            </Card>
-        </div>
+        <Card>
+            <Body1 block=true class=class_names.meta>"Keyed by: " {topic.keyed_by.clone().unwrap_or_else(|| "-".to_string())}</Body1>
+            <Body1 block=true class=class_names.meta>"Schema: " {topic.schema_json.clone()}</Body1>
+            <Body1 block=true class=class_names.meta>"Events (24h): " {topic.event_count_24h} " | Subscriptions: " {topic.subscription_count}</Body1>
+        </Card>
     }
 }

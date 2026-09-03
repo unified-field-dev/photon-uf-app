@@ -24,16 +24,12 @@ pub fn SubscriptionFilterToolbar(
     view! {
         <style>{style_sheet}</style>
         <div class=class_names.toolbar>
-            <div id="photon-subs-search">
-                <Input bind=search_query appearance=InputAppearance::with_placeholder("Search subscriptions...") />
-            </div>
-            <div id="photon-subs-status">
-                <Select bind=status_str>
-                    <option value="">"Status: All"</option>
-                    <option value="on">"ON"</option>
-                    <option value="off">"OFF"</option>
-                </Select>
-            </div>
+            <Input bind=search_query appearance=InputAppearance::with_placeholder("Search subscriptions...") />
+            <Select bind=status_str>
+                <option value="">"Status: All"</option>
+                <option value="on">"ON"</option>
+                <option value="off">"OFF"</option>
+            </Select>
         </div>
     }
 }
