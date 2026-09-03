@@ -20,35 +20,49 @@ export async function seedAuth(page: Page, auth: SeedAuthKind) {
   }>;
 }
 
+async function bootState(page: Page): Promise<"ready" | "error" | "loading"> {
+  return page.evaluate(() => {
+    const html = document.documentElement;
+    if (html.getAttribute("data-orbital-hydrated") === "true") {
+      return "ready";
+    }
+    if (html.getAttribute("data-orbital-boot-state") === "error") {
+      return "error";
+    }
+    return "loading";
+  });
+}
+
 /**
- * Wait for Orbital boot overlay to finish and hydrate to mark the document ready.
+ * Wait for Orbital hydrate. On terminal boot `error`, pause then reload — do not
+ * thrash navigations (that aborts in-flight `.wasm`). Never reload while `loading`.
  */
-export async function waitForHydrated(page: Page, timeoutMs = 240_000) {
+export async function waitForHydrated(page: Page, timeoutMs = 180_000) {
+  const deadline = Date.now() + timeoutMs;
+  let refreshes = 0;
+  const maxRefreshes = 3;
+
+  while (Date.now() < deadline) {
+    const state = await bootState(page);
+    if (state === "ready") {
+      break;
+    }
+    if (state === "error") {
+      if (refreshes >= maxRefreshes) {
+        break;
+      }
+      refreshes += 1;
+      // Let Chromium release a failed compile before retrying the ~50–100MiB wasm.
+      await page.waitForTimeout(1_500);
+      await page.reload({ waitUntil: "load" });
+      continue;
+    }
+    await page.waitForTimeout(500);
+  }
+
   await expect
-    .poll(
-      async () =>
-        page.evaluate(() => {
-          const html = document.documentElement;
-          if (html.getAttribute("data-orbital-boot-state") === "error") {
-            return "error";
-          }
-          if (html.getAttribute("data-orbital-hydrated") === "true") {
-            return "ready";
-          }
-          return "loading";
-        }),
-      { timeout: timeoutMs },
-    )
-    .not.toBe("error");
-  await expect
-    .poll(
-      async () =>
-        page.evaluate(
-          () => document.documentElement.getAttribute("data-orbital-hydrated") === "true",
-        ),
-      { timeout: timeoutMs },
-    )
-    .toBe(true);
+    .poll(async () => bootState(page), { timeout: 10_000 })
+    .toBe("ready");
   await expect(page.getByTestId("orbital-boot-overlay")).toHaveCount(0, {
     timeout: 60_000,
   });

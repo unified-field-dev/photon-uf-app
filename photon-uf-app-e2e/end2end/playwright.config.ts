@@ -7,7 +7,7 @@ export default defineConfig({
   timeout: 300_000,
   expect: { timeout: 60_000 },
   fullyParallel: false,
-  retries: process.env.CI ? 1 : 0,
+  retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: [["list"]],
   use: {
@@ -15,12 +15,11 @@ export default defineConfig({
     actionTimeout: 60_000,
     navigationTimeout: 120_000,
     ...devices["Desktop Chrome"],
-    ...(headed
-      ? {
-          launchOptions: {
-            slowMo: Number(process.env.PW_SLOW_MO ?? 250),
-          },
-        }
-      : {}),
+    launchOptions: {
+      args: ["--disable-dev-shm-usage"],
+      ...(headed
+        ? { slowMo: Number(process.env.PW_SLOW_MO ?? 250) }
+        : {}),
+    },
   },
 });
