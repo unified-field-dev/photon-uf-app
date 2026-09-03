@@ -1,0 +1,157 @@
+[workspace]
+resolver = "2"
+members = [
+    "photon-app",
+    "photon-backend",
+    "photon-uf-app-e2e",
+    "examples/protected-photon-host",
+]
+
+[[workspace.metadata.leptos]]
+name = "photon-uf-app-e2e"
+output-name = "photon-uf-app-e2e"
+bin-package = "photon-uf-app-e2e"
+lib-package = "photon-uf-app-e2e"
+site-root = "photon-uf-app-e2e/site"
+site-pkg-dir = "pkg"
+style-file = "photon-uf-app-e2e/style/main.scss"
+assets-dir = "photon-uf-app-e2e/public"
+end2end-dir = "photon-uf-app-e2e/end2end"
+end2end-cmd = "npm test"
+# Clear of product hosts (:3000–:3001), lepton kit (:3120), lepton-uf-app (:3140),
+# gauge (:3150), neutrino (:3160), boson (:3170), chronon (:3180).
+site-addr = "127.0.0.1:3190"
+reload-port = 3191
+bin-features = ["ssr"]
+lib-features = ["hydrate"]
+bin-default-features = false
+lib-default-features = false
+disable-erase-components = true
+lib-profile-dev = "wasm-release"
+lib-profile-release = "wasm-release"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["Sean O'Rourke"]
+repository = "https://github.com/unified-field-dev/photon-uf-app"
+homepage = "https://github.com/unified-field-dev/photon-uf-app"
+documentation = "https://github.com/unified-field-dev/photon-uf-app"
+
+[workspace.lints.rust]
+missing_docs = "deny"
+# leptos-lints (Dylint) names are unknown to rustc/clippy alone
+unknown_lints = "allow"
+leptos_print_stdout = "deny"
+leptos_event_target = "deny"
+leptos_event_target_value = "deny"
+leptos_unscoped_spawn = "deny"
+
+[workspace.metadata.dylint]
+libraries = [{ git = "https://github.com/leptos-rs/leptos-lints", tag = "v0.1.2" }]
+
+[workspace.lints.rustdoc]
+# Sibling crates and cfg-gated modules are often referenced from public crate docs without
+# being in the same rustdoc unit when building with --no-deps.
+broken_intra_doc_links = "allow"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"
+dbg_macro = "deny"
+print_stdout = "deny"
+print_stderr = "deny"
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+return_self_not_must_use = "allow"
+
+[workspace.dependencies]
+leptos = { version = "0.8.20", default-features = false, features = ["nightly"] }
+leptos_meta = { version = "0.8", default-features = false }
+leptos_router = { version = "0.8", default-features = false, features = ["nightly"] }
+leptos_axum = { version = "0.8", default-features = false }
+leptos_config = { version = "0.8", default-features = false }
+leptos_dom = { version = "0.8", default-features = false }
+leptos_macro = { version = "0.8", default-features = false }
+leptos_server = { version = "0.8", default-features = false }
+
+icondata = { version = "0.4.0", default-features = false, features = ["ant-design-icons", "box-icons", "lucide"] }
+icondata_core = "0.1.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+turf = "0.10"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std", "wasmbind", "serde"] }
+
+photon = { package = "uf-photon", git = "https://github.com/unified-field-dev/photon", branch = "main", default-features = false }
+photon-core = { package = "uf-photon-core", git = "https://github.com/unified-field-dev/photon", branch = "main", default-features = false }
+valence = { package = "uf-valence", git = "https://github.com/unified-field-dev/valence", branch = "main", default-features = false, features = ["mem", "sqlite"] }
+higgs = { git = "https://github.com/unified-field-dev/higgs", branch = "main", default-features = false }
+higgs-host = { git = "https://github.com/unified-field-dev/higgs", branch = "main", default-features = false }
+higgs-identity = { git = "https://github.com/unified-field-dev/higgs", branch = "main" }
+gauge = { git = "https://github.com/unified-field-dev/gauge", branch = "main", default-features = false }
+
+orbital = { package = "orbital-ui", git = "https://github.com/unified-field-dev/orbital", branch = "main", default-features = false }
+orbital-macros = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+
+uf-integrations = { git = "https://github.com/unified-field-dev/unified-field-product", branch = "main", default-features = false }
+uf-product-macros = { git = "https://github.com/unified-field-dev/unified-field-product", branch = "main" }
+uf-product = { git = "https://github.com/unified-field-dev/unified-field-product", branch = "main", default-features = false }
+uf-help = { git = "https://github.com/unified-field-dev/unified-field-product", branch = "main", default-features = false }
+uf-help-macros = { git = "https://github.com/unified-field-dev/unified-field-product", branch = "main" }
+lepton-shell = { git = "https://github.com/unified-field-dev/lepton-uf-app", branch = "main", default-features = false }
+inventory = "0.3"
+wasm-bindgen = "=0.2.126"
+anyhow = "1"
+async-trait = "0.1"
+log = "0.4"
+tower-sessions = "0.14.0"
+axum = { version = "0.8", default-features = false }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync"] }
+lepton = { git = "https://github.com/unified-field-dev/lepton", branch = "main", default-features = false }
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+lto = "thin"
+codegen-units = 1
+debug = false
+
+# Unify crates.io uf-valence / chronon / orbital onto the git tree (avoids duplicate types).
+[patch.crates-io]
+uf-valence = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-core = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-codegen = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-macros = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-telemetry = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-backend-mem = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-backend-sqlite = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-backend-sql = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+uf-valence-schema-dsl = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
+chronon-core = { git = "https://github.com/unified-field-dev/chronon", branch = "main" }
+chronon-executor = { git = "https://github.com/unified-field-dev/chronon", branch = "main" }
+chronon-scheduler = { git = "https://github.com/unified-field-dev/chronon", branch = "main" }
+chronon-telemetry = { git = "https://github.com/unified-field-dev/chronon", branch = "main" }
+orbital-paging = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-data = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-ui = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-macros = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-shell = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-core-components = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-base-components = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-primitives = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-theme = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-datatable = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-date-pickers = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-charts = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-tree = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-scheduler = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-motion = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-discussion = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-history = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-markdown = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-style = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }

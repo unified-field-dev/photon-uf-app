@@ -1,0 +1,158 @@
+# PR / merge gate aligned with docs/VERIFICATION.md (photon-backend + teaching
+# host + ops Photon IO + photon-uf-app-e2e boundary + Playwright).
+# Standalone checkout — UF deps resolve via git branch = main on unified-field-dev.
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_BUILD_JOBS: 1
+  CARGO_TARGET_DIR: target-photon-uf-app
+  RUST_BACKTRACE: 1
+  # Leptos workspace deps enable the `nightly` feature.
+  RUSTFLAGS: "-D warnings"
+  PHOTON_ALLOW_DEV_TRANSPORT_KEY: "1"
+  PHOTON_TRANSPORT_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+          components: rustfmt
+      - name: cargo fmt --check
+        run: >
+          cargo fmt -p photon-backend -p photon-app -p protected-photon-host -p photon-uf-app-e2e
+          -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+          components: clippy
+      - name: cargo clippy (photon-backend + teaching host)
+        run: |
+          cargo clippy -p photon-backend@0.1.0 --all-targets -- -D warnings
+          cargo clippy -p photon-backend@0.1.0 --features ops --all-targets -- -D warnings
+          cargo clippy -p protected-photon-host --all-targets -- -D warnings
+      - name: cargo clippy (photon-app SSR)
+        run: |
+          # photon-uf-app-e2e is a lab harness (expect-heavy); skip clippy there (boson pattern).
+          cargo clippy -p photon-app --features ssr --all-targets -- -D warnings
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+      - name: cargo test (sibling-source UI contracts)
+        run: cargo test -p photon-backend@0.1.0 --test workspace_members --test product_surface
+      - name: cargo test (photon-backend contracts)
+        run: cargo test -p photon-backend@0.1.0
+      - name: cargo test (photon ops IO)
+        run: cargo test -p photon-backend@0.1.0 --features ops --test ops_photon_contract
+      - name: cargo test (photon ops boundary)
+        run: cargo test -p photon-uf-app-e2e --features ssr --test boundary_contract
+      - name: cargo check (photon-app + e2e host SSR)
+        run: |
+          cargo check -p photon-app --features ssr
+          cargo check -p photon-uf-app-e2e --features ssr
+      - name: cargo check + run (protected-photon-host)
+        run: |
+          cargo check -p protected-photon-host
+          cargo run -p protected-photon-host
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+          targets: wasm32-unknown-unknown
+      - name: Install cargo-leptos
+        run: cargo install cargo-leptos --locked --version 0.3.6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: photon-uf-app-e2e/end2end/package-lock.json
+      - name: Install npm dependencies
+        working-directory: photon-uf-app-e2e/end2end
+        run: npm ci
+      - name: Get Playwright version
+        id: pw-version
+        working-directory: photon-uf-app-e2e/end2end
+        run: echo "version=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")" >> $GITHUB_OUTPUT
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw-version.outputs.version }}-photon-uf-app
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        working-directory: photon-uf-app-e2e/end2end
+        run: npx playwright install --with-deps chromium
+      - name: Install Playwright OS deps when cache hit
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        working-directory: photon-uf-app-e2e/end2end
+        run: npx playwright install-deps chromium
+      - name: cargo leptos end-to-end
+        env:
+          CI: true
+        run: cargo leptos end-to-end --project photon-uf-app-e2e
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts-photon-uf-app-${{ github.run_id }}
+          path: |
+            photon-uf-app-e2e/end2end/playwright-report/
+            photon-uf-app-e2e/end2end/test-results/
+          if-no-files-found: ignore
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+      - name: cargo doc (photon-backend, deny broken intra-doc links)
+        env:
+          RUSTDOCFLAGS: "-D rustdoc::broken-intra-doc-links"
+        run: cargo doc -p photon-backend@0.1.0 --no-deps
+
+  leptos-lints:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master (pin)
+        with:
+          toolchain: nightly
+      - name: Install cargo-dylint
+        run: |
+          cargo install cargo-dylint --locked --version 6.0.1 --force
+          cargo install dylint-link --locked --version 6.0.1 --force
+      - name: Install leptos-lints nightly toolchain
+        run: rustup toolchain install nightly-2025-05-14 --component rustc-dev,llvm-tools-preview
+      - name: cargo dylint (photon-app hydrate)
+        env:
+          CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS: fallback
+          RUSTFLAGS: "-D warnings -Zcrate-attr=feature(stdarch_x86_avx512)"
+        run: cargo dylint --all -p photon-app --no-deps -- --features hydrate

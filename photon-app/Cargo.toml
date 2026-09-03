@@ -1,0 +1,80 @@
+[package]
+name = "photon-app"
+version = "0.1.0"
+edition = "2021"
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+description = "Leptos ops UI for Photon topics, subscriptions, and events under /photon"
+readme = "README.md"
+
+[lints]
+workspace = true
+
+[dependencies]
+leptos.workspace = true
+leptos_meta.workspace = true
+leptos_router.workspace = true
+leptos_config.workspace = true
+leptos_dom.workspace = true
+leptos_macro.workspace = true
+leptos_server.workspace = true
+leptos_axum = { workspace = true, optional = true }
+
+icondata.workspace = true
+icondata_core.workspace = true
+
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+turf.workspace = true
+photon-backend = { path = "../photon-backend" }
+
+orbital = { workspace = true, default-features = false }
+uf-integrations = { workspace = true, default-features = false }
+lepton-shell = { workspace = true, default-features = false }
+orbital-macros = { workspace = true }
+uf-product-macros = { workspace = true }
+uf-product = { workspace = true, default-features = false, optional = true }
+uf-help = { workspace = true, default-features = false }
+uf-help-macros = { workspace = true }
+inventory = { workspace = true, optional = true }
+
+photon = { workspace = true, optional = true }
+chrono = { workspace = true, optional = true }
+higgs = { workspace = true, optional = true }
+gauge = { workspace = true, optional = true }
+
+[features]
+default = []
+hydrate = [
+    "leptos/hydrate",
+    "uf-integrations/hydrate",
+    "lepton-shell/hydrate",
+    "dep:uf-product",
+    "uf-product/hydrate",
+    "uf-help/hydrate",
+]
+ssr = [
+    "leptos/ssr",
+    "leptos_meta/ssr",
+    "leptos_router/ssr",
+    "dep:leptos_axum",
+    "orbital/ssr",
+    "uf-integrations/ssr",
+    "lepton-shell/ssr",
+    "dep:photon",
+    "photon/runtime",
+    "photon/mem",
+    "photon-backend/ops",
+    "dep:chrono",
+    "dep:higgs",
+    "higgs/ssr",
+    "dep:gauge",
+    "gauge/ssr",
+    "dep:uf-product",
+    "uf-product/ssr",
+    "uf-help/ssr",
+    "dep:inventory",
+]

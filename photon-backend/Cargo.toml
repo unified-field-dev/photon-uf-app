@@ -1,0 +1,34 @@
+[package]
+name = "photon-backend"
+version = "0.1.0"
+edition = "2021"
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+description = "Pure topic/subscription/event contracts backing photon-app server functions"
+readme = "README.md"
+
+[lints]
+workspace = true
+
+[dependencies]
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+photon = { workspace = true, optional = true }
+
+[features]
+default = []
+# Photon IO helpers for ops UI server fns and SSR/IsolatedLab integ tests.
+ops = ["dep:photon", "photon/runtime", "photon/mem"]
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+futures = "0.3"
+photon-core = { workspace = true }
+
+[[test]]
+name = "ops_photon_contract"
+required-features = ["ops"]
