@@ -131,7 +131,6 @@ Scenario IDs (validating happy + sad):
 - `e2e.topics.index_happy` / `e2e.topics.detail_happy` / `e2e.topics.not_found_sad`
 - `e2e.subs.index_happy` / `e2e.subs.detail_happy` / `e2e.subs.not_found_sad`
 - `e2e.events.index_happy` / `e2e.events.detail_happy` / `e2e.events.not_found_sad`
-- `e2e.help.spotlight_skip` / `e2e.help.spotlight_green` (all seven routes)
 
 Catalog: [`photon-uf-app-e2e/README.md`](../photon-uf-app-e2e/README.md).
 

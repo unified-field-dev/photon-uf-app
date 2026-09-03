@@ -25,8 +25,6 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
 #[component]
 pub fn App() -> impl IntoView {
     provide_meta_context();
-    photon_app::ensure_help_steps_linked();
-    uf_help::ensure_linked();
     #[cfg(feature = "ssr")]
     {
         provide_context(crate::e2e_higgs_config());

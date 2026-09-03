@@ -37,8 +37,6 @@ lepton-shell = { workspace = true, default-features = false }
 orbital-macros = { workspace = true }
 uf-product-macros = { workspace = true }
 uf-product = { workspace = true, default-features = false, optional = true }
-uf-help = { workspace = true, default-features = false }
-uf-help-macros = { workspace = true }
 inventory = { workspace = true, optional = true }
 
 photon = { workspace = true, optional = true }
@@ -54,7 +52,6 @@ hydrate = [
     "lepton-shell/hydrate",
     "dep:uf-product",
     "uf-product/hydrate",
-    "uf-help/hydrate",
 ]
 ssr = [
     "leptos/ssr",
@@ -75,6 +72,5 @@ ssr = [
     "gauge/ssr",
     "dep:uf-product",
     "uf-product/ssr",
-    "uf-help/ssr",
     "dep:inventory",
 ]

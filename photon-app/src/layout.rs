@@ -4,10 +4,10 @@ use leptos_router::components::Outlet;
 use orbital::components::{
     Navigation, NavigationBody, NavigationConfig, NavigationLink, NavigationMaterial,
 };
+use orbital::routes::RequireAuthenticated;
 use uf_integrations::{
     ShellAppBar, ShellAuthMenu, ShellLeftNav, UnifiedFieldAppBar, UnifiedFieldShellLayout,
 };
-use uf_product::routes::RequireAuthenticated;
 
 use crate::paths;
 use crate::AppMetadata;
@@ -41,12 +41,10 @@ pub fn PhotonLayout() -> impl IntoView {
                 <Navigation config=NavigationConfig::new().with_selected_value(selected_value).with_open_categories(open_categories)>
                     <NavigationMaterial slot />
                     <NavigationBody slot>
-                        <div id="photon-nav">
-                            <NavigationLink path=paths::ROOT value=paths::ROOT icon=icondata::AiHomeOutlined exact=true test_id="nav-photon-dashboard">"Dashboard"</NavigationLink>
-                            <NavigationLink path=paths::TOPICS value=paths::TOPICS icon=icondata::AiBellOutlined test_id="nav-photon-topics">"Topics"</NavigationLink>
-                            <NavigationLink path=paths::SUBSCRIPTIONS value=paths::SUBSCRIPTIONS icon=icondata::AiUnorderedListOutlined test_id="nav-photon-subscriptions">"Subscriptions"</NavigationLink>
-                            <NavigationLink path=paths::EVENTS value=paths::EVENTS icon=icondata::AiHistoryOutlined test_id="nav-photon-events">"Events"</NavigationLink>
-                        </div>
+                        <NavigationLink path=paths::ROOT value=paths::ROOT icon=icondata::AiHomeOutlined exact=true test_id="nav-photon-dashboard">"Dashboard"</NavigationLink>
+                        <NavigationLink path=paths::TOPICS value=paths::TOPICS icon=icondata::AiBellOutlined test_id="nav-photon-topics">"Topics"</NavigationLink>
+                        <NavigationLink path=paths::SUBSCRIPTIONS value=paths::SUBSCRIPTIONS icon=icondata::AiUnorderedListOutlined test_id="nav-photon-subscriptions">"Subscriptions"</NavigationLink>
+                        <NavigationLink path=paths::EVENTS value=paths::EVENTS icon=icondata::AiHistoryOutlined test_id="nav-photon-events">"Events"</NavigationLink>
                     </NavigationBody>
                 </Navigation>
             </ShellLeftNav>

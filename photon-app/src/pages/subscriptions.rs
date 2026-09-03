@@ -2,12 +2,9 @@ use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
 use orbital::components::{Body1, Card, ContentContainer, EmptyState, SpacingSize, Title3};
 use orbital::primitives::{Flex, FlexGap, MessageBar, MessageBarIntent};
-use std::sync::OnceLock;
 
 use crate::components::{SubscriptionCard, SubscriptionFilterToolbar};
 use crate::server::{get_subscriptions, SubscriptionSummary};
-
-static SUBS_SPOTLIGHT_CARD: OnceLock<String> = OnceLock::new();
 
 /// Subscription index: searchable, filterable list of all subscriptions.
 #[component]
@@ -84,14 +81,7 @@ pub fn PhotonSubscriptionsIndexPage() -> impl IntoView {
                                                         key=|s| s.subscription_id.clone()
                                                         let:s
                                                     >
-                                                        {
-                                                            let spotlight_ids = SUBS_SPOTLIGHT_CARD
-                                                                .set(s.subscription_id.clone())
-                                                                .is_ok();
-                                                            view! {
-                                                                <SubscriptionCard sub=s spotlight_ids=spotlight_ids />
-                                                            }
-                                                        }
+                                                        <SubscriptionCard sub=s />
                                                     </For>
                                                 </Flex>
                                             }.into_any()

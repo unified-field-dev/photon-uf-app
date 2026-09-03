@@ -18,9 +18,6 @@ use crate::server::TopicSummary;
 pub fn TopicCard(
     /// Topic data to display.
     topic: TopicSummary,
-    /// When true, attach spotlight tour ids (first card only).
-    #[prop(default = false)]
-    spotlight_ids: bool,
 ) -> impl IntoView {
     let navigate = use_navigate();
     let nav_store = StoredValue::new(navigate);
@@ -39,73 +36,60 @@ pub fn TopicCard(
     let event_count = topic.event_count_24h;
     let sub_count = topic.subscription_count;
 
-    let card_id = spotlight_ids.then_some("photon-topics-card");
-    let view_id = spotlight_ids.then_some("photon-topics-btn-view");
-    let events_id = spotlight_ids.then_some("photon-topics-btn-view-events");
-    let subs_id = spotlight_ids.then_some("photon-topics-btn-view-subs");
-
     view! {
-        <div id=card_id>
-            <Card
-                attr:data-testid=test_id
-                variant=MaterialVariant::Outlined
-                elevation=MaterialElevation::Flat
-                gap=FlexGap::Size(0)
-            >
-                <CardButtonArea on_click=Callback::new({
-                    let nav = nav_store.with_value(|n: &_| n.clone());
-                    let name_click = name_click.clone();
-                    move |_: ev::MouseEvent| {
-                        nav(
-                            &photon_backend::photon_topic_path(&name_click),
-                            NavigateOptions::default(),
-                        );
-                    }
-                })>
-                    <CardContent>
-                        <Flex vertical=true gap=FlexGap::Size(4)>
-                            <Body1Strong block=true>{name.clone()}{if keyed { " KEYED" } else { "" }}</Body1Strong>
-                            {keyed_by_view}
-                            <Caption1 block=true>"Schema: " {schema}</Caption1>
-                            <Caption1 block=true>"Events (24h): " {event_count} " | Subscriptions: " {sub_count}</Caption1>
-                        </Flex>
-                    </CardContent>
-                </CardButtonArea>
-                <CardFooter>
-                    <Flex gap=FlexGap::Small>
-                        <div id=view_id>
-                            <Button size=ButtonSize::Small appearance=ButtonAppearance::Subtle on_click=Callback::new({
-                                let nav = nav_store.with_value(|n: &_| n.clone());
-                                move |ev: ev::MouseEvent| {
-                                    ev.stop_propagation();
-                                    nav(
-                                        &photon_backend::photon_topic_path(&name_btn),
-                                        NavigateOptions::default(),
-                                    );
-                                }
-                            })>"View"</Button>
-                        </div>
-                        <div id=events_id>
-                            <Button size=ButtonSize::Small appearance=ButtonAppearance::Subtle on_click=Callback::new({
-                                let nav = nav_store.with_value(|n: &_| n.clone());
-                                move |ev: ev::MouseEvent| {
-                                    ev.stop_propagation();
-                                    nav(crate::paths::EVENTS, NavigateOptions::default());
-                                }
-                            })>"View Events"</Button>
-                        </div>
-                        <div id=subs_id>
-                            <Button size=ButtonSize::Small appearance=ButtonAppearance::Subtle on_click=Callback::new({
-                                let nav = nav_store.with_value(|n: &_| n.clone());
-                                move |ev: ev::MouseEvent| {
-                                    ev.stop_propagation();
-                                    nav(crate::paths::SUBSCRIPTIONS, NavigateOptions::default());
-                                }
-                            })>"View Subscriptions"</Button>
-                        </div>
+        <Card
+            attr:data-testid=test_id
+            variant=MaterialVariant::Outlined
+            elevation=MaterialElevation::Flat
+            gap=FlexGap::Size(0)
+        >
+            <CardButtonArea on_click=Callback::new({
+                let nav = nav_store.with_value(|n: &_| n.clone());
+                let name_click = name_click.clone();
+                move |_: ev::MouseEvent| {
+                    nav(
+                        &photon_backend::photon_topic_path(&name_click),
+                        NavigateOptions::default(),
+                    );
+                }
+            })>
+                <CardContent>
+                    <Flex vertical=true gap=FlexGap::Size(4)>
+                        <Body1Strong block=true>{name.clone()}{if keyed { " KEYED" } else { "" }}</Body1Strong>
+                        {keyed_by_view}
+                        <Caption1 block=true>"Schema: " {schema}</Caption1>
+                        <Caption1 block=true>"Events (24h): " {event_count} " | Subscriptions: " {sub_count}</Caption1>
                     </Flex>
-                </CardFooter>
-            </Card>
-        </div>
+                </CardContent>
+            </CardButtonArea>
+            <CardFooter>
+                <Flex gap=FlexGap::Small>
+                    <Button size=ButtonSize::Small appearance=ButtonAppearance::Subtle on_click=Callback::new({
+                        let nav = nav_store.with_value(|n: &_| n.clone());
+                        move |ev: ev::MouseEvent| {
+                            ev.stop_propagation();
+                            nav(
+                                &photon_backend::photon_topic_path(&name_btn),
+                                NavigateOptions::default(),
+                            );
+                        }
+                    })>"View"</Button>
+                    <Button size=ButtonSize::Small appearance=ButtonAppearance::Subtle on_click=Callback::new({
+                        let nav = nav_store.with_value(|n: &_| n.clone());
+                        move |ev: ev::MouseEvent| {
+                            ev.stop_propagation();
+                            nav(crate::paths::EVENTS, NavigateOptions::default());
+                        }
+                    })>"View Events"</Button>
+                    <Button size=ButtonSize::Small appearance=ButtonAppearance::Subtle on_click=Callback::new({
+                        let nav = nav_store.with_value(|n: &_| n.clone());
+                        move |ev: ev::MouseEvent| {
+                            ev.stop_propagation();
+                            nav(crate::paths::SUBSCRIPTIONS, NavigateOptions::default());
+                        }
+                    })>"View Subscriptions"</Button>
+                </Flex>
+            </CardFooter>
+        </Card>
     }
 }

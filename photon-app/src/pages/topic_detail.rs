@@ -58,20 +58,18 @@ pub fn PhotonTopicDetailPage() -> impl IntoView {
                         {move || {
                             match events_res.get() {
                                 Some(Ok(events)) => view! {
-                                    <div id="photon-topic-events">
-                                        <Card>
-                                            <EventsTable
-                                                events=events
-                                                columns=EventsTableColumns {
-                                                    show_event_id: true,
-                                                    show_topic: false,
-                                                    show_key: false,
-                                                    show_seq: true,
-                                                    show_created: true,
-                                                }
-                                            />
-                                        </Card>
-                                    </div>
+                                    <Card>
+                                        <EventsTable
+                                            events=events
+                                            columns=EventsTableColumns {
+                                                show_event_id: true,
+                                                show_topic: false,
+                                                show_key: false,
+                                                show_seq: true,
+                                                show_created: true,
+                                            }
+                                        />
+                                    </Card>
                                 }.into_any(),
                                 Some(Err(e)) => view! { <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar> }.into_any(),
                                 None => view! { <Card>"Loading..."</Card> }.into_any(),

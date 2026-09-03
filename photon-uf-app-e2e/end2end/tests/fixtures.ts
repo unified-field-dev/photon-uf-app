@@ -8,67 +8,16 @@ export type SeedFixtures = {
   event_id: string;
 };
 
-const HELP_STORAGE_KEY = "uf.help.tour_steps";
-
-export async function seedAuth(
-  page: Page,
-  auth: SeedAuthKind,
-  opts?: { help_tour?: boolean },
-) {
-  const helpTour = opts?.help_tour ?? false;
-
+export async function seedAuth(page: Page, auth: SeedAuthKind) {
   const res = await page.request.post("/api/test/seed-data", {
-    data: {
-      auth,
-      help_tour: helpTour,
-    },
+    data: { auth },
   });
   expect(res.ok()).toBeTruthy();
-  const body = (await res.json()) as {
+  return res.json() as Promise<{
     ok: boolean;
     auth: string;
     fixtures: SeedFixtures;
-    help_seen_json?: string | null;
-  };
-
-  const seenJson = body.help_seen_json ?? "[]";
-
-  // Seed / clear before any document loads so WASM `read_local_visits` sees the key.
-  await page.addInitScript(
-    ({ enableTour, seen, key }) => {
-      try {
-        if (enableTour) {
-          if (!sessionStorage.getItem("uf.help.e2e_tour_cleared")) {
-            localStorage.removeItem(key);
-            sessionStorage.setItem("uf.help.e2e_tour_cleared", "1");
-          }
-          return;
-        }
-        localStorage.setItem(key, seen);
-      } catch {
-        /* ignore */
-      }
-    },
-    { enableTour: helpTour, seen: seenJson, key: HELP_STORAGE_KEY },
-  );
-
-  // Also write on the origin now (covers the first goto after seed).
-  await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.evaluate(
-    ({ enableTour, seen, key }) => {
-      if (enableTour) {
-        if (!sessionStorage.getItem("uf.help.e2e_tour_cleared")) {
-          localStorage.removeItem(key);
-          sessionStorage.setItem("uf.help.e2e_tour_cleared", "1");
-        }
-        return;
-      }
-      localStorage.setItem(key, seen);
-    },
-    { enableTour: helpTour, seen: seenJson, key: HELP_STORAGE_KEY },
-  );
-
-  return body;
+  }>;
 }
 
 /**

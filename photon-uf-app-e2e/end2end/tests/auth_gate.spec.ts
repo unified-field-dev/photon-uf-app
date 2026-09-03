@@ -21,7 +21,7 @@ test.describe("e2e.auth", () => {
     await expect(page.getByText(/Failed to load stats|Permission denied|permission/i).first()).toBeVisible({
       timeout: 60_000,
     });
-    await expect(page.locator("#photon-dashboard-stats")).toHaveCount(0);
+    await expect(page.getByText("Events (24h)")).toHaveCount(0);
   });
 
   test("e2e.auth.admin_dashboard", async ({ page }) => {

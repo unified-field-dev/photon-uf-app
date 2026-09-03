@@ -25,10 +25,6 @@
 //!   [Get started](#browse-subscriptions)
 //! - **Events browser** — Lists stored transport events and opens detail pages via
 //!   [`get_events`] and [`get_event`]. [Get started](#browse-events)
-//! - **Help spotlight tours** — Ships per-route Help spotlight steps for dashboard,
-//!   topics, subscriptions, and events. Call [`ensure_help_steps_linked`] once at host
-//!   startup when mounting routes; enable `offering-help` on the product shell.
-//!   [Get started](#help-spotlight-tours)
 //! - **Server function wrappers** — Exposes [`mod@server`] Higgs `#[server]` fns and DTO
 //!   re-exports backed by [`photon_backend`] pure mapping helpers.
 //!
@@ -167,35 +163,6 @@
 //! [`EventDetail`] including payload JSON when transport retention allows. Expired transport
 //! payloads surface `transport_expired` on detail without failing the page shell.
 //!
-//! ## Help spotlight tours
-//!
-//! Photon ships Orbital Help spotlights for each ops route (dashboard, topics, topic detail,
-//! subscriptions, subscription detail, events, event detail). Hosts that enable
-//! `offering-help` (or `full`) mount `HelpTourPlayer`. Call [`ensure_help_steps_linked`] once
-//! at host startup (when mounting [`PhotonRoutes`]) so `inventory` submissions from
-//! [`mod@help_steps`] are retained and tours can run.
-//!
-//! **Prerequisites:** `uf-help` hydrate/ssr features on this crate; product host with
-//! Help player mounted (`uf-integrations` `offering-help` or `full`); authenticated
-//! session when Valence visit tracking is enabled.
-//!
-//! ```rust,ignore
-//! use photon_app::{ensure_help_steps_linked, PhotonRoutes};
-//!
-//! ensure_help_steps_linked();
-//! // Mount <PhotonRoutes /> under the host <Routes>.
-//! ```
-//!
-//! On success, visiting `/photon` (and other Photon paths) can show pending spotlight
-//! steps. Replay restarts the tour for the current route via the Help menu. Detail routes
-//! use inventory keys such as `/photon/topics/:topic_name` matched by `uf_help::route_matches`.
-//! If the host omitted `offering-help`, `HelpTourPlayer` is absent and steps never appear
-//! even when inventory linked. Skipping `ensure_help_steps_linked` drops inventory
-//! submissions so the player has nothing to show.
-//!
-//! Next: open `/photon` in a host with Help enabled, or follow
-//! [Mount Photon routes](#mount-photon-routes) if the route tree is not mounted yet.
-//!
 //! ## Feature flags
 //!
 //! | Flag | Effect |
@@ -225,7 +192,6 @@
 //!
 //! ## Where to look next
 //!
-//! - [`mod@help_steps`] — Help spotlight tour inventory; call [`ensure_help_steps_linked`].
 //! - [`PhotonLayout`] — shared app bar / nav shell wrapping every route.
 //! - [`mod@server`] — server functions and DTOs backing the UI.
 //! - [`permissions::PhotonPermission`] — permission manifest for `PhotonAdmin`.
@@ -244,8 +210,6 @@ use leptos_router::{
 use uf_product_macros::uf_app;
 
 mod components;
-/// Help spotlight tour step inventory for Photon routes.
-pub mod help_steps;
 mod layout;
 mod lazy_routes;
 /// Page components for the Photon ops UI.
@@ -255,7 +219,6 @@ pub mod permissions;
 /// SSR server functions and DTOs backing the Photon ops UI.
 pub mod server;
 
-pub use help_steps::ensure_help_steps_linked;
 pub use layout::PhotonLayout;
 pub use lazy_routes::{
     prefetch_family, PhotonDashboardRoute, PhotonEventDetailRoute, PhotonEventsIndexRoute,
@@ -293,7 +256,6 @@ uf_app! {
 #[orbital_macros::orbital_routes_extract]
 #[component(transparent)]
 pub fn PhotonRoutes() -> impl leptos_router::MatchNestedRoutes + Clone {
-    crate::help_steps::ensure_help_steps_linked();
     view! {
         <ParentRoute path=path!("photon") view=PhotonLayoutRouteView>
             <Route path=path!("") view={Lazy::<PhotonDashboardRoute>::new()} />

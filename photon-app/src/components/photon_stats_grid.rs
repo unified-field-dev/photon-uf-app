@@ -21,12 +21,10 @@ pub fn PhotonStatsGrid(
     let events = stats.event_count_24h.to_string();
 
     view! {
-        <div id="photon-dashboard-stats">
-            <AutoGrid min="250px" gap=SpacingSize::Size160>
-                <StatCard label="Topics" value=topics icon=icondata::AiBellOutlined />
-                <StatCard label="Subscriptions" value=subs icon=icondata::AiUnorderedListOutlined />
-                <StatCard label="Events (24h)" value=events icon=icondata::AiHistoryOutlined />
-            </AutoGrid>
-        </div>
+        <AutoGrid min="250px" gap=SpacingSize::Size160>
+            <StatCard label="Topics" value=topics icon=icondata::AiBellOutlined />
+            <StatCard label="Subscriptions" value=subs icon=icondata::AiUnorderedListOutlined />
+            <StatCard label="Events (24h)" value=events icon=icondata::AiHistoryOutlined />
+        </AutoGrid>
     }
 }

@@ -19,7 +19,7 @@ pub fn EventFilterToolbar(
 
     view! {
         <style>{style_sheet}</style>
-        <div class=class_names.toolbar id="photon-events-filter">
+        <div class=class_names.toolbar>
             <Select bind=topic_str>
                 <option value="">"Topic: All"</option>
                 {topics.iter().map(|t| {
