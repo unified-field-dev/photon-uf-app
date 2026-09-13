@@ -106,7 +106,7 @@ async fn seed_user(id: &str, email_verified: bool, valence: &Valence) {
         now,
     )
     .expect("build user");
-    lepton::generated::User::upsert_used(id, user, valence, valence::use_!("upsert User in photon-uf-app-e2e/src/e2e_valence.rs; Valence persistence for this feature path; typed store; visible to test harness."))
+    lepton::generated::User::upsert_used(id, user, valence, valence::use_!(r#"**Test:** Fixture **User** save for `e2e_valence` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."#))
         .await
         .expect("upsert user");
 }
@@ -120,11 +120,11 @@ async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
     )
     .expect("build super user group");
     let created =
-        gauge::generated::PermissionGroup::upsert_used("super_user_group", super_group, system, valence::use_!("upsert PermissionGroup in photon-uf-app-e2e/src/e2e_valence.rs; Valence persistence for this feature path; typed store; visible to test harness."))
+        gauge::generated::PermissionGroup::upsert_used("super_user_group", super_group, system, valence::use_!(r#"**Test:** Fixture **Permission Group** save for `e2e_valence` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."#))
             .await
             .expect("upsert super user group");
 
-    let member = lepton::generated::User::get_used(member_user_id, system, valence::use_!("get User in photon-uf-app-e2e/src/e2e_valence.rs; Valence persistence for this feature path; typed store; visible to test harness."))
+    let member = lepton::generated::User::get_used(member_user_id, system, valence::use_!(r#"**Test:** Fixture **User** load for `e2e_valence` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."#))
         .await
         .expect("query member")
         .expect("member exists");
@@ -136,7 +136,7 @@ async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
         )
         .expect("new principal"),
         system,
-        valence::use_!("upsert PermissionUserPrincipal in photon-uf-app-e2e/src/e2e_valence.rs; Valence persistence for this feature path; typed store; visible to test harness."),
+        valence::use_!(r#"**Test:** Fixture **Permission User Principal** save for `e2e_valence` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."#),
     )
     .await
     .expect("upsert principal");
@@ -151,13 +151,13 @@ async fn seed_super_user_with_member(system: &Valence, member_user_id: &str) {
 }
 
 async fn demote_admin_from_super_user(system: &Valence) {
-    let Some(super_group) = gauge::generated::PermissionGroup::get_used("super_user_group", system, valence::use_!("get PermissionGroup in photon-uf-app-e2e/src/e2e_valence.rs; Valence persistence for this feature path; typed store; visible to test harness."))
+    let Some(super_group) = gauge::generated::PermissionGroup::get_used("super_user_group", system, valence::use_!(r#"**Test:** Fixture **Permission Group** load for `e2e_valence` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."#))
         .await
         .expect("get super user group")
     else {
         return;
     };
-    let Some(principal) = gauge::generated::PermissionUserPrincipal::get_used("user:admin", system, valence::use_!("get PermissionUserPrincipal in photon-uf-app-e2e/src/e2e_valence.rs; Valence persistence for this feature path; typed store; visible to test harness."))
+    let Some(principal) = gauge::generated::PermissionUserPrincipal::get_used("user:admin", system, valence::use_!(r#"**Test:** Fixture **Permission User Principal** load for `e2e_valence` so the suite can arrange and assert persistence behavior. CI and developers running the suite only."#))
         .await
         .expect("get admin principal")
     else {
