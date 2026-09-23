@@ -10,10 +10,11 @@ use photon::Photon;
 
 use crate::{
     clamp_event_list_limit, count_since, dashboard_stats, event_detail_from_transport,
-    event_summary_from_transport, find_checkpoint_seq, find_subscription_by_id, find_topic_by_name,
-    sort_topics_by_name, subscription_summary_from_handler, topic_summary, validate_event_id,
-    validate_subscription_id, validate_topic_name, DashboardStats, EventDetail, EventSummary,
-    PhotonIdError, SubscriptionSummary, TopicSummary,
+    event_summary_from_transport, find_checkpoint_head_seq, find_checkpoint_seq,
+    find_subscription_by_id, find_topic_by_name, sort_topics_by_name,
+    subscription_summary_from_handler, topic_summary, validate_event_id, validate_subscription_id,
+    validate_topic_name, CheckpointRow, DashboardStats, EventDetail, EventSummary, PhotonIdError,
+    SubscriptionSummary, TopicSummary,
 };
 
 /// Operator-facing ops failure (maps to `ServerFnError` at the Leptos boundary).
@@ -109,7 +110,7 @@ pub async fn list_subscriptions(photon: &Photon) -> Result<Vec<SubscriptionSumma
         .admin_snapshot()
         .await
         .map_err(|e| photon_io_err("load admin snapshot", e))?;
-    let checkpoints: Vec<(String, String, Option<String>, Option<i64>)> = snap
+    let checkpoints: Vec<CheckpointRow> = snap
         .checkpoints
         .iter()
         .map(|c| {
@@ -118,6 +119,7 @@ pub async fn list_subscriptions(photon: &Photon) -> Result<Vec<SubscriptionSumma
                 c.topic_name.clone(),
                 c.topic_key.clone(),
                 c.last_seq,
+                c.head_seq,
             )
         })
         .collect();
@@ -126,12 +128,15 @@ pub async fn list_subscriptions(photon: &Photon) -> Result<Vec<SubscriptionSumma
     for h in snap.handlers {
         let last_seq =
             find_checkpoint_seq(&checkpoints, h.subscription_name.as_deref(), &h.topic_name);
+        let head_seq =
+            find_checkpoint_head_seq(&checkpoints, h.subscription_name.as_deref(), &h.topic_name);
         list.push(subscription_summary_from_handler(
             h.registry_key,
             h.subscription_name.or(h.consumer_group),
             h.topic_name,
             h.mode,
             last_seq,
+            head_seq,
         ));
     }
     Ok(list)

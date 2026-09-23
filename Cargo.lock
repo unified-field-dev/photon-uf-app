@@ -3536,7 +3536,6 @@ dependencies = [
 [[package]]
 name = "photon-backend"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/photon?branch=main#46dd3ea4c9d5e2b8c5fb55027fe7642a803e9403"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -3594,7 +3593,6 @@ dependencies = [
 [[package]]
 name = "photon-macros"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/photon?branch=main#46dd3ea4c9d5e2b8c5fb55027fe7642a803e9403"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3604,7 +3602,6 @@ dependencies = [
 [[package]]
 name = "photon-runtime"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/photon?branch=main#46dd3ea4c9d5e2b8c5fb55027fe7642a803e9403"
 dependencies = [
  "futures",
  "photon-backend 0.1.4",
@@ -3620,7 +3617,6 @@ dependencies = [
 [[package]]
 name = "photon-telemetry"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/photon?branch=main#46dd3ea4c9d5e2b8c5fb55027fe7642a803e9403"
 dependencies = [
  "serde_json",
 ]
@@ -5704,7 +5700,6 @@ dependencies = [
 [[package]]
 name = "uf-photon"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/photon?branch=main#46dd3ea4c9d5e2b8c5fb55027fe7642a803e9403"
 dependencies = [
  "photon-backend 0.1.4",
  "photon-macros",
@@ -5717,7 +5712,6 @@ dependencies = [
 [[package]]
 name = "uf-photon-core"
 version = "0.1.4"
-source = "git+https://github.com/unified-field-dev/photon?branch=main#46dd3ea4c9d5e2b8c5fb55027fe7642a803e9403"
 dependencies = [
  "serde",
  "serde_json",

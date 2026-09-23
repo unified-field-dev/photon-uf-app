@@ -149,6 +149,7 @@ pub fn subscription_summary_from_handler(
     topic_name: impl Into<String>,
     mode: impl Into<String>,
     last_seq: Option<i64>,
+    head_seq: Option<i64>,
 ) -> SubscriptionSummary {
     let topic_name = topic_name.into();
     let registry_key = registry_key.into();
@@ -160,24 +161,41 @@ pub fn subscription_summary_from_handler(
         enabled: true,
         mode: mode.into(),
         topic_key_filter: None,
-        checkpoint_lag: stub_checkpoint_lag(),
+        checkpoint_lag: compute_checkpoint_lag(head_seq, last_seq),
         last_seq,
         last_processed_at: None,
     }
 }
 
+/// A checkpoint row: `(subscription_name, topic_name, topic_key, last_seq, head_seq)`.
+pub type CheckpointRow = (String, String, Option<String>, Option<i64>, Option<i64>);
+
 /// Matches a checkpoint `last_seq` for a handler subscription/topic pair.
 #[must_use]
 pub fn find_checkpoint_seq(
-    checkpoints: &[(String, String, Option<String>, Option<i64>)],
+    checkpoints: &[CheckpointRow],
     subscription_name: Option<&str>,
     topic_name: &str,
 ) -> Option<i64> {
     let sub = subscription_name?;
     checkpoints
         .iter()
-        .find(|(s, t, _, _)| s == sub && t == topic_name)
-        .and_then(|(_, _, _, seq)| *seq)
+        .find(|(s, t, _, _, _)| s == sub && t == topic_name)
+        .and_then(|(_, _, _, last_seq, _)| *last_seq)
+}
+
+/// Matches a checkpoint `head_seq` for a handler subscription/topic pair.
+#[must_use]
+pub fn find_checkpoint_head_seq(
+    checkpoints: &[CheckpointRow],
+    subscription_name: Option<&str>,
+    topic_name: &str,
+) -> Option<i64> {
+    let sub = subscription_name?;
+    checkpoints
+        .iter()
+        .find(|(s, t, _, _, _)| s == sub && t == topic_name)
+        .and_then(|(_, _, _, _, head_seq)| *head_seq)
 }
 
 /// Builds a [`TopicSummary`] from registry metadata plus traffic counts.
@@ -198,8 +216,13 @@ pub fn topic_summary(
     }
 }
 
-/// Checkpoint lag placeholder until live lag is wired from Photon checkpoints vs head.
+/// Lag between a topic's head sequence and a subscription's committed checkpoint.
+///
+/// A missing checkpoint is treated as "nothing processed yet" (full lag). A missing or
+/// unsupported head seq is treated as zero head (no visible lag) rather than as an error.
 #[must_use]
-pub const fn stub_checkpoint_lag() -> i64 {
-    0
+pub fn compute_checkpoint_lag(head_seq: Option<i64>, last_seq: Option<i64>) -> i64 {
+    let head = head_seq.unwrap_or(0);
+    let last = last_seq.unwrap_or(0);
+    (head - last).max(0)
 }

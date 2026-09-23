@@ -80,8 +80,10 @@
 //!     "orders",
 //!     "durable",
 //!     Some(42),
+//!     Some(50),
 //! );
 //! assert_eq!(sub.subscription_id, "reg.key");
+//! assert_eq!(sub.checkpoint_lag, 8);
 //!
 //! let row = event_summary_from_transport("e1", "orders", None, 1, "2026-01-01T00:00:00Z");
 //! assert_eq!(row.payload_preview, "[stored]");
@@ -138,10 +140,11 @@ mod types;
 mod validate;
 
 pub use mapping::{
-    count_since, dashboard_stats, event_detail_from_transport, event_detail_transport_expired,
-    event_summary_from_meta, event_summary_from_transport, filter_subscriptions_by_topic,
-    find_checkpoint_seq, find_subscription_by_id, find_topic_by_name, format_delivery_preview,
-    sort_topics_by_name, stub_checkpoint_lag, subscription_summary_from_handler, topic_summary,
+    compute_checkpoint_lag, count_since, dashboard_stats, event_detail_from_transport,
+    event_detail_transport_expired, event_summary_from_meta, event_summary_from_transport,
+    filter_subscriptions_by_topic, find_checkpoint_head_seq, find_checkpoint_seq,
+    find_subscription_by_id, find_topic_by_name, format_delivery_preview, sort_topics_by_name,
+    subscription_summary_from_handler, topic_summary, CheckpointRow,
 };
 pub use types::{
     DashboardStats, EventDetail, EventSummary, PhotonIdError, SubscriptionSummary, TopicSummary,
@@ -175,7 +178,7 @@ mod tests {
             enabled: true,
             mode: "at_least_once".into(),
             topic_key_filter: None,
-            checkpoint_lag: stub_checkpoint_lag(),
+            checkpoint_lag: 0,
             last_seq: None,
             last_processed_at: None,
         }
@@ -391,8 +394,24 @@ mod tests {
     }
 
     #[test]
-    fn stub_checkpoint_lag_is_zero_happy_path() {
-        assert_eq!(stub_checkpoint_lag(), 0);
+    fn compute_checkpoint_lag_no_checkpoint_reports_full_head_happy_path() {
+        assert_eq!(compute_checkpoint_lag(Some(9), None), 9);
+    }
+
+    #[test]
+    fn compute_checkpoint_lag_unknown_head_falls_back_to_zero_happy_path() {
+        assert_eq!(compute_checkpoint_lag(None, Some(5)), 0);
+        assert_eq!(compute_checkpoint_lag(None, None), 0);
+    }
+
+    #[test]
+    fn compute_checkpoint_lag_reports_gap_between_head_and_last_seq_happy_path() {
+        assert_eq!(compute_checkpoint_lag(Some(9), Some(3)), 6);
+    }
+
+    #[test]
+    fn compute_checkpoint_lag_clamps_negative_gap_to_zero_sad_path() {
+        assert_eq!(compute_checkpoint_lag(Some(3), Some(9)), 0);
     }
 
     #[test]
@@ -403,22 +422,41 @@ mod tests {
             "orders",
             "durable",
             Some(42),
+            Some(50),
         );
         assert_eq!(sub.subscription_id, "reg.key");
         assert_eq!(sub.subscription_name, "orders.sub");
         assert_eq!(sub.last_seq, Some(42));
+        assert_eq!(sub.checkpoint_lag, 8);
         assert!(sub.enabled);
     }
 
     #[test]
     fn find_checkpoint_seq_matches_subscription_topic_happy_path() {
         let cps = vec![
-            ("sub-a".into(), "orders".into(), None, Some(9)),
-            ("sub-b".into(), "orders".into(), None, Some(3)),
+            ("sub-a".into(), "orders".into(), None, Some(9), Some(20)),
+            ("sub-b".into(), "orders".into(), None, Some(3), Some(20)),
         ];
         assert_eq!(find_checkpoint_seq(&cps, Some("sub-a"), "orders"), Some(9));
         assert_eq!(find_checkpoint_seq(&cps, None, "orders"), None);
         assert_eq!(find_checkpoint_seq(&cps, Some("missing"), "orders"), None);
+    }
+
+    #[test]
+    fn find_checkpoint_head_seq_matches_subscription_topic_happy_path() {
+        let cps = vec![
+            ("sub-a".into(), "orders".into(), None, Some(9), Some(20)),
+            ("sub-b".into(), "orders".into(), None, Some(3), None),
+        ];
+        assert_eq!(
+            find_checkpoint_head_seq(&cps, Some("sub-a"), "orders"),
+            Some(20)
+        );
+        assert_eq!(
+            find_checkpoint_head_seq(&cps, Some("sub-b"), "orders"),
+            None
+        );
+        assert_eq!(find_checkpoint_head_seq(&cps, None, "orders"), None);
     }
 
     #[test]

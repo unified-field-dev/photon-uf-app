@@ -5,8 +5,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use photon_backend::{
-    filter_subscriptions_by_topic, find_subscription_by_id, find_topic_by_name,
-    sort_topics_by_name, stub_checkpoint_lag, validate_subscription_id, validate_topic_name,
+    compute_checkpoint_lag, filter_subscriptions_by_topic, find_subscription_by_id,
+    find_topic_by_name, sort_topics_by_name, validate_subscription_id, validate_topic_name,
     SubscriptionSummary, TopicSummary,
 };
 
@@ -20,7 +20,8 @@ fn sample_topic(name: &str, subs: u32) -> TopicSummary {
     }
 }
 
-fn sample_sub(id: &str, topic: &str, enabled: bool) -> SubscriptionSummary {
+fn sample_sub(id: &str, topic: &str, enabled: bool, head_seq: Option<i64>) -> SubscriptionSummary {
+    let last_seq = Some(10);
     SubscriptionSummary {
         subscription_id: id.into(),
         subscription_name: format!("sub-{id}"),
@@ -28,8 +29,8 @@ fn sample_sub(id: &str, topic: &str, enabled: bool) -> SubscriptionSummary {
         enabled,
         mode: "at_least_once".into(),
         topic_key_filter: None,
-        checkpoint_lag: stub_checkpoint_lag(),
-        last_seq: Some(10),
+        checkpoint_lag: compute_checkpoint_lag(head_seq, last_seq),
+        last_seq,
         last_processed_at: None,
     }
 }
@@ -67,28 +68,28 @@ fn get_topic_unknown_name_is_none_sad() {
 #[test]
 fn get_subscription_detail_matches_list_entry_happy_path() {
     let subs = vec![
-        sample_sub("sub-1", "orders", true),
-        sample_sub("sub-2", "payments", false),
+        sample_sub("sub-1", "orders", true, Some(10)),
+        sample_sub("sub-2", "payments", false, Some(25)),
     ];
     let detail = find_subscription_by_id(&subs, "sub-2").expect("listed sub must resolve");
     assert_eq!(detail.subscription_id, "sub-2");
     assert_eq!(detail.topic_name, "payments");
     assert!(!detail.enabled);
-    assert_eq!(detail.checkpoint_lag, 0);
+    assert_eq!(detail.checkpoint_lag, 15);
 }
 
 #[test]
 fn get_subscription_unknown_id_is_none_sad() {
-    let subs = vec![sample_sub("sub-1", "orders", true)];
+    let subs = vec![sample_sub("sub-1", "orders", true, Some(10))];
     assert!(find_subscription_by_id(&subs, "__photon_uf_app_no_such_sub__").is_none());
 }
 
 #[test]
 fn topic_detail_filters_subscriptions_for_topic_happy_path() {
     let subs = vec![
-        sample_sub("a", "orders", true),
-        sample_sub("b", "payments", true),
-        sample_sub("c", "orders", false),
+        sample_sub("a", "orders", true, Some(10)),
+        sample_sub("b", "payments", true, Some(10)),
+        sample_sub("c", "orders", false, Some(10)),
     ];
     let filtered = filter_subscriptions_by_topic(&subs, "orders");
     assert_eq!(filtered.len(), 2);
@@ -97,7 +98,7 @@ fn topic_detail_filters_subscriptions_for_topic_happy_path() {
 
 #[test]
 fn topic_detail_filters_subscriptions_unknown_topic_empty_sad() {
-    let subs = vec![sample_sub("a", "orders", true)];
+    let subs = vec![sample_sub("a", "orders", true, Some(10))];
     assert_eq!(
         filter_subscriptions_by_topic(&subs, "__missing_topic__").len(),
         0

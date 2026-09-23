@@ -143,6 +143,14 @@ orbital-tree = { path = "../../L0-upstream-cores/orbital/orbital-tree" }
 orbital-scheduler = { path = "../../L0-upstream-cores/orbital/orbital-scheduler" }
 orbital-date-pickers = { path = "../../L0-upstream-cores/orbital/orbital-date-pickers" }
 
+[patch."https://github.com/unified-field-dev/photon"]
+uf-photon = { path = "../../L0-upstream-cores/photon/photon" }
+uf-photon-core = { path = "../../L0-upstream-cores/photon/photon-core" }
+photon-runtime = { path = "../../L0-upstream-cores/photon/photon-runtime" }
+photon-backend = { path = "../../L0-upstream-cores/photon/photon-backend" }
+photon-macros = { path = "../../L0-upstream-cores/photon/photon-macros" }
+photon-telemetry = { path = "../../L0-upstream-cores/photon/photon-telemetry" }
+
 [patch.crates-io]
 uf-valence = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
 uf-valence-core = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
