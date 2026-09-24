@@ -5,6 +5,7 @@ use orbital::primitives::{Flex, MessageBar, MessageBarIntent};
 
 use crate::components::EventMetaCard;
 use crate::server::get_event;
+use crate::components::server_fn_error_bar;
 
 /// Detail view for a single event: metadata, payload, and actor context.
 #[component]
@@ -25,7 +26,7 @@ pub fn PhotonEventDetailPage() -> impl IntoView {
                             <EventMetaCard event=ev />
                         }.into_any(),
                         Some(Ok(None)) => view! { <MessageBar intent=MessageBarIntent::Warning>"Event not found"</MessageBar> }.into_any(),
-                        Some(Err(e)) => view! { <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar> }.into_any(),
+                        Some(Err(e)) => server_fn_error_bar(&e),
                         None => view! { <Card>"Loading..."</Card> }.into_any(),
                     }}
                 </Suspense>

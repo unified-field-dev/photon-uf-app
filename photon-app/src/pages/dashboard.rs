@@ -2,10 +2,11 @@ use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
 use leptos_router::NavigateOptions;
 use orbital::components::{Card, ContentContainer, SpacingSize, Subtitle2, Title3};
-use orbital::primitives::{Button, ButtonAppearance, Flex, MessageBar, MessageBarIntent, Space};
+use orbital::primitives::{Button, ButtonAppearance, Flex, Space};
 
 use crate::components::{
-    ActiveSubscriptionsTable, EventsTable, EventsTableColumns, PhotonStatsGrid,
+    server_fn_error_bar, server_fn_error_bar_with_prefix, ActiveSubscriptionsTable, EventsTable,
+    EventsTableColumns, PhotonStatsGrid,
 };
 use crate::server::{get_dashboard_stats, get_recent_events, get_subscriptions};
 
@@ -29,9 +30,7 @@ pub fn PhotonDashboardPage() -> impl IntoView {
                         Some(Ok(stats)) => view! {
                             <PhotonStatsGrid stats=stats />
                         }.into_any(),
-                        Some(Err(e)) => view! {
-                            <MessageBar intent=MessageBarIntent::Error>"Failed to load stats: " {e.to_string()}</MessageBar>
-                        }.into_any(),
+                        Some(Err(e)) => server_fn_error_bar_with_prefix("Failed to load stats: ", &e),
                         None => view! { <div>"Loading..."</div> }.into_any(),
                     }}
                 </Suspense>
@@ -62,7 +61,7 @@ pub fn PhotonDashboardPage() -> impl IntoView {
                                     />
                                 </Card>
                             }.into_any(),
-                            Some(Err(e)) => view! { <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar> }.into_any(),
+                            Some(Err(e)) => server_fn_error_bar(&e),
                             None => view! { <Card>"Loading..."</Card> }.into_any(),
                         }}
                     </Suspense>
@@ -85,7 +84,7 @@ pub fn PhotonDashboardPage() -> impl IntoView {
                                     <ActiveSubscriptionsTable subs=subs />
                                 </Card>
                             }.into_any(),
-                            Some(Err(e)) => view! { <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar> }.into_any(),
+                            Some(Err(e)) => server_fn_error_bar(&e),
                             None => view! { <Card>"Loading..."</Card> }.into_any(),
                         }}
                     </Suspense>

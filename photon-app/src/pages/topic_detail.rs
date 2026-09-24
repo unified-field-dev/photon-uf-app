@@ -3,7 +3,7 @@ use leptos_router::hooks::use_params_map;
 use orbital::components::{Card, ContentContainer, SpacingSize, Subtitle2, Title3};
 use orbital::primitives::{Flex, MessageBar, MessageBarIntent};
 
-use crate::components::{EventsTable, EventsTableColumns, TopicMetaCard, TopicSubscriptionsTable};
+use crate::components::{server_fn_error_bar, EventsTable, EventsTableColumns, TopicMetaCard, TopicSubscriptionsTable};
 use crate::server::{get_events, get_subscriptions, get_topic};
 
 /// Detail view for a single topic: schema, subscriptions, and recent events.
@@ -29,7 +29,7 @@ pub fn PhotonTopicDetailPage() -> impl IntoView {
                             <TopicMetaCard topic=t />
                         }.into_any(),
                         Some(Ok(None)) => view! { <MessageBar intent=MessageBarIntent::Warning>"Topic not found"</MessageBar> }.into_any(),
-                        Some(Err(e)) => view! { <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar> }.into_any(),
+                        Some(Err(e)) => server_fn_error_bar(&e),
                         None => view! { <Card>"Loading..."</Card> }.into_any(),
                     }}
                 </Suspense>
@@ -71,7 +71,7 @@ pub fn PhotonTopicDetailPage() -> impl IntoView {
                                         />
                                     </Card>
                                 }.into_any(),
-                                Some(Err(e)) => view! { <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar> }.into_any(),
+                                Some(Err(e)) => server_fn_error_bar(&e),
                                 None => view! { <Card>"Loading..."</Card> }.into_any(),
                             }
                         }}

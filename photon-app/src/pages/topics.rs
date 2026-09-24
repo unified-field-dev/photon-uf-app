@@ -1,10 +1,11 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
 use orbital::components::{Body1, Card, ContentContainer, EmptyState, SpacingSize, Title3};
-use orbital::primitives::{Flex, FlexGap, Input, InputAppearance, MessageBar, MessageBarIntent};
+use orbital::primitives::{Flex, FlexGap, Input, InputAppearance};
 
 use crate::components::TopicCard;
 use crate::server::{get_topics, TopicSummary};
+use crate::components::server_fn_error_bar;
 
 /// Topic index: searchable list of all registered topics with traffic summaries.
 #[component]
@@ -94,7 +95,7 @@ pub fn PhotonTopicsIndexPage() -> impl IntoView {
                                 </Flex>
                             }.into_any()
                         }
-                        Some(Err(e)) => view! { <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar> }.into_any(),
+                        Some(Err(e)) => server_fn_error_bar(&e),
                         None => view! { <Card>"Loading..."</Card> }.into_any(),
                         }
                     }}

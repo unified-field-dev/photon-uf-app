@@ -1,9 +1,9 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
 use orbital::components::{Body1, Card, ContentContainer, EmptyState, SpacingSize, Title3};
-use orbital::primitives::{Flex, FlexGap, MessageBar, MessageBarIntent};
+use orbital::primitives::{Flex, FlexGap};
 
-use crate::components::{SubscriptionCard, SubscriptionFilterToolbar};
+use crate::components::{server_fn_error_bar, SubscriptionCard, SubscriptionFilterToolbar};
 use crate::server::{get_subscriptions, SubscriptionSummary};
 
 /// Subscription index: searchable, filterable list of all subscriptions.
@@ -93,7 +93,7 @@ pub fn PhotonSubscriptionsIndexPage() -> impl IntoView {
                                 </Flex>
                             }.into_any()
                         }
-                        Some(Err(e)) => view! { <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar> }.into_any(),
+                        Some(Err(e)) => server_fn_error_bar(&e),
                         None => view! { <Card>"Loading..."</Card> }.into_any(),
                         }
                     }}

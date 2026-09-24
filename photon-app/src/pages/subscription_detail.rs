@@ -3,7 +3,7 @@ use leptos_router::hooks::use_params_map;
 use orbital::components::{Card, ContentContainer, SpacingSize, Subtitle2, Title3};
 use orbital::primitives::{Flex, MessageBar, MessageBarIntent};
 
-use crate::components::{EventsTable, EventsTableColumns, SubscriptionMetaCard};
+use crate::components::{server_fn_error_bar, EventsTable, EventsTableColumns, SubscriptionMetaCard};
 use crate::server::{get_events, get_subscription};
 
 /// Detail view for a single subscription: configuration, read-state, and recent events.
@@ -38,7 +38,7 @@ pub fn PhotonSubscriptionDetailPage() -> impl IntoView {
                             <SubscriptionMetaCard sub=s />
                         }.into_any(),
                         Some(Ok(None)) => view! { <MessageBar intent=MessageBarIntent::Warning>"Subscription not found"</MessageBar> }.into_any(),
-                        Some(Err(e)) => view! { <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar> }.into_any(),
+                        Some(Err(e)) => server_fn_error_bar(&e),
                         None => view! { <Card>"Loading..."</Card> }.into_any(),
                     }}
                 </Suspense>
@@ -62,7 +62,7 @@ pub fn PhotonSubscriptionDetailPage() -> impl IntoView {
                                     />
                                 </Card>
                             }.into_any(),
-                            Some(Err(e)) => view! { <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar> }.into_any(),
+                            Some(Err(e)) => server_fn_error_bar(&e),
                             None => view! { <Card>"Loading..."</Card> }.into_any(),
                             }
                         }}

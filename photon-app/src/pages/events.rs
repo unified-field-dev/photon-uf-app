@@ -1,9 +1,9 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
 use orbital::components::{Body1, Card, ContentContainer, EmptyState, SpacingSize, Title3};
-use orbital::primitives::{Flex, MessageBar, MessageBarIntent};
+use orbital::primitives::{Flex};
 
-use crate::components::{EventFilterToolbar, EventsTable};
+use crate::components::{server_fn_error_bar, EventFilterToolbar, EventsTable};
 use crate::server::{get_events, get_topics};
 
 /// Event index: filterable, paginated list of events across all topics.
@@ -61,7 +61,7 @@ pub fn PhotonEventsIndexPage() -> impl IntoView {
                                 </Flex>
                             }.into_any()
                         }
-                        Some(Err(e)) => view! { <MessageBar intent=MessageBarIntent::Error>{e.to_string()}</MessageBar> }.into_any(),
+                        Some(Err(e)) => server_fn_error_bar(&e),
                         None => view! { <Card>"Loading..."</Card> }.into_any(),
                     }}
                 </Suspense>
