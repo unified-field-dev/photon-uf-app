@@ -3,9 +3,9 @@ use leptos_router::hooks::use_navigate;
 use orbital::components::{Body1, Card, ContentContainer, EmptyState, SpacingSize, Title3};
 use orbital::primitives::{Flex, FlexGap, Input, InputAppearance};
 
+use crate::components::server_fn_error_bar;
 use crate::components::TopicCard;
 use crate::server::{get_topics, TopicSummary};
-use crate::components::server_fn_error_bar;
 
 /// Topic index: searchable list of all registered topics with traffic summaries.
 #[component]

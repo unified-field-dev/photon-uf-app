@@ -18,7 +18,7 @@ export PHOTON_TRANSPORT_KEY='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
 ```
 
 Package name note: this workspace crate is `photon-backend@0.1.0`. Enabling
-`ops` also pulls L0 `photon-backend@0.1.4` into the graph — prefer
+`ops` also pulls Photon core's `photon-backend@0.1.4` into the graph — prefer
 `-p photon-backend@0.1.0` in commands when both are present.
 
 ## Teaching host
@@ -137,7 +137,7 @@ Catalog: [`photon-uf-app-e2e/README.md`](../photon-uf-app-e2e/README.md).
 `product_surface` source needles remain Layer 1 structural smokes. They do not
 replace Layer 2.
 
-L5 host Playwright composition smoke for `/photon` lives on
+The composite-host Playwright smoke for `/photon` lives on
 `unified-field-embedded` (`e2e.l5.photon_shell_smoke`) and is not a substitute
 for this lab catalog.
 

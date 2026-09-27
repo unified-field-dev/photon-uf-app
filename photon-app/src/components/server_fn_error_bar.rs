@@ -1,10 +1,10 @@
-//! Shared Err path for Photon page Resources: toast permission denials, soft MessageBar.
+//! Shared Err path for Photon page Resources: toast permission denials, soft `MessageBar`.
 
 use leptos::prelude::*;
 use orbital::primitives::{MessageBar, MessageBarIntent};
 use uf_product::services::report_server_fn_error;
 
-/// Report permission failures to the toast bus and render a MessageBar.
+/// Report permission failures to the toast bus and render a `MessageBar`.
 ///
 /// When the toast handles the error, the bar uses soft copy instead of the raw
 /// server-fn string.

@@ -3,9 +3,9 @@ use leptos_router::hooks::use_params_map;
 use orbital::components::{Card, ContentContainer, SpacingSize, Title3};
 use orbital::primitives::{Flex, MessageBar, MessageBarIntent};
 
+use crate::components::server_fn_error_bar;
 use crate::components::EventMetaCard;
 use crate::server::get_event;
-use crate::components::server_fn_error_bar;
 
 /// Detail view for a single event: metadata, payload, and actor context.
 #[component]

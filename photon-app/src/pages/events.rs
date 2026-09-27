@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
 use orbital::components::{Body1, Card, ContentContainer, EmptyState, SpacingSize, Title3};
-use orbital::primitives::{Flex};
+use orbital::primitives::Flex;
 
 use crate::components::{server_fn_error_bar, EventFilterToolbar, EventsTable};
 use crate::server::{get_events, get_topics};

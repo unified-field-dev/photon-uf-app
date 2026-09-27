@@ -98,7 +98,7 @@ higgs-identity = { git = "https://github.com/unified-field-dev/higgs", branch = 
 gauge = { git = "https://github.com/unified-field-dev/gauge", branch = "main", default-features = false }
 
 orbital = { package = "orbital-ui", git = "https://github.com/unified-field-dev/orbital", branch = "main", default-features = false }
-orbital-macros = { path = "../../L0-upstream-cores/orbital/orbital-macros" }
+orbital-macros = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
 
 uf-integrations = { git = "https://github.com/unified-field-dev/unified-field-product", branch = "main", default-features = false }
 uf-product-macros = { git = "https://github.com/unified-field-dev/unified-field-product", branch = "main" }
@@ -122,35 +122,6 @@ codegen-units = 1
 debug = false
 
 # Unify crates.io uf-valence / chronon / orbital onto the git tree (avoids duplicate types).
-[patch."https://github.com/unified-field-dev/orbital"]
-orbital-ui = { path = "../../L0-upstream-cores/orbital/orbital" }
-orbital-macros = { path = "../../L0-upstream-cores/orbital/orbital-macros" }
-orbital-datatable = { path = "../../L0-upstream-cores/orbital/orbital-datatable" }
-orbital-charts = { path = "../../L0-upstream-cores/orbital/orbital-charts" }
-orbital-data = { path = "../../L0-upstream-cores/orbital/orbital-data" }
-orbital-shell = { path = "../../L0-upstream-cores/orbital/orbital-shell" }
-orbital-core-components = { path = "../../L0-upstream-cores/orbital/orbital-core-components" }
-orbital-base-components = { path = "../../L0-upstream-cores/orbital/orbital-base-components" }
-orbital-primitives = { path = "../../L0-upstream-cores/orbital/orbital-primitives" }
-orbital-theme = { path = "../../L0-upstream-cores/orbital/orbital-theme" }
-orbital-paging = { path = "../../L0-upstream-cores/orbital/orbital-paging" }
-orbital-motion = { path = "../../L0-upstream-cores/orbital/orbital-motion" }
-orbital-discussion = { path = "../../L0-upstream-cores/orbital/orbital-discussion" }
-orbital-history = { path = "../../L0-upstream-cores/orbital/orbital-history" }
-orbital-markdown = { path = "../../L0-upstream-cores/orbital/orbital-markdown" }
-orbital-style = { path = "../../L0-upstream-cores/orbital/orbital-style" }
-orbital-tree = { path = "../../L0-upstream-cores/orbital/orbital-tree" }
-orbital-scheduler = { path = "../../L0-upstream-cores/orbital/orbital-scheduler" }
-orbital-date-pickers = { path = "../../L0-upstream-cores/orbital/orbital-date-pickers" }
-
-[patch."https://github.com/unified-field-dev/photon"]
-uf-photon = { path = "../../L0-upstream-cores/photon/photon" }
-uf-photon-core = { path = "../../L0-upstream-cores/photon/photon-core" }
-photon-runtime = { path = "../../L0-upstream-cores/photon/photon-runtime" }
-photon-backend = { path = "../../L0-upstream-cores/photon/photon-backend" }
-photon-macros = { path = "../../L0-upstream-cores/photon/photon-macros" }
-photon-telemetry = { path = "../../L0-upstream-cores/photon/photon-telemetry" }
-
 [patch.crates-io]
 uf-valence = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
 uf-valence-core = { git = "https://github.com/unified-field-dev/valence", branch = "main" }
@@ -165,22 +136,22 @@ chronon-core = { git = "https://github.com/unified-field-dev/chronon", branch = 
 chronon-executor = { git = "https://github.com/unified-field-dev/chronon", branch = "main" }
 chronon-scheduler = { git = "https://github.com/unified-field-dev/chronon", branch = "main" }
 chronon-telemetry = { git = "https://github.com/unified-field-dev/chronon", branch = "main" }
-orbital-paging = { path = "../../L0-upstream-cores/orbital/orbital-paging" }
-orbital-data = { path = "../../L0-upstream-cores/orbital/orbital-data" }
-orbital-ui = { path = "../../L0-upstream-cores/orbital/orbital" }
-orbital-macros = { path = "../../L0-upstream-cores/orbital/orbital-macros" }
-orbital-shell = { path = "../../L0-upstream-cores/orbital/orbital-shell" }
-orbital-core-components = { path = "../../L0-upstream-cores/orbital/orbital-core-components" }
-orbital-base-components = { path = "../../L0-upstream-cores/orbital/orbital-base-components" }
-orbital-primitives = { path = "../../L0-upstream-cores/orbital/orbital-primitives" }
-orbital-theme = { path = "../../L0-upstream-cores/orbital/orbital-theme" }
-orbital-datatable = { path = "../../L0-upstream-cores/orbital/orbital-datatable" }
-orbital-date-pickers = { path = "../../L0-upstream-cores/orbital/orbital-date-pickers" }
-orbital-charts = { path = "../../L0-upstream-cores/orbital/orbital-charts" }
-orbital-tree = { path = "../../L0-upstream-cores/orbital/orbital-tree" }
-orbital-scheduler = { path = "../../L0-upstream-cores/orbital/orbital-scheduler" }
-orbital-motion = { path = "../../L0-upstream-cores/orbital/orbital-motion" }
-orbital-discussion = { path = "../../L0-upstream-cores/orbital/orbital-discussion" }
-orbital-history = { path = "../../L0-upstream-cores/orbital/orbital-history" }
-orbital-markdown = { path = "../../L0-upstream-cores/orbital/orbital-markdown" }
-orbital-style = { path = "../../L0-upstream-cores/orbital/orbital-style" }
+orbital-paging = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-data = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-ui = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-macros = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-shell = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-core-components = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-base-components = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-primitives = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-theme = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-datatable = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-date-pickers = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-charts = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-tree = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-scheduler = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-motion = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-discussion = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-history = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-markdown = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
+orbital-style = { git = "https://github.com/unified-field-dev/orbital", branch = "main" }
