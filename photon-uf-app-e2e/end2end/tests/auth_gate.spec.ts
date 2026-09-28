@@ -17,8 +17,10 @@ test.describe("e2e.auth", () => {
     await waitForHydrated(page);
     await expect(page.getByTestId("photon-app-root")).toBeVisible({ timeout: 60_000 });
     await expect(page.getByTestId("photon-dashboard")).toBeVisible({ timeout: 60_000 });
-    // Authenticated without PhotonAdmin: server fns fail; KPI grid never loads.
-    await expect(page.getByText(/Failed to load stats|Permission denied|permission/i).first()).toBeVisible({
+    // Authenticated without PhotonAdmin: server fns fail with a permission error that
+    // goes to the shell toast bus, so each section shows soft copy and the KPI grid
+    // never loads.
+    await expect(page.getByText("Couldn't load this section.").first()).toBeVisible({
       timeout: 60_000,
     });
     await expect(page.getByText("Events (24h)")).toHaveCount(0);
