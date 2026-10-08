@@ -1,5 +1,9 @@
 //! Topic filter toolbar for the events index page.
 
+// `#[component]` writes each prop name into its generated builder docs, where
+// clippy's `doc_markdown` flags snake_case names. Backticks can't be added there.
+#![allow(clippy::doc_markdown)]
+
 use leptos::prelude::*;
 
 use crate::server::TopicSummary;
