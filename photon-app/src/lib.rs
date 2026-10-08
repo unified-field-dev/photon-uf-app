@@ -244,6 +244,7 @@ uf_app! {
     version: "0.1.0",
     routes: PhotonRoutes,
     route_path: "/photon",
+    repository: "https://github.com/unified-field-dev/photon-uf-app",
     permission_manifest: permissions::PhotonPermission,
 }
 
