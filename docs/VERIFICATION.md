@@ -145,7 +145,7 @@ for this lab catalog.
 
 **Waived.** This application workspace; no cloud resources or Criterion benches.
 Correctness is in-process against Photon UF app DTO/mapping/ops contracts and
-the lab e2e host. Live broker fleets belong in photon core / `uf-live-cloud-lab`.
+the lab e2e host. Live broker fleets belong in photon core.
 
 ## Rustdoc policy
 
